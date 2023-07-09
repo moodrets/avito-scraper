@@ -1,0 +1,22 @@
+:root {
+    --window-width: 768px;
+    --window-height: 570px;
+}
+@layer base {
+    html {
+        width: var(--window-width);
+        height: var(--window-height);
+    }
+
+    body {
+        @apply bg-gray-700 text-white font-system;
+    }
+
+    .centered {
+        @apply mx-auto max-w-[1280px] px-5;
+    }
+
+    a {
+        @apply text-blue-300 hover:text-blue-300;
+    }
+}
