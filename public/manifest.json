@@ -15,9 +15,5 @@
         "48": "avito-icon.png",
         "128": "avito-icon.png"
     },
-    "permissions": ["activeTab", "storage"],
-    "options_page": "options.html",
-    "sandbox": {
-        "pages": ["page.html"]
-    }
+    "permissions": ["activeTab", "storage"]
 }
