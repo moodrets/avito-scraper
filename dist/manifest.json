@@ -1,0 +1,23 @@
+{
+    "manifest_version": 3,
+    "name": "Avito Reviews Parser",
+    "version": "1.0.0",
+    "action": {
+        "default_icon": {
+            "16": "avito-icon.png"
+        },
+        "default_title": "Парсер отзывов Авито",
+        "default_popup": "popup.html"
+    },
+    "icons": {
+        "16": "avito-icon.png",
+        "32": "avito-icon.png",
+        "48": "avito-icon.png",
+        "128": "avito-icon.png"
+    },
+    "permissions": ["activeTab", "storage"],
+    "options_page": "options.html",
+    "sandbox": {
+        "pages": ["page.html"]
+    }
+}
