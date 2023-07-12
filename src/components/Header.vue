@@ -12,10 +12,6 @@
                 ]"
                 @click="changeMainTab(tab.value)"
             >{{ tab.text }}</Button>
-            <a target="_blank" href="options.html" class="button ml-auto">
-                <i class="font-icon mr-2 text-xl">settings</i>
-                <span>Настроки</span>
-            </a>
         </div>
     </header>
 </template>
