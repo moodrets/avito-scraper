@@ -15,12 +15,21 @@
         "48": "avito-icon.png",
         "128": "avito-icon.png"
     },
-    "permissions": ["activeTab", "storage"],
+    "permissions": ["activeTab", "storage", "scripting"],
     "content_scripts": [
         {
             "matches": ["https://www.avito.ru/"],
             "run_at": "document_end",
-            "js": ["assets/content.js"]
+            "js": [
+                "assets/browser.js",
+                "assets/content.js"
+            ]
+        }
+    ],
+    "web_accessible_resources": [
+        {
+            "resources": [ "browserMessage.js"],
+            "matches": [ "https://www.avito.ru/*" ]
         }
     ]
 }

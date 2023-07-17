@@ -19,8 +19,6 @@
 
 <script setup lang="ts">
 import Button from '@/components/Button.vue'
-import { storageSet } from '@/helpers/storage';
-import { storageGet } from '@/helpers/storage';
 import { loading } from '@/reactive/useAppLoader';
 import { useToast } from '@/reactive/useToast';
 import { onBeforeMount, reactive } from 'vue';
@@ -33,7 +31,7 @@ const fields = reactive({
 })
 
 const onSubmit = async () => {
-    await storageSet('text', fields.text)
+    await BROWSER.storageSet('text', fields.text)
 
     loading.value = true
 
@@ -45,7 +43,7 @@ const onSubmit = async () => {
 }
 
 onBeforeMount(async ()=>{
-    const result = await storageGet('text')
+    const result = await BROWSER.storageGet('text')
     fields.text = result.text
 })
 </script>

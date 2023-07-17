@@ -1,8 +1,8 @@
 import { createApp } from 'vue'
 import '@/styles/main.scss'
-import AppPopup from '@/components/RootPopup.vue'
+import App from '@/components/App.vue'
 import { RDToastVuePlugin } from '@/reactive/usePlugins'
 
-createApp(AppPopup)
+createApp(App)
     .use(RDToastVuePlugin)
     .mount('#popup')

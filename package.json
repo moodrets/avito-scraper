@@ -7,13 +7,11 @@
     "dev": "vite",
     "watch": "vue-tsc && vite build --watch",
     "build": "vue-tsc && vite build && npm run build:scripts",
-    "build:scripts": "tsc --project tsconfig.scripts.json",
     "preview": "vite preview"
   },
   "dependencies": {
     "axios": "^1.4.0",
-    "vue": "^3.3.4",
-    "vue-router": "^4.2.4"
+    "vue": "^3.3.4"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.240",
