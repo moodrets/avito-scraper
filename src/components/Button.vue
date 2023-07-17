@@ -14,7 +14,7 @@ const props = withDefaults(
         icon?: string,
         loading?: boolean,
         size?: 'lg' | '',
-        theme?: 'danger' | 'success' | 'info'
+        theme?: 'danger' | 'success' | 'info' | 'warning'
     }>(),
     {
         icon: '',
@@ -56,6 +56,10 @@ const emits = defineEmits(['click'])
 
     &--success {
         @apply bg-green-500 hover:bg-green-600;
+    }
+
+    &--warning {
+        @apply bg-orange-500 hover:bg-orange-600;
     }
 }
 </style>

@@ -10,15 +10,30 @@
 import Header from '@/components/Header.vue'
 import Spinner from '@/components/Spinner.vue'
 import FilterForm from '@/components/FilterForm.vue'
+
+import { onBeforeMount, reactive } from 'vue';
 import { loading } from '@/reactive/useAppLoader'
 import { activeTab } from '@/reactive/useMainTabs';
-import { onBeforeMount } from 'vue';
+import { useToast } from '@/reactive/useToast';
+
+const toast = useToast()
+
+const appState = reactive<any>({
+  avitoTabClosed: false
+})
 
 onBeforeMount(async () => {
-  // await BROWSER.sendMessage({data: 'text'}, 'popup')
-  // await BROWSER.listenMessage((request: any, sender: any, sendResponse: any)=>{
-  //   console.log(request, sender, sendResponse)
-  //   alert('samsa')
-  // })
+  try {
+    await BROWSER.sendMessage({state: 'loadFirst'}, 'popup')
+  } catch (error: any) {
+    toast?.show('warning', 'Вкладка avito не активна')
+    appState.avitoTabClosed = true
+  }
+
+  BROWSER.listenMessage((request: any) => {
+    if (request.toastType) {
+      toast?.show(request.toastType, request.toastText)
+    }
+  })
 })
 </script>

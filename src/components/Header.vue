@@ -24,7 +24,7 @@ import { activeTab, changeMainTab } from '@/reactive/useMainTabs';
 const tabsList = [
     {
         value: 'filter',
-        text: 'Фильтр',
+        text: 'Фильтр отзывов',
         icon: 'filter_list'
     },
     {

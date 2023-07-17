@@ -1,3 +1,7 @@
+// BROWSER.listenMessage((request: any, sender: any, sendResponse: any) => {
+    
+// })
+
 (window as any).BROWSER = {
     sendMessage: async (data: any, from: 'popup' | 'content'): Promise<void> => {
         if (from === 'popup') {
@@ -11,10 +15,10 @@
             await chrome.runtime.sendMessage(data)
         }
     },
-    listenMessage: async (handler: (...args: any[]) => any): Promise<void> => {
-        await chrome.runtime.onMessage.addListener(()=>{
+    listenMessage: (handler: (...args: any[]) => any): void => {
+        chrome.runtime.onMessage.addListener((...args: any[]) => {
             setTimeout(()=>{
-                handler()
+                handler(...args)
             }, 0)
         })
     },
@@ -26,5 +30,12 @@
     },
     storageRemove: async (key: string | string[]) => {
         return await chrome.storage.local.remove(key);
+    },
+    connect: (data: Record<string, any>): void => {
+        data ? chrome.runtime.connect(data) : chrome.runtime.connect() 
     }
+};
+
+(window as any).SELECTORS = {
+    CATEGORY_ITEM_LEVEL_1: '.top-rubricator-hide-saN4l'
 }

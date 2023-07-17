@@ -25,11 +25,5 @@
                 "assets/content.js"
             ]
         }
-    ],
-    "web_accessible_resources": [
-        {
-            "resources": [ "browserMessage.js"],
-            "matches": [ "https://www.avito.ru/*" ]
-        }
     ]
 }
