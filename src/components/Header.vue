@@ -6,6 +6,7 @@
                 class="border-2"
                 :key="tab.value" 
                 :icon="tab.icon"
+                :theme="tab.theme as any || 'info'"
                 :class="[
                     activeTab === tab.value ? 'border-white' : 'border-transparent',
                     loading ? 'pointer-events-none opacity-70' : ''  
@@ -38,6 +39,12 @@ const tabsList = [
         value: 'users_data_base',
         text: 'База профилей',
         icon: 'supervisor_account'
+    },
+    {
+        value: 'reference',
+        text: 'Справка',
+        icon: 'info_outline',
+        theme: 'warning'
     },
 ]
 </script>

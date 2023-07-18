@@ -15,15 +15,17 @@
         "128": "avito-icon.png"
     },
     "options_page": "options.html",
-    "permissions": ["activeTab", "storage", "scripting"],
+    "permissions": ["activeTab", "tabs", "storage", "scripting"],
     "content_scripts": [
         {
-            "matches": ["https://www.avito.ru/"],
+            "matches": ["*://*/*"],
             "run_at": "document_end",
             "js": [
-                "assets/browser.js",
                 "assets/content.js"
             ]
         }
+    ],
+    "host_permissions": [
+        "https://www.avito.ru/user/*"
     ]
 }

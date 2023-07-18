@@ -1,1 +1,1 @@
-function e(){BROWSER.listenMessage(t=>{t.state})}document.readyState==="loading"?document.addEventListener("DOMContentLoaded",e):e();
+chrome.runtime.onMessage.addListener(e=>{e.action==="parsing-start"&&chrome.runtime.sendMessage({toastType:"success",toastText:"Парсинг пошел, дорогой"})});

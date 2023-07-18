@@ -12,9 +12,8 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        popup: 'options.html',
+        options: 'options.html',
         content: './src/content.ts',
-        browser: './src/helpers/browser.ts'
       },
       output: {
         entryFileNames: `assets/[name].js`,

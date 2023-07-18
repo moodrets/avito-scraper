@@ -11,14 +11,17 @@
 import Header from '@/components/Header.vue'
 import FilterForm from '@/components/FilterForm.vue'
 
-import { onBeforeMount } from 'vue'
+import { onMounted } from 'vue'
 import { activeTab } from '@/reactive/useMainTabs'
 import { useToast } from '@/reactive/useToast'
+import { appStart } from '@/reactive/useAppState'
 
 const toast = useToast()
 
-onBeforeMount(async () => {
-  BROWSER.listenMessage((request: any) => {
+onMounted(() => {
+  appStart.value = Date.now()
+
+  chrome.runtime.onMessage.addListener((request) => {
     if (request.toastType) {
       toast?.show(request.toastType, request.toastText)
     }

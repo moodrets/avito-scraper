@@ -63,7 +63,7 @@
                 >
             </div>
             <div class="col-span-2">
-                <div class="mb-2 text-sm">Интервал (указываем в секундах)</div>
+                <div class="mb-2 text-sm">Интервал прокрутки отзывов (указываем в секундах)</div>
                 <input 
                     v-model="fields.interval" 
                     type="number"
@@ -91,7 +91,13 @@
 import AirDatepicker from 'air-datepicker';
 import Button from '@/components/Button.vue'
 import { loading } from '@/reactive/useAppLoader';
-import { onBeforeMount, onBeforeUnmount, onMounted, reactive } from 'vue';
+import { onBeforeMount, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
+import { appStart } from '@/reactive/useAppState';
+import { useToast } from '@/reactive/useToast';
+
+const toast = useToast()
+
+const openedTabId = ref<number>(0)
 
 const getDateYesterday = () => {
     let date: any = new Date()
@@ -127,46 +133,92 @@ const datePickersConfig: Record<string, any> = {
     }
 }
 
-const onSubmit = async () => {
-    loading.value = true
+watch(appStart, async () => {
+    const { filterFields } = await chrome.storage.local.get('filterFields')
 
-    BROWSER.openTab({url: fields.profileLink, active: false})
+    if (filterFields) {
+        fields.profileLink = filterFields['profileLink']
+        fields.productName = filterFields['productName']
+        fields.ratingFrom = filterFields['ratingFrom']
+        fields.ratingTo = filterFields['ratingTo']
+        fields.interval = filterFields['interval']
+        fields.deliveryOnly = filterFields['deliveryOnly']
 
-    try {
-
-    } catch (error: any) {
-
+        datePickers.dateFrom.selectDate(filterFields['dateFrom'])
+        datePickers.dateTo.selectDate(filterFields['dateTo'])
     }
-}
+})
+
+watch(openedTabId, async () => {
+    chrome.tabs.sendMessage(openedTabId.value, {action: 'parsing-start'});
+})
 
 const onReset = async () => {
-    fields.ratingFrom = 4
-    fields.ratingTo = 5
-    fields.deliveryOnly = false
     fields.profileLink = '',
     fields.productName = '',
+    fields.ratingFrom = 4
+    fields.ratingTo = 5
     fields.interval = 0
+    fields.deliveryOnly = false
 
     datePickers.dateFrom.selectDate(getDateYesterday()) 
     datePickers.dateTo.selectDate(new Date())
+
+    await chrome.storage.local.remove('filterFields')
+    toast?.show('warning', 'Фильтр удален с памяти')
 }
 
 const onStopSearch = async () => {
+
+}
+
+const onTabsUpdate = (tabid: any, info: any, tabInfo: any) => {
+    if (info.status === 'complete' && tabInfo.url === fields.profileLink) {
+        openedTabId.value = tabid
+    }
+}
+
+const onSubmit = async () => {
+    loading.value = false
+
+    try {
+        const fieldsToStorage = {...fields}
+
+        fieldsToStorage.dateFrom = datePickers.dateFrom.selectedDates[0].toString()
+        fieldsToStorage.dateTo = datePickers.dateTo.selectedDates[0].toString()
+        
+        chrome.storage.local.set({ filterFields: fieldsToStorage })
+        toast?.show('success', 'Фильтр сохранен')
+        
+    } catch(error: any) {
+        toast?.show('error', 'Не удалось сохранить фильтр')
+    }
+
+    try {
+        chrome.tabs.create({url: fields.profileLink, active: false});
+
+    } catch (error: any) {
+        toast?.show('error', 'Не удалось открыть ссылку')
+    }
 }
 
 onBeforeMount(async () => {
 
 })
 
-onMounted(()=>{
+onMounted(() => {
     datePickers.dateFrom = new AirDatepicker('#dateFrom', datePickersConfig)
     datePickers.dateTo = new AirDatepicker('#dateTo', datePickersConfig)
     datePickers.dateFrom.selectDate(getDateYesterday())
     datePickers.dateTo.selectDate(new Date())
+
+    chrome.tabs.onUpdated.addListener(onTabsUpdate)
 })
 
 onBeforeUnmount(()=>{
     datePickers.dateFrom.destroy()
     datePickers.dateTo.destroy()
+
+    chrome.tabs.onUpdated.removeListener(onTabsUpdate)
 })
 </script>
