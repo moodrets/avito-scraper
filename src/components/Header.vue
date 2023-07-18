@@ -25,7 +25,12 @@ const tabsList = [
     {
         value: 'filter',
         text: 'Фильтр отзывов',
-        icon: 'filter_list'
+        icon: 'tune'
+    },
+    {
+        value: 'parse_result',
+        text: 'Результаты поиска',
+        icon: 'view_list'
     },
     {
         value: 'users_data_base',

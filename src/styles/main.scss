@@ -2,12 +2,12 @@
 @import "@/libs/rd-toast/rd-toast";
 
 // base
-@tailwind base;
 @import "@/styles/base/base";
 @import "@/styles/base/fonts";
 
 // elements
 @import "@/styles/elements/font-icon";
 
+@tailwind base;
 @tailwind components;
 @tailwind utilities;

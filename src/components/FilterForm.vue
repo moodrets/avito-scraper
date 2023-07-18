@@ -3,11 +3,19 @@
         <div class="grid grid-cols-2 gap-5">
             <div>
                 <div class="mb-2 text-sm">Ссылка на профиль</div>
-                <input v-model="fields.profileLink" type="text" class="text-base w-full text-black px-3 py-2 rounded-lg outline-none">
+                <input 
+                    v-model="fields.profileLink" 
+                    type="text" 
+                    class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
+                >
             </div>
             <div>
                 <div class="mb-2 text-sm">Название товара</div>
-                <input v-model="fields.productName" type="text" class="text-base w-full text-black px-3 py-2 rounded-lg outline-none">
+                <input 
+                    v-model="fields.productName" 
+                    type="text" 
+                    class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
+                >
             </div>
             <div>
                 <div class="mb-2 text-sm">Дата от</div>
@@ -16,7 +24,7 @@
                     required
                     type="text"
                     id="dateFrom" 
-                    class="text-base w-full text-black px-3 py-2 rounded-lg outline-none"
+                    class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
                 >
             </div>
             <div>
@@ -26,7 +34,7 @@
                     required 
                     type="text" 
                     id="dateTo"
-                    class="text-base w-full text-black px-3 py-2 rounded-lg outline-none"
+                    class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
                 >
             </div>
             <div>
@@ -37,7 +45,7 @@
                     min="0"
                     max="5"
                     required
-                    class="text-base w-full text-black px-3 py-2 rounded-lg outline-none"
+                    class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
                 >
             </div>
             <div>
@@ -48,20 +56,30 @@
                     min="0"
                     max="5" 
                     required
-                    class="text-base w-full text-black px-3 py-2 rounded-lg outline-none"
+                    class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
                 >
             </div>
-            <div>
+            <div class="col-span-2">
+                <div class="mb-2 text-sm">Интервал (указываем в секундах)</div>
+                <input 
+                    v-model="fields.interval" 
+                    type="number"
+                    class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
+                >
+            </div>
+            <div class="col-span-2">
                 <label class="inline-flex items-center">
-                    <input v-model="fields.deliveryOnly" type="checkbox" class="w-6 h-6 mr-3">
+                    <div class="border border-white w-6 h-6 mr-3">
+                        <input v-model="fields.deliveryOnly" type="checkbox" class="w-full h-full">
+                    </div>
                     <div class="text-base">Только с доставкой</div>
                 </label>
             </div>
         </div>
         <div class="flex items-center justify-between gap-4 fixed bottom-0 left-0 right-0 p-3 bg-gray-600 border-t border-gray-500">
             <Button theme="success" type="submit" icon="search">Начать поиск</Button>
-            <Button theme="warning" type="button" icon="cancel">Сбросить фильтр</Button>
-            <Button theme="danger" type="button" icon="cancel">Остановить поиск</Button>
+            <Button @click.stop.prevent="onReset" theme="warning" type="button" icon="refresh">Сбросить фильтр</Button>
+            <Button @click.stop.prevent="onStopSearch" theme="danger" type="button" icon="cancel">Остановить поиск</Button>
         </div>
     </form>
 </template>
@@ -72,13 +90,14 @@ import Button from '@/components/Button.vue'
 import { loading } from '@/reactive/useAppLoader';
 import { onBeforeMount, onBeforeUnmount, onMounted, reactive } from 'vue';
 
-const fields = reactive({
+const fields = reactive<any>({
     profileLink: '',
     productName: '',
     dateFrom: '',
     dateTo: '',
     ratingFrom: 4,
     ratingTo: 5,
+    interval: 0,
     deliveryOnly: false,
 })
 
@@ -112,9 +131,32 @@ const onSubmit = async () => {
     }
 }
 
+const onReset = async () => {
+    for (const field in fields) {
+        switch (field) {
+            case 'ratingFrom':
+                fields[field] = 4
+                break
+            case 'ratingTo':
+                fields[field] = 5
+                break
+            case 'deliveryOnly':
+                fields[field] = false
+                break
+            case 'interval':
+                fields[field] = 0
+                break
+            default:
+                fields[field] = ''
+                break
+        }
+    }
+}
+
+const onStopSearch = async () => {
+}
+
 onBeforeMount(async () => {
-    const storageResult = await BROWSER.storageGet('fields')
-    console.dir(storageResult);
 })
 
 onMounted(()=>{

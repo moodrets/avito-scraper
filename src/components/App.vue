@@ -1,7 +1,9 @@
 <template>
   <Header></Header>
   <main class="px-5">
-    <FilterForm v-if="activeTab === 'filter'"></FilterForm>
+    <keep-alive>
+      <FilterForm v-if="activeTab === 'filter'"></FilterForm>
+    </keep-alive>
   </main>
   <Spinner v-if="loading"></Spinner>
 </template>
@@ -11,10 +13,10 @@ import Header from '@/components/Header.vue'
 import Spinner from '@/components/Spinner.vue'
 import FilterForm from '@/components/FilterForm.vue'
 
-import { onBeforeMount, reactive } from 'vue';
+import { onBeforeMount, reactive } from 'vue'
 import { loading } from '@/reactive/useAppLoader'
-import { activeTab } from '@/reactive/useMainTabs';
-import { useToast } from '@/reactive/useToast';
+import { activeTab } from '@/reactive/useMainTabs'
+import { useToast } from '@/reactive/useToast'
 
 const toast = useToast()
 
