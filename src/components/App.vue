@@ -5,16 +5,13 @@
       <FilterForm v-if="activeTab === 'filter'"></FilterForm>
     </keep-alive>
   </main>
-  <Spinner v-if="loading"></Spinner>
 </template>
 
 <script lang="ts" setup>
 import Header from '@/components/Header.vue'
-import Spinner from '@/components/Spinner.vue'
 import FilterForm from '@/components/FilterForm.vue'
 
 import { onBeforeMount, reactive } from 'vue'
-import { loading } from '@/reactive/useAppLoader'
 import { activeTab } from '@/reactive/useMainTabs'
 import { useToast } from '@/reactive/useToast'
 
@@ -28,7 +25,7 @@ onBeforeMount(async () => {
   try {
     await BROWSER.sendMessage({state: 'loadFirst'}, 'popup')
   } catch (error: any) {
-    toast?.show('warning', 'Вкладка avito не активна')
+    // toast?.show('warning', 'Вкладка avito не активна')
     appState.avitoTabClosed = true
   }
 

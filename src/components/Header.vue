@@ -1,6 +1,6 @@
 <template>
-    <header class="p-3 px-5 mb-4 border-b border-gray-500 sticky top-0 z-[100]">
-        <div class="flex flex-wrap items-center gap-2">
+    <header class="mb-4 border-b border-gray-500 sticky top-0 z-[100]">
+        <div class="p-3 px-5 flex flex-wrap items-center gap-2">
             <Button 
                 v-for="tab in tabsList" 
                 class="border-2"
@@ -13,6 +13,8 @@
                 @click="changeMainTab(tab.value)"
             >{{ tab.text }}</Button>
         </div>
+        <div v-if="loading" class="h-1.5 progress-loader"></div>
+        <div v-else class="h-1.5"></div>
     </header>
 </template>
 
