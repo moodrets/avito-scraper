@@ -90,20 +90,29 @@
 <script setup lang="ts">
 import AirDatepicker from 'air-datepicker';
 import Button from '@/components/Button.vue'
-import { onBeforeMount, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
+
+import { onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { appStart } from '@/reactive/useAppState';
 import { useToast } from '@/reactive/useToast';
+import { loading } from '@/reactive/useAppLoader';
+import { getDateYesterday } from '@/helpers/date';
 
 const toast = useToast()
 
 const openedTabId = ref<number>(0)
 
-const getDateYesterday = () => {
-    let date: any = new Date()
-    return date.setDate(date.getDate() - 1)
+interface IFilterFields {
+    profileLink: string
+    productName: string
+    dateFrom: string
+    dateTo: string
+    ratingFrom: number
+    ratingTo: number
+    interval: number
+    deliveryOnly: boolean
 }
 
-const fields = reactive<any>({
+const fields = reactive<IFilterFields>({
     profileLink: '',
     productName: '',
     dateFrom: '',
@@ -133,23 +142,25 @@ const datePickersConfig: Record<string, any> = {
 }
 
 watch(appStart, async () => {
-    const { filterFields } = await chrome.storage.local.get('filterFields')
+    const { filterFields: filterFieldsFromStorage } = await chrome.storage.local.get('filterFields')
 
-    if (filterFields) {
-        fields.profileLink = filterFields['profileLink']
-        fields.productName = filterFields['productName']
-        fields.ratingFrom = filterFields['ratingFrom']
-        fields.ratingTo = filterFields['ratingTo']
-        fields.interval = filterFields['interval']
-        fields.deliveryOnly = filterFields['deliveryOnly']
+    if (filterFieldsFromStorage) {
+        fields.profileLink = filterFieldsFromStorage['profileLink']
+        fields.productName = filterFieldsFromStorage['productName']
+        fields.ratingFrom = filterFieldsFromStorage['ratingFrom']
+        fields.ratingTo = filterFieldsFromStorage['ratingTo']
+        fields.interval = filterFieldsFromStorage['interval']
+        fields.deliveryOnly = filterFieldsFromStorage['deliveryOnly']
 
-        datePickers.dateFrom.selectDate(filterFields['dateFrom'])
-        datePickers.dateTo.selectDate(filterFields['dateTo'])
+        datePickers.dateFrom.selectDate(filterFieldsFromStorage['dateFrom'])
+        datePickers.dateTo.selectDate(filterFieldsFromStorage['dateTo'])
     }
 })
 
 watch(openedTabId, async () => {
-    chrome.tabs.sendMessage(openedTabId.value, {action: 'parsing-start'});
+    if (openedTabId.value) {
+        chrome.tabs.sendMessage(openedTabId.value, {action: 'parsing-start'})
+    }
 })
 
 const onReset = async () => {
@@ -164,11 +175,17 @@ const onReset = async () => {
     datePickers.dateTo.selectDate(new Date())
 
     await chrome.storage.local.remove('filterFields')
-    toast?.show('warning', 'Фильтр удален с памяти')
+    toast?.show('warning', 'Фильтр удален c памяти')
 }
 
 const onStopSearch = async () => {
+    loading.value = false
 
+    if (openedTabId.value) {
+        await chrome.tabs.remove(openedTabId.value)
+        openedTabId.value = 0
+        toast?.show('warning', 'Парсинг отзывов отменен')
+    }
 }
 
 const onTabsUpdate = (tabid: any, info: any, tabInfo: any) => {
@@ -199,10 +216,6 @@ const onSubmit = async () => {
         toast?.show('error', 'Не удалось открыть ссылку')
     }
 }
-
-onBeforeMount(async () => {
-
-})
 
 onMounted(() => {
     datePickers.dateFrom = new AirDatepicker('#dateFrom', datePickersConfig)

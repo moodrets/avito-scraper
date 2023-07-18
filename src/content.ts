@@ -3,7 +3,7 @@ chrome.runtime.onMessage.addListener((request: any) => {
         chrome.runtime.sendMessage({
             action: 'parsing-started',
             toastType: 'success', 
-            toastText: 'Парсинг пошел, дорогой'
+            toastText: 'Парсинг отзывов начался'
         });
     }
 })

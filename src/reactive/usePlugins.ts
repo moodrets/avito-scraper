@@ -5,7 +5,7 @@ export const RDToastVuePlugin: Plugin = {
     install(app){
         app.config.globalProperties.$toast = new RDToast({
             hideOnClick: true,
-            position: 'bottom-right'
+            position: 'top-right'
         })
     }
 }
