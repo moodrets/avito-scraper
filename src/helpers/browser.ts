@@ -33,6 +33,9 @@
     },
     connect: (data: Record<string, any>): void => {
         data ? chrome.runtime.connect(data) : chrome.runtime.connect() 
+    },
+    openTab: (data: {url: string, active: boolean}) => {
+        chrome.tabs.create({url: data.url, active: data.active});
     }
 };
 

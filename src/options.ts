@@ -6,4 +6,4 @@ import { RDToastVuePlugin } from '@/reactive/usePlugins'
 
 createApp(App)
     .use(RDToastVuePlugin)
-    .mount('#popup')
+    .mount('#options')

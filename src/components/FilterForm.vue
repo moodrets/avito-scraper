@@ -5,7 +5,8 @@
                 <div class="mb-2 text-sm">Ссылка на профиль</div>
                 <input 
                     v-model="fields.profileLink" 
-                    type="text" 
+                    type="text"
+                    required
                     class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
                 >
             </div>
@@ -78,10 +79,10 @@
                 </label>
             </div>
         </div>
-        <div class="flex items-center justify-between gap-4 fixed bottom-0 left-0 right-0 p-3 bg-gray-600 border-t border-gray-500">
+        <div class="flex items-center gap-4 mt-10">
             <Button theme="success" type="submit" icon="search">Начать поиск</Button>
             <Button @click.stop.prevent="onReset" theme="warning" type="button" icon="refresh">Сбросить фильтр</Button>
-            <Button @click.stop.prevent="onStopSearch" theme="danger" type="button" icon="cancel">Остановить поиск</Button>
+            <Button @click.stop.prevent="onStopSearch" theme="danger" type="button" icon="cancel" class="ml-auto">Остановить поиск</Button>
         </div>
     </form>
 </template>
@@ -128,6 +129,8 @@ const datePickersConfig: Record<string, any> = {
 
 const onSubmit = async () => {
     loading.value = true
+
+    BROWSER.openTab({url: fields.profileLink, active: false})
 
     try {
 

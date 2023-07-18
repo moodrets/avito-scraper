@@ -6,7 +6,8 @@ declare var BROWSER = {
     storageSet: any,
     storageGet: any,
     storageRemove: any,
-    connect: (data?: Record<string, any>): void => {}
+    connect: (data?: Record<string, any>): void => {},
+    openTab: (data: {url: string, active: boolean}): void => {}
 };
 
 declare var SELECTORS: Record<string, string> = {

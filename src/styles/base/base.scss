@@ -2,12 +2,8 @@
     --window-width: 768px;
     --window-height: 570px;
 }
-@layer base {
-    html {
-        width: var(--window-width);
-        height: var(--window-height);
-    }
 
+@layer base {
     body {
         @apply bg-gray-700 text-white font-system;
     }

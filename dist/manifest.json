@@ -6,8 +6,7 @@
         "default_icon": {
             "16": "avito-icon.png"
         },
-        "default_title": "Парсер отзывов Авито",
-        "default_popup": "popup.html"
+        "default_title": "Парсер отзывов Авито"
     },
     "icons": {
         "16": "avito-icon.png",
@@ -15,6 +14,7 @@
         "48": "avito-icon.png",
         "128": "avito-icon.png"
     },
+    "options_page": "options.html",
     "permissions": ["activeTab", "storage", "scripting"],
     "content_scripts": [
         {

@@ -1,6 +1,6 @@
 <template>
-    <header class="mb-4 border-b border-gray-500 sticky top-0 z-[100]">
-        <div class="p-3 px-5 flex flex-wrap items-center gap-2">
+    <header class="mb-4 border-b border-gray-500 sticky top-0 z-[100] bg-gray-700">
+        <div class="centered py-3 flex flex-wrap items-center gap-2">
             <Button 
                 v-for="tab in tabsList" 
                 class="border-2"
