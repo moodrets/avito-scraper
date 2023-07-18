@@ -27,7 +27,7 @@ const props = withDefaults(
 
 <style lang="scss">
 .button {
-    @apply relative font-medium inline-flex items-center bg-blue-500 text-white outline-none rounded-lg px-3 py-1 text-sm font-medium;
+    @apply relative font-medium inline-flex items-center bg-blue-500 text-white outline-none rounded-lg px-3 py-1 text-sm;
 
     &-loader {
         @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2;

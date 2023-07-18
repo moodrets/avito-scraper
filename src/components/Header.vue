@@ -14,8 +14,7 @@
                 @click="changeMainTab(tab.value)"
             >{{ tab.text }}</Button>
         </div>
-        <div v-if="loading" class="h-1.5 progress-loader"></div>
-        <div v-else class="h-1.5"></div>
+        <div class="h-1.5 progress-loader transition-all" :class="{'opacity-0': !loading}"></div>
     </header>
 </template>
 

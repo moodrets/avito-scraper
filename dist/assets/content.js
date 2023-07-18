@@ -1,1 +1,1 @@
-chrome.runtime.onMessage.addListener(e=>{e.action==="parsing-start"&&chrome.runtime.sendMessage({toastType:"success",toastText:"Парсинг пошел, дорогой"})});
+chrome.runtime.onMessage.addListener(e=>{e.action==="parsing-start"&&chrome.runtime.sendMessage({action:"parsing-started",toastType:"success",toastText:"Парсинг пошел, дорогой"})});

@@ -90,7 +90,6 @@
 <script setup lang="ts">
 import AirDatepicker from 'air-datepicker';
 import Button from '@/components/Button.vue'
-import { loading } from '@/reactive/useAppLoader';
 import { onBeforeMount, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { appStart } from '@/reactive/useAppState';
 import { useToast } from '@/reactive/useToast';
@@ -179,7 +178,6 @@ const onTabsUpdate = (tabid: any, info: any, tabInfo: any) => {
 }
 
 const onSubmit = async () => {
-    loading.value = false
 
     try {
         const fieldsToStorage = {...fields}

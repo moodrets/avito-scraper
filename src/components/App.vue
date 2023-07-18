@@ -15,6 +15,7 @@ import { onMounted } from 'vue'
 import { activeTab } from '@/reactive/useMainTabs'
 import { useToast } from '@/reactive/useToast'
 import { appStart } from '@/reactive/useAppState'
+import { loading } from '@/reactive/useAppLoader'
 
 const toast = useToast()
 
@@ -24,6 +25,10 @@ onMounted(() => {
   chrome.runtime.onMessage.addListener((request) => {
     if (request.toastType) {
       toast?.show(request.toastType, request.toastText)
+    }
+
+    if (request.action === 'parsing-started') {
+      loading.value = true
     }
   })
 })
