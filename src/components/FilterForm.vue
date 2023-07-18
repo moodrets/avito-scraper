@@ -80,7 +80,8 @@
             </div>
         </div>
         <div class="flex items-center gap-4 mt-10">
-            <Button theme="success" type="submit" icon="search">Начать поиск</Button>
+            <Button theme="success" type="submit" icon="find_in_page">Начать парсинг</Button>
+            <Button @click.stop.prevent="onSaveFilter" theme="info" type="button" icon="save">Сохранить фильтр</Button>
             <Button @click.stop.prevent="onReset" theme="warning" type="button" icon="refresh">Сбросить фильтр</Button>
             <Button @click.stop.prevent="onStopSearch" theme="danger" type="button" icon="cancel" class="ml-auto">Остановить поиск</Button>
         </div>
@@ -163,7 +164,22 @@ watch(openedTabId, async () => {
     }
 })
 
-const onReset = async () => {
+async function saveFilterToLocalStorage() {
+    try {
+        const fieldsToStorage = {...fields}
+
+        fieldsToStorage.dateFrom = datePickers.dateFrom.selectedDates[0].toString()
+        fieldsToStorage.dateTo = datePickers.dateTo.selectedDates[0].toString()
+        
+        await chrome.storage.local.set({ filterFields: fieldsToStorage })
+        toast?.show('success', 'Фильтр сохранен')
+        
+    } catch(error: any) {
+        toast?.show('error', 'Не удалось сохранить фильтр')
+    }
+}
+
+async function onReset() {
     fields.profileLink = '',
     fields.productName = '',
     fields.ratingFrom = 4
@@ -178,7 +194,7 @@ const onReset = async () => {
     toast?.show('warning', 'Фильтр удален c памяти')
 }
 
-const onStopSearch = async () => {
+async function onStopSearch() {
     loading.value = false
 
     if (openedTabId.value) {
@@ -188,32 +204,25 @@ const onStopSearch = async () => {
     }
 }
 
-const onTabsUpdate = (tabid: any, info: any, tabInfo: any) => {
-    if (info.status === 'complete' && tabInfo.url === fields.profileLink) {
-        openedTabId.value = tabid
-    }
+async function onSaveFilter() {
+    await saveFilterToLocalStorage()
 }
 
-const onSubmit = async () => {
+async function onSubmit() {
 
-    try {
-        const fieldsToStorage = {...fields}
-
-        fieldsToStorage.dateFrom = datePickers.dateFrom.selectedDates[0].toString()
-        fieldsToStorage.dateTo = datePickers.dateTo.selectedDates[0].toString()
-        
-        chrome.storage.local.set({ filterFields: fieldsToStorage })
-        toast?.show('success', 'Фильтр сохранен')
-        
-    } catch(error: any) {
-        toast?.show('error', 'Не удалось сохранить фильтр')
-    }
+    await saveFilterToLocalStorage()
 
     try {
         chrome.tabs.create({url: fields.profileLink, active: false});
 
     } catch (error: any) {
         toast?.show('error', 'Не удалось открыть ссылку')
+    }
+}
+
+function onTabsUpdate(tabid: any, info: any, tabInfo: any) {
+    if (info.status === 'complete' && tabInfo.url === fields.profileLink) {
+        openedTabId.value = tabid
     }
 }
 
