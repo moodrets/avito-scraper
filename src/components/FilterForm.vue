@@ -83,7 +83,7 @@
             <Button theme="success" type="submit" icon="find_in_page">Начать парсинг</Button>
             <Button @click.stop.prevent="onSaveFilter" theme="info" type="button" icon="save">Сохранить фильтр</Button>
             <Button @click.stop.prevent="onReset" theme="warning" type="button" icon="refresh">Сбросить фильтр</Button>
-            <Button @click.stop.prevent="onStopSearch" theme="danger" type="button" icon="cancel" class="ml-auto">Остановить поиск</Button>
+            <Button @click.stop.prevent="onStopSearch" theme="danger" type="button" icon="cancel" class="ml-auto">Остановить парсинг</Button>
         </div>
     </form>
 </template>
@@ -160,7 +160,10 @@ watch(appStart, async () => {
 
 watch(openedTabId, async () => {
     if (openedTabId.value) {
-        chrome.tabs.sendMessage(openedTabId.value, {action: 'parsing-start'})
+        chrome.tabs.sendMessage(openedTabId.value, {
+            action: 'parsing-start',
+            filterFields: fields
+        })
     }
 })
 
