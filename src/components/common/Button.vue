@@ -27,14 +27,10 @@ const props = withDefaults(
 
 <style lang="scss">
 .button {
-    @apply relative font-medium inline-flex items-center bg-blue-500 text-white outline-none rounded-lg px-3 py-1 text-sm;
+    @apply relative font-medium inline-flex items-center bg-blue-500 text-white outline-none rounded-lg px-3 py-1 text-sm hover:bg-blue-600 hover:text-white focus-visible:bg-blue-600;
 
     &-loader {
         @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2;
-    }
-
-    &:hover {
-        @apply bg-blue-600 text-white;
     }
 
     .font-icon {
@@ -50,15 +46,15 @@ const props = withDefaults(
     }
 
     &--danger {
-        @apply bg-red-500 hover:bg-red-600;
+        @apply bg-red-500 hover:bg-red-600 focus-visible:bg-red-600;
     }
 
     &--success {
-        @apply bg-green-500 hover:bg-green-600;
+        @apply bg-green-500 hover:bg-green-600 focus-visible:bg-green-600;
     }
 
     &--warning {
-        @apply bg-orange-500 hover:bg-orange-600;
+        @apply bg-orange-500 hover:bg-orange-600 focus-visible:bg-orange-600;
     }
 }
 </style>

@@ -68,6 +68,7 @@
                 <input 
                     v-model="fields.interval" 
                     type="number"
+                    min="0"
                     class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
                 >
             </div>
@@ -83,8 +84,8 @@
         <div class="flex items-center gap-4 mt-10">
             <Button theme="success" type="submit" icon="find_in_page">Начать парсинг</Button>
             <Button @click.stop.prevent="onSave" theme="info" type="button" icon="save">Сохранить фильтр</Button>
-            <Button @click.stop.prevent="onReset" theme="warning" type="button" icon="refresh">Сбросить фильтр</Button>
-            <Button @click.stop.prevent="onStop" theme="danger" type="button" icon="cancel" class="ml-auto">Остановить парсинг</Button>
+            <Button @click.stop.prevent="onReset" theme="warning" type="button" icon="refresh" class="ml-auto">Сбросить фильтр</Button>
+            <Button @click.stop.prevent="onStop" theme="danger" type="button" icon="cancel">Остановить парсинг</Button>
         </div>
     </form>
 </template>
@@ -178,18 +179,20 @@ async function saveFilterToLocalStorage() {
 }
 
 async function onReset() {
-    fields.profileLink = '',
-    fields.productName = '',
-    fields.ratingFrom = 4
-    fields.ratingTo = 5
-    fields.interval = 2
-    fields.deliveryOnly = false
+    if (window.confirm('Сбросить фильтр ?')) {
+        fields.profileLink = '',
+        fields.productName = '',
+        fields.ratingFrom = 4
+        fields.ratingTo = 5
+        fields.interval = 2
+        fields.deliveryOnly = false
 
-    datePickers.dateFrom.selectDate(getDateYesterday()) 
-    datePickers.dateTo.selectDate(new Date())
+        datePickers.dateFrom.selectDate(getDateYesterday()) 
+        datePickers.dateTo.selectDate(new Date())
 
-    await chrome.storage.local.remove('filterFields')
-    toast?.show('warning', ToastMessagesEnum.FilterCleared)
+        await chrome.storage.local.remove('filterFields')
+        toast?.show('warning', ToastMessagesEnum.FilterCleared)
+    }
 }
 
 async function onStop() {
