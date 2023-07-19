@@ -1,5 +1,5 @@
 <template>
-    <div class="fixed right-4 top-4">
+    <div>
         <svg class="spinner" viewBox="0 0 50 50">
             <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
         </svg>
@@ -9,8 +9,8 @@
 <style lang="scss">
 .spinner {
     animation: rotate 2s linear infinite;
-    width: 28px;
-    height: 28px;
+    width: inherit;
+    height: inherit;
 
     & .path {
         stroke: rgb(255 255 255);

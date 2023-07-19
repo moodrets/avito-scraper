@@ -1,12 +1,11 @@
 <template>
-    <header class="mb-4 border-b border-gray-500 sticky top-0 z-[100] bg-gray-700">
+    <header class="mb-8 border-b border-gray-500 sticky top-0 z-[100] bg-gray-700">
         <div class="centered py-3 flex flex-wrap items-center gap-2">
             <Button 
                 v-for="tab in tabsList" 
                 class="border-2"
                 :key="tab.value" 
                 :icon="tab.icon"
-                :theme="tab.theme as any || 'info'"
                 :class="[
                     activeTab === tab.value ? 'border-white' : 'border-transparent',
                     loading ? 'pointer-events-none opacity-70' : ''  
@@ -19,7 +18,7 @@
 </template>
 
 <script lang="ts" setup>
-import Button from '@//components/Button.vue'
+import Button from '@/components/common/Button.vue'
 import { loading } from '@/reactive/useAppLoader';
 import { activeTab, changeMainTab } from '@/reactive/useMainTabs';
 
@@ -30,20 +29,14 @@ const tabsList = [
         icon: 'tune'
     },
     {
-        value: 'parse_result',
-        text: 'Результаты поиска',
+        value: 'parsing_result',
+        text: 'Результаты парсинга',
         icon: 'view_list'
     },
     {
-        value: 'users_data_base',
+        value: 'profile_list',
         text: 'База профилей',
         icon: 'supervisor_account'
-    },
-    {
-        value: 'reference',
-        text: 'Справка',
-        icon: 'info_outline',
-        theme: 'warning'
     },
 ]
 </script>

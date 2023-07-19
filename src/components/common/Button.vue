@@ -1,7 +1,7 @@
 <template>
-    <button class="button" :class="[`button--${props.size}`, `button--${props.theme}`]">
+    <button class="button" :class="[`button--${props.size}`, `button--${props.theme}`, props.loading ? 'pointer-events-none' : '']">
         <div class="button-loader" v-if="props.loading">
-            <i class="font-icon animate-spin text-4xl block">rotate_right</i>
+            <i class="font-icon animate-spin !text-3xl block">rotate_right</i>
         </div>
         <i :class="{'opacity-0' : props.loading}" class="font-icon mr-2" v-if="props.icon">{{ props.icon }}</i>
         <span :class="{'opacity-0' : props.loading}"><slot></slot></span>

@@ -1,5 +1,6 @@
 <template>
     <form class="pb-20" @submit.prevent="onSubmit">
+        <ProfileInfo />
         <div class="grid grid-cols-2 gap-5">
             <div>
                 <div class="mb-2 text-sm">Ссылка на профиль</div>
@@ -81,26 +82,29 @@
         </div>
         <div class="flex items-center gap-4 mt-10">
             <Button theme="success" type="submit" icon="find_in_page">Начать парсинг</Button>
-            <Button @click.stop.prevent="onSaveFilter" theme="info" type="button" icon="save">Сохранить фильтр</Button>
+            <Button @click.stop.prevent="onSave" theme="info" type="button" icon="save">Сохранить фильтр</Button>
             <Button @click.stop.prevent="onReset" theme="warning" type="button" icon="refresh">Сбросить фильтр</Button>
-            <Button @click.stop.prevent="onStopSearch" theme="danger" type="button" icon="cancel" class="ml-auto">Остановить парсинг</Button>
+            <Button @click.stop.prevent="onStop" theme="danger" type="button" icon="cancel" class="ml-auto">Остановить парсинг</Button>
         </div>
     </form>
 </template>
 
 <script setup lang="ts">
-import AirDatepicker from 'air-datepicker';
-import Button from '@/components/Button.vue'
-
 import { onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
+import AirDatepicker from 'air-datepicker';
+import Button from '@/components/common/Button.vue'
+import ProfileInfo from '@/components/common/ProfileInfo.vue'
+
+import { ToastMessagesEnum } from '@/enums/enums';
 import { appStart } from '@/reactive/useAppState';
 import { useToast } from '@/reactive/useToast';
 import { loading } from '@/reactive/useAppLoader';
 import { getDateYesterday } from '@/helpers/date';
+import { createTab } from '@/helpers/common';
 
 const toast = useToast()
 
-const openedTabId = ref<number>(0)
+const openedTab = ref<Record<string, any>>({})
 
 interface IFilterFields {
     profileLink: string
@@ -120,7 +124,7 @@ const fields = reactive<IFilterFields>({
     dateTo: '',
     ratingFrom: 4,
     ratingTo: 5,
-    interval: 0,
+    interval: 2,
     deliveryOnly: false,
 })
 
@@ -158,15 +162,6 @@ watch(appStart, async () => {
     }
 })
 
-watch(openedTabId, async () => {
-    if (openedTabId.value) {
-        chrome.tabs.sendMessage(openedTabId.value, {
-            action: 'parsing-start',
-            filterFields: fields
-        })
-    }
-})
-
 async function saveFilterToLocalStorage() {
     try {
         const fieldsToStorage = {...fields}
@@ -175,10 +170,10 @@ async function saveFilterToLocalStorage() {
         fieldsToStorage.dateTo = datePickers.dateTo.selectedDates[0].toString()
         
         await chrome.storage.local.set({ filterFields: fieldsToStorage })
-        toast?.show('success', 'Фильтр сохранен')
+        toast?.show('success', ToastMessagesEnum.FilterSaved)
         
     } catch(error: any) {
-        toast?.show('error', 'Не удалось сохранить фильтр')
+        toast?.show('error', ToastMessagesEnum.FilterSaveError)
     }
 }
 
@@ -187,27 +182,27 @@ async function onReset() {
     fields.productName = '',
     fields.ratingFrom = 4
     fields.ratingTo = 5
-    fields.interval = 0
+    fields.interval = 2
     fields.deliveryOnly = false
 
     datePickers.dateFrom.selectDate(getDateYesterday()) 
     datePickers.dateTo.selectDate(new Date())
 
     await chrome.storage.local.remove('filterFields')
-    toast?.show('warning', 'Фильтр удален c памяти')
+    toast?.show('warning', ToastMessagesEnum.FilterCleared)
 }
 
-async function onStopSearch() {
+async function onStop() {
     loading.value = false
 
-    if (openedTabId.value) {
-        await chrome.tabs.remove(openedTabId.value)
-        openedTabId.value = 0
-        toast?.show('warning', 'Парсинг отзывов отменен')
+    if (openedTab.value?.id) {
+        await chrome.tabs.remove(openedTab.value?.id)
+        openedTab.value = {}
+        toast?.show('warning', ToastMessagesEnum.ParsingCanceled)
     }
 }
 
-async function onSaveFilter() {
+async function onSave() {
     await saveFilterToLocalStorage()
 }
 
@@ -216,16 +211,17 @@ async function onSubmit() {
     await saveFilterToLocalStorage()
 
     try {
-        chrome.tabs.create({url: fields.profileLink, active: false});
+        const currentTab = await createTab(fields.profileLink)
+        openedTab.value = currentTab
 
+        if (currentTab.id) {
+            chrome.tabs.sendMessage(currentTab.id, {
+                action: 'parsing-start',
+                filterFields: fields
+            })
+        }
     } catch (error: any) {
-        toast?.show('error', 'Не удалось открыть ссылку')
-    }
-}
-
-function onTabsUpdate(tabid: any, info: any, tabInfo: any) {
-    if (info.status === 'complete' && tabInfo.url === fields.profileLink) {
-        openedTabId.value = tabid
+        toast?.show('error', ToastMessagesEnum.TabOpenError)
     }
 }
 
@@ -234,14 +230,10 @@ onMounted(() => {
     datePickers.dateTo = new AirDatepicker('#dateTo', datePickersConfig)
     datePickers.dateFrom.selectDate(getDateYesterday())
     datePickers.dateTo.selectDate(new Date())
-
-    chrome.tabs.onUpdated.addListener(onTabsUpdate)
 })
 
 onBeforeUnmount(()=>{
     datePickers.dateFrom.destroy()
     datePickers.dateTo.destroy()
-
-    chrome.tabs.onUpdated.removeListener(onTabsUpdate)
 })
 </script>
