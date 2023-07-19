@@ -1,6 +1,6 @@
 <template>
     <div v-if="Object.keys(profileInfo).length" class="rounded-lg bg-gray-600 p-5 shadow-xl mb-8 text-[16px]">
-        <div class="space-y-3">
+        <div class="space-y-2">
             <div class="flex items-center">
                 <div class="mr-3 opacity-80">Имя:</div>
                 <div class="font-bold">{{ profileInfo.name }}</div>

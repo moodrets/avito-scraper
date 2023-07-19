@@ -12,16 +12,16 @@
             :class="profile.opened ? 'bg-zinc-600' : 'bg-gray-600'"
             @click="profile.opened = !profile.opened"
         >
-            <div class="flex gap-4">
-                <div class="text-2xl flex-1 min-w-0">{{ profile.name }}</div>
-                <div class="flex-none" @click.stop="onDeleteProfile(profile)">
-                    <i class="font-icon text-3xl text-red-400">cancel</i>
-                </div>
+            <div class="flex items-center gap-4">
+                <div class="text-xl flex-1 min-w-0 font-medium">{{ profile.name }}</div>
                 <div class="flex-none" @click.stop="onOpenLink(profile)">
                     <i class="font-icon text-3xl text-green-500">open_in_new</i>
                 </div>
                 <div class="flex-none" @click.stop="onCopyLink(profile)">
                     <i class="font-icon text-3xl text-sky-500">content_copy</i>
+                </div>
+                <div class="flex-none" @click.stop="onDeleteProfile(profile)">
+                    <i class="font-icon text-3xl text-red-400">cancel</i>
                 </div>
             </div>
             <div v-if="profile.opened" class="text-[14px] mt-5">
@@ -51,6 +51,7 @@
 
 <script setup lang="ts">
 import Spinner from '@/components/common/Spinner.vue'
+import { ToastMessagesEnum } from '@/enums/enums';
 import { useToast } from '@/reactive/useToast';
 import { onMounted, reactive, ref } from 'vue';
 
@@ -74,7 +75,7 @@ function onOpenLink(profile: any) {
 
 function onCopyLink(profile: any) {
     console.log(profile.url);
-    toast?.show('success', 'Ссылка профиля скопированна в буффер')
+    toast?.show('success', ToastMessagesEnum.ProfileLinkCopied)
 }
 
 onMounted(async () => {

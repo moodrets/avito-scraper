@@ -7,6 +7,7 @@ export const enum ToastMessagesEnum {
     ParsingCanceled = 'Парсинг отзывов отменен',
     // tabs
     TabOpenError = 'Не удалось открыть ссылку',
-
-    ProfileAddedInDB = 'Профиль добавлен в базу'
+    // profile
+    ProfileAddedInDB = 'Профиль добавлен в базу',
+    ProfileLinkCopied = 'Ссылка профиля скопирована в буффер'
 }

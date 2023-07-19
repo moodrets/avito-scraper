@@ -3,7 +3,7 @@
         <ProfileInfo />
         <div class="grid grid-cols-2 gap-5">
             <div>
-                <div class="mb-2 text-sm">Ссылка на профиль</div>
+                <div class="mb-2 text-sm font-medium">Ссылка на профиль</div>
                 <input 
                     v-model="fields.profileLink" 
                     type="text"
@@ -12,7 +12,7 @@
                 >
             </div>
             <div>
-                <div class="mb-2 text-sm">Название товара</div>
+                <div class="mb-2 text-sm font-medium">Название товара</div>
                 <input 
                     v-model="fields.productName" 
                     type="text" 
@@ -20,7 +20,7 @@
                 >
             </div>
             <div>
-                <div class="mb-2 text-sm">Дата от</div>
+                <div class="mb-2 text-sm font-medium">Дата от</div>
                 <input 
                     v-model="fields.dateFrom"
                     required
@@ -31,7 +31,7 @@
                 >
             </div>
             <div>
-                <div class="mb-2 text-sm">Дата до</div>
+                <div class="mb-2 text-sm font-medium">Дата до</div>
                 <input 
                     v-model="fields.dateTo"
                     autocomplete="off"
@@ -42,7 +42,7 @@
                 >
             </div>
             <div>
-                <div class="mb-2 text-sm">Рейтинг от</div>
+                <div class="mb-2 text-sm font-medium">Рейтинг от</div>
                 <input 
                     v-model="fields.ratingFrom" 
                     type="number"
@@ -53,7 +53,7 @@
                 >
             </div>
             <div>
-                <div class="mb-2 text-sm">Рейтинг до</div>
+                <div class="mb-2 text-sm font-medium">Рейтинг до</div>
                 <input 
                     v-model="fields.ratingTo" 
                     type="number"
@@ -64,7 +64,7 @@
                 >
             </div>
             <div class="col-span-2">
-                <div class="mb-2 text-sm">Интервал прокрутки отзывов (указываем в секундах)</div>
+                <div class="mb-2 text-sm font-medium">Интервал прокрутки отзывов (указываем в секундах)</div>
                 <input 
                     v-model="fields.interval" 
                     type="number"
