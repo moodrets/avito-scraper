@@ -1,20 +1,22 @@
 <template>
     <form class="pb-20" @submit.prevent="onSubmit">
         <ProfileInfo />
-        <div class="grid grid-cols-2 gap-5">
-            <div>
+        <div class="grid grid-cols-4 gap-5">
+            <div class="col-span-2">
                 <div class="mb-2 text-sm font-medium">Ссылка на профиль</div>
                 <input 
-                    v-model="fields.profileLink" 
+                    v-model="fields.profileLink"
+                    tabindex="1"
                     type="text"
                     required
                     class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
                 >
             </div>
-            <div>
+            <div class="col-span-2">
                 <div class="mb-2 text-sm font-medium">Название товара</div>
                 <input 
-                    v-model="fields.productName" 
+                    v-model="fields.productName"
+                    tabindex="7"
                     type="text" 
                     class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
                 >
@@ -23,6 +25,7 @@
                 <div class="mb-2 text-sm font-medium">Дата от</div>
                 <input 
                     v-model="fields.dateFrom"
+                    tabindex="2"
                     required
                     autocomplete="off"
                     type="text"
@@ -34,6 +37,7 @@
                 <div class="mb-2 text-sm font-medium">Дата до</div>
                 <input 
                     v-model="fields.dateTo"
+                    tabindex="3"
                     autocomplete="off"
                     required 
                     type="text" 
@@ -41,10 +45,21 @@
                     class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
                 >
             </div>
+            <div class="col-span-2">
+                <div class="mb-2 text-sm font-medium">Интервал прокрутки отзывов (указываем в секундах)</div>
+                <input 
+                    v-model="fields.interval"
+                    tabindex="8"
+                    type="number"
+                    min="0"
+                    class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
+                >
+            </div>
             <div>
                 <div class="mb-2 text-sm font-medium">Рейтинг от</div>
                 <input 
-                    v-model="fields.ratingFrom" 
+                    v-model="fields.ratingFrom"
+                    tabindex="4"
                     type="number"
                     min="0"
                     max="5"
@@ -55,7 +70,8 @@
             <div>
                 <div class="mb-2 text-sm font-medium">Рейтинг до</div>
                 <input 
-                    v-model="fields.ratingTo" 
+                    v-model="fields.ratingTo"
+                    tabindex="5"
                     type="number"
                     min="0"
                     max="5" 
@@ -63,29 +79,42 @@
                     class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
                 >
             </div>
-            <div class="col-span-2">
-                <div class="mb-2 text-sm font-medium">Интервал прокрутки отзывов (указываем в секундах)</div>
-                <input 
-                    v-model="fields.interval" 
-                    type="number"
-                    min="0"
-                    class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
-                >
-            </div>
-            <div class="col-span-2 select-none">
-                <label class="inline-flex items-center">
-                    <div class="border border-white w-6 h-6 mr-3 flex-none">
-                        <input v-model="fields.deliveryOnly" type="checkbox" class="w-full h-full">
-                    </div>
-                    <div class="text-base">Только с доставкой</div>
+            <div class="col-span-4 select-none">
+                <label class="inline-block">
+                    <div class="mb-3 text-sm font-medium">Только с доставкой</div>
+                    <Switch :tabindex="6" v-model="fields.deliveryOnly"></Switch>
                 </label>
             </div>
         </div>
         <div class="flex items-center gap-4 mt-10">
-            <Button theme="success" type="submit" icon="find_in_page">Начать парсинг</Button>
-            <Button @click.stop.prevent="onSave" theme="info" type="button" icon="save">Сохранить фильтр</Button>
-            <Button @click.stop.prevent="onReset" theme="warning" type="button" icon="refresh" class="ml-auto">Сбросить фильтр</Button>
-            <Button @click.stop.prevent="onStop" theme="danger" type="button" icon="cancel">Остановить парсинг</Button>
+            <Button 
+                tabindex="9"
+                theme="success" 
+                type="submit"
+                icon="find_in_page"
+            >Начать парсинг</Button>
+            <Button
+                tabindex="10"
+                theme="info" 
+                type="button" 
+                icon="save"
+                @click.stop.prevent="onSave" 
+            >Сохранить фильтр</Button>
+            <Button 
+                tabindex="11"
+                theme="warning" 
+                type="button" 
+                icon="refresh" 
+                class="ml-auto"
+                @click.stop.prevent="onReset"
+            >Сбросить фильтр</Button>
+            <Button
+                tabindex="12"
+                theme="danger" 
+                type="button" 
+                icon="cancel"
+                @click.stop.prevent="onStop"
+            >Остановить парсинг</Button>
         </div>
     </form>
 </template>
@@ -94,29 +123,20 @@
 import { onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import AirDatepicker from 'air-datepicker';
 import Button from '@/components/common/Button.vue'
+import Switch from '@/components/common/Switch.vue'
 import ProfileInfo from '@/components/common/ProfileInfo.vue'
 
-import { ToastMessagesEnum } from '@/enums/enums';
 import { appStart } from '@/reactive/useAppState';
 import { useToast } from '@/reactive/useToast';
 import { loading } from '@/reactive/useAppLoader';
 import { getDateYesterday } from '@/helpers/date';
 import { createTab } from '@/helpers/common';
+import { MessagesEnum } from '@/types/enums';
+import { IFilterFields } from '@/types/infterfaces';
 
 const toast = useToast()
 
 const openedTab = ref<Record<string, any>>({})
-
-interface IFilterFields {
-    profileLink: string
-    productName: string
-    dateFrom: string
-    dateTo: string
-    ratingFrom: number
-    ratingTo: number
-    interval: number
-    deliveryOnly: boolean
-}
 
 const fields = reactive<IFilterFields>({
     profileLink: '',
@@ -148,18 +168,18 @@ const datePickersConfig: Record<string, any> = {
 }
 
 watch(appStart, async () => {
-    const { filterFields: filterFieldsFromStorage } = await chrome.storage.local.get('filterFields')
+    const { filterFields: filterFieldsStorage } = await chrome.storage.local.get('filterFields')
 
-    if (filterFieldsFromStorage) {
-        fields.profileLink = filterFieldsFromStorage['profileLink']
-        fields.productName = filterFieldsFromStorage['productName']
-        fields.ratingFrom = filterFieldsFromStorage['ratingFrom']
-        fields.ratingTo = filterFieldsFromStorage['ratingTo']
-        fields.interval = filterFieldsFromStorage['interval']
-        fields.deliveryOnly = filterFieldsFromStorage['deliveryOnly']
+    if (filterFieldsStorage) {
+        fields.profileLink = filterFieldsStorage['profileLink']
+        fields.productName = filterFieldsStorage['productName']
+        fields.ratingFrom = filterFieldsStorage['ratingFrom']
+        fields.ratingTo = filterFieldsStorage['ratingTo']
+        fields.interval = filterFieldsStorage['interval']
+        fields.deliveryOnly = filterFieldsStorage['deliveryOnly']
 
-        datePickers.dateFrom.selectDate(filterFieldsFromStorage['dateFrom'])
-        datePickers.dateTo.selectDate(filterFieldsFromStorage['dateTo'])
+        datePickers.dateFrom.selectDate(filterFieldsStorage['dateFrom'])
+        datePickers.dateTo.selectDate(filterFieldsStorage['dateTo'])
     }
 })
 
@@ -171,10 +191,10 @@ async function saveFilterToLocalStorage() {
         fieldsToStorage.dateTo = datePickers.dateTo.selectedDates[0].toString()
         
         await chrome.storage.local.set({ filterFields: fieldsToStorage })
-        toast?.show('success', ToastMessagesEnum.FilterSaved)
+        toast?.show('success', MessagesEnum.FilterSaved)
         
     } catch(error: any) {
-        toast?.show('error', ToastMessagesEnum.FilterSaveError)
+        toast?.show('error', MessagesEnum.FilterSaveError)
     }
 }
 
@@ -191,7 +211,7 @@ async function onReset() {
         datePickers.dateTo.selectDate(new Date())
 
         await chrome.storage.local.remove('filterFields')
-        toast?.show('warning', ToastMessagesEnum.FilterCleared)
+        toast?.show('warning', MessagesEnum.FilterCleared)
     }
 }
 
@@ -201,7 +221,7 @@ async function onStop() {
     if (openedTab.value?.id) {
         await chrome.tabs.remove(openedTab.value?.id)
         openedTab.value = {}
-        toast?.show('warning', ToastMessagesEnum.ParsingCanceled)
+        toast?.show('warning', MessagesEnum.ParsingCanceled)
     }
 }
 
@@ -224,7 +244,7 @@ async function onSubmit() {
             })
         }
     } catch (error: any) {
-        toast?.show('error', ToastMessagesEnum.TabOpenError)
+        toast?.show('error', MessagesEnum.TabOpenError)
     }
 }
 

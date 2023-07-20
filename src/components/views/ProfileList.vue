@@ -12,7 +12,7 @@
             :class="profile.opened ? 'bg-zinc-600' : 'bg-gray-600'"
             @click="profile.opened = !profile.opened"
         >
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-4 select-none">
                 <div class="text-xl flex-1 min-w-0 font-medium">{{ profile.name }}</div>
                 <div class="flex-none" @click.stop="onOpenLink(profile)">
                     <i class="font-icon text-3xl text-green-500">open_in_new</i>
@@ -33,13 +33,13 @@
                         <th class="text-left px-4 py-2 border border-white border-opacity-50">Подписки</th>
                         <th class="text-left px-4 py-2 border border-white border-opacity-50">Продаж с доставкой</th>
                     </tr>
-                    <tr v-for="history in profile.parsingHistory">
+                    <!-- <tr v-for="history in profile.parsingHistory">
                         <td class="text-left px-4 py-2 border border-white border-opacity-50">{{ history.formattedDate }}</td>
                         <td class="text-left px-4 py-2 border border-white border-opacity-50">{{ history.rating }}</td>
                         <td class="text-left px-4 py-2 border border-white border-opacity-50">{{ history.reviewsCount }}</td>
                         <td class="text-left px-4 py-2 border border-white border-opacity-50">{{ history.subscribers }}</td>
                         <td class="text-left px-4 py-2 border border-white border-opacity-50">{{ history.deliveryInfo }}</td>
-                    </tr>
+                    </tr> -->
                 </table>
             </div>
         </div>
@@ -50,22 +50,20 @@
 </template>
 
 <script setup lang="ts">
+import { onMounted, ref } from 'vue'
 import Spinner from '@/components/common/Spinner.vue'
-import { ToastMessagesEnum } from '@/enums/enums';
-import { useToast } from '@/reactive/useToast';
-import { onMounted, reactive, ref } from 'vue';
+
+import { MessagesEnum } from '@/types/enums'
+import { useToast } from '@/reactive/useToast'
+import { apiGetProfileList, apiRemoveProfile } from '@/api/Profiles';
+import { IProfileItemExt, IProfileItem } from '@/types/infterfaces';
+import { copyToBuffer } from '@/helpers/common';
 
 const toast = useToast()
 
 const loadingComponent = ref<boolean>(false)
 
-const profileDataList = reactive<any[]>([])
-
-async function onDeleteProfile(profile: any) {
-    if (window.confirm(`Удаляем "${profile.name}" ?`)) {
-
-    }
-}
+const profileDataList = ref<IProfileItemExt[]>([])
 
 function onOpenLink(profile: any) {
     if (profile.url) {
@@ -74,27 +72,39 @@ function onOpenLink(profile: any) {
 }
 
 function onCopyLink(profile: any) {
-    console.log(profile.url);
-    toast?.show('success', ToastMessagesEnum.ProfileLinkCopied)
+    if (profile.url) {
+        copyToBuffer(profile.url)
+        toast?.show('success', MessagesEnum.ProfileLinkCopied)
+    }
 }
 
-onMounted(async () => {
-    try {
+async function onDeleteProfile(profile: any) {
+    if (window.confirm(`Удаляем "${profile.name}" ?`)) {
+        if (profile.id) {
+            await apiRemoveProfile(profile.id)
+            toast?.show('success', MessagesEnum.ProfileDeleted)
+            getProfileList()
+        }
+    }
+}
 
+async function getProfileList() {
+    try {
         loadingComponent.value = true
 
-        const { profileList } = await chrome.storage.local.get('profileList')
+        const result = await apiGetProfileList()
+        const convertedList: IProfileItemExt[] = result.map((item: IProfileItem) => ({...item, opened: false}))
 
-        if (profileList) {
-            const convertedList = profileList.map((item: any) => ({...item, opened: false}))
-
-            profileDataList.push(...convertedList)
-        }
+        profileDataList.value = convertedList
 
     } catch(error: any) {
 
     } finally {
         loadingComponent.value = false
     }
+}
+
+onMounted(async () => {
+    getProfileList()
 })
 </script>

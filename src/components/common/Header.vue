@@ -8,10 +8,16 @@
                 :icon="tab.icon"
                 :class="[
                     activeTab === tab.value ? 'border-white' : 'border-transparent',
-                    loading ? 'pointer-events-none opacity-70' : ''  
                 ]"
                 @click="changeMainTab(tab.value)"
             >{{ tab.text }}</Button>
+            <Button 
+                theme="danger" 
+                type="button" 
+                icon="remove_circle" 
+                class="ml-auto"
+                @click.prevent="onClear"
+            >Очистить хранилище</Button>
         </div>
         <div class="h-1.5 progress-loader transition-all" :class="{'opacity-0': !loading}"></div>
     </header>
@@ -21,6 +27,7 @@
 import Button from '@/components/common/Button.vue'
 import { loading } from '@/reactive/useAppLoader';
 import { activeTab, changeMainTab } from '@/reactive/useMainTabs';
+import { profileInfo } from '@/reactive/useProfileInfo';
 
 const tabsList = [
     {
@@ -39,4 +46,12 @@ const tabsList = [
         icon: 'supervisor_account'
     },
 ]
+
+async function onClear() {
+    if (window.confirm('Сносим ?')) {
+        await chrome.storage.local.remove(['profileList', 'parsingResults'])
+        profileInfo.value && (profileInfo.value.existsInDataBase = false)
+        window.location.reload()
+    }
+}
 </script>

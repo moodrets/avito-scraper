@@ -1,3 +1,4 @@
+import { IProfileItem } from "@/types/infterfaces";
 import { ref } from "vue";
 
-export const profileInfo = ref<Record<string, any>>({})
+export const profileInfo = ref<IProfileItem | null>(null)

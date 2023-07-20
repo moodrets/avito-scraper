@@ -36,6 +36,11 @@ onMounted(async () => {
 			loading.value = true
 		}
 
+		if (action === 'parsing-ended') {
+			loading.value = false
+			activeTab.value = 'parsing_result'
+		}
+
 		if (profileInform) {
 			profileInfo.value = profileInform
 		}
