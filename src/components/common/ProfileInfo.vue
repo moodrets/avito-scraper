@@ -37,7 +37,7 @@
             </div>
         </div>
         <div v-if="!profileInfo.existsInDataBase" class="flex items-center gap-4 mt-5">
-            <Button type="button" icon="save" @click.prevent="onSave">Сохранить в базу</Button>
+            <Button type="button" icon="cloud_upload" @click.prevent="onSave">Сохранить в базу</Button>
         </div>
     </div>
 </template>

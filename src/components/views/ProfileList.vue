@@ -5,11 +5,11 @@
         </div>
     </template>
     <template v-else-if="profileDataList.length">
-        <div 
+        <div
             v-for="profile in profileDataList"
             :key="profile.id"
-            class="rounded-lg  px-5 py-3 shadow-xl mb-2 cursor-pointer"
-            :class="profile.opened ? 'bg-zinc-600' : 'bg-gray-600'"
+            class="rounded-lg bg-gray-600 outline outline-offset-[3px] px-5 py-3 shadow-xl mb-4 cursor-pointer"
+            :class="profile.opened ? 'outline-blue-400' : 'outline-transparent'"
             @click="profile.opened = !profile.opened"
         >
             <div class="flex items-center gap-4 select-none">

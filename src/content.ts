@@ -4,8 +4,8 @@ enum MessagesEnum {
     InfoNotFound = 'Информация не найдена',
     ProfileInfoSuccess = 'Получена информация профиля',
     FilterFieldsNotReceived = 'Страница не получила поля фильтра',
-    ParsingStarted = 'Парсинг запущен',
-    ParsingEnded = 'Парсинг завершен',
+    ParsingReviewsStarted = 'Парсинг отзывов запущен',
+    ParsingReviewsEnded = 'Парсинг отзывов завершен',
     ReviewsNotFound = 'Отзывы не найдены'
 }
 
@@ -29,10 +29,10 @@ async function sendMessage(data: Record<string, any>){
     await chrome.runtime.sendMessage(data);
 }
 
-function delay(timeout: number) {
+async function delay(timeout: number) {
     return new Promise(resolve => {
         setTimeout(()=>{
-            resolve('')
+            resolve(true)
         }, timeout)
     })
 }
@@ -48,7 +48,7 @@ async function getProfileInfo(data: Record<string, any>): Promise<void> {
     const profileSubscribersEl = document.querySelector(SELECTORS.profileSubscribers)
     const profileDeviveryInfoEl = document.querySelector(SELECTORS.profileDeviveryInfo)
 
-    const profileInfo: IProfileItem = {
+    const profileInform: IProfileItem = {
         createdDate: Date.now(),
         createdDateFormatted: new Date().toLocaleString('ru-RU'),
         name: profileNameEl?.textContent || MessagesEnum.InfoNotFound,
@@ -63,7 +63,7 @@ async function getProfileInfo(data: Record<string, any>): Promise<void> {
     await sendMessage({
         toastType: 'success', 
         toastText: MessagesEnum.ProfileInfoSuccess,
-        profileInfo,
+        profileInform,
     })
 }
 
@@ -75,7 +75,7 @@ const ReviewsParser = {
         const parsedReviewsList: IReviewsItem[] = []
         const reviewsItemsEls = document.querySelectorAll(SELECTORS.reviewsItem)
 
-        if (!reviewsItemsEls) {
+        if (!reviewsItemsEls.length) {
             await sendMessage({
                 action: 'parsing-ended',
                 toastType: 'error', 
@@ -84,16 +84,18 @@ const ReviewsParser = {
             return
         }
 
+        console.log(FILTER_FIELDS);
+
         reviewsItemsEls.forEach((item: Element) => {
-            const ratingStarsEls = item.querySelector(SELECTORS.reviewsItemRatingStars)
-            const productNameEl = item.querySelector(SELECTORS.reviewsItemProductName)
-            const dateDeliveryEl = item.querySelector(SELECTORS.reviewsItemDateDelivery)
+            // const ratingStarsEls = item.querySelector(SELECTORS.reviewsItemRatingStars)
+            // const productNameEl = item.querySelector(SELECTORS.reviewsItemProductName)
+            // const dateDeliveryEl = item.querySelector(SELECTORS.reviewsItemDateDelivery)
         })
         
         await sendMessage({
             action: 'parsing-ended',
             toastType: 'success',
-            toastText: MessagesEnum.ParsingEnded,
+            toastText: MessagesEnum.ParsingReviewsEnded,
             parsedReviewsList,
         });
 
@@ -124,9 +126,8 @@ const ReviewsParser = {
         await sendMessage({
             action: 'parsing-started',
             toastType: 'success', 
-            toastText: MessagesEnum.ParsingStarted,
+            toastText: MessagesEnum.ParsingReviewsStarted,
         });
-
         scrollPageToBottom()
         await delay(2000)
         scrollPageToBottom()
@@ -143,11 +144,8 @@ chrome.runtime.onMessage.addListener(async ({action, filterFields}) => {
         return
     }
 
-    if (filterFields) {
-        FILTER_FIELDS = filterFields
-    }
-
     if (action === 'parsing-start' && filterFields) {
+        FILTER_FIELDS = filterFields
         getProfileInfo(filterFields)
         ReviewsParser.parsingStart()
     }

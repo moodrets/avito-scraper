@@ -43,12 +43,12 @@ const tabsList = [
     {
         value: 'profile_list',
         text: 'База профилей',
-        icon: 'supervisor_account'
+        icon: 'people'
     },
 ]
 
 async function onClear() {
-    if (window.confirm('Сносим ?')) {
+    if (window.confirm('Мы сносим пользователей и результаты парсинга ?')) {
         await chrome.storage.local.remove(['profileList', 'parsingResults'])
         profileInfo.value && (profileInfo.value.existsInDataBase = false)
         window.location.reload()

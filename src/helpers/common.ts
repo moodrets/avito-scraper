@@ -12,12 +12,12 @@ export async function createTab(url: string): Promise<chrome.tabs.Tab> {
 }
 
 export function copyToBuffer(text: string) {
-    const inputElement: HTMLInputElement = document.createElement('input')
-    inputElement.style.cssText = 'position: absolute; left: -9999px; top: -9999px;'
-    document.body.appendChild(inputElement);
-    inputElement.value = text
-    inputElement.focus({preventScroll: true});
-    inputElement.select();
+    const textareaElement: HTMLTextAreaElement = document.createElement('textarea')
+    textareaElement.style.cssText = 'position: absolute; left: -9999px; top: -9999px;'
+    document.body.appendChild(textareaElement);
+    textareaElement.value = text
+    textareaElement.focus({preventScroll: true});
+    textareaElement.select();
 
     try {
         document.execCommand('copy');
@@ -25,5 +25,5 @@ export function copyToBuffer(text: string) {
         console.error('Ошибка при копировании в буффер', error);
     }
 
-    inputElement.remove()
+    textareaElement.remove()
 }

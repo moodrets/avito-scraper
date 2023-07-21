@@ -16,7 +16,7 @@
                 <div class="mb-2 text-sm font-medium">Название товара</div>
                 <input 
                     v-model="fields.productName"
-                    tabindex="7"
+                    tabindex="9"
                     type="text" 
                     class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
                 >
@@ -49,7 +49,7 @@
                 <div class="mb-2 text-sm font-medium">Интервал прокрутки отзывов (указываем в секундах)</div>
                 <input 
                     v-model="fields.interval"
-                    tabindex="8"
+                    tabindex="10"
                     type="number"
                     min="0"
                     class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
@@ -88,13 +88,13 @@
         </div>
         <div class="flex items-center gap-4 mt-10">
             <Button 
-                tabindex="9"
+                tabindex="7"
                 theme="success" 
                 type="submit"
                 icon="find_in_page"
             >Начать парсинг</Button>
             <Button
-                tabindex="10"
+                tabindex="8"
                 theme="info" 
                 type="button" 
                 icon="save"
@@ -104,8 +104,7 @@
                 tabindex="11"
                 theme="warning" 
                 type="button" 
-                icon="refresh" 
-                class="ml-auto"
+                icon="restore" 
                 @click.stop.prevent="onReset"
             >Сбросить фильтр</Button>
             <Button
@@ -133,6 +132,8 @@ import { getDateYesterday } from '@/helpers/date';
 import { createTab } from '@/helpers/common';
 import { MessagesEnum } from '@/types/enums';
 import { IFilterFields } from '@/types/infterfaces';
+import { apiGetFilter, apiRemoveFilter } from '@/api/Filter';
+import { apiCreateFilter } from '@/api/Filter';
 
 const toast = useToast()
 
@@ -168,7 +169,8 @@ const datePickersConfig: Record<string, any> = {
 }
 
 watch(appStart, async () => {
-    const { filterFields: filterFieldsStorage } = await chrome.storage.local.get('filterFields')
+
+    const filterFieldsStorage = await apiGetFilter()
 
     if (filterFieldsStorage) {
         fields.profileLink = filterFieldsStorage['profileLink']
@@ -189,8 +191,9 @@ async function saveFilterToLocalStorage() {
 
         fieldsToStorage.dateFrom = datePickers.dateFrom.selectedDates[0].toString()
         fieldsToStorage.dateTo = datePickers.dateTo.selectedDates[0].toString()
+
+        await apiCreateFilter(fieldsToStorage)
         
-        await chrome.storage.local.set({ filterFields: fieldsToStorage })
         toast?.show('success', MessagesEnum.FilterSaved)
         
     } catch(error: any) {
@@ -210,18 +213,20 @@ async function onReset() {
         datePickers.dateFrom.selectDate(getDateYesterday()) 
         datePickers.dateTo.selectDate(new Date())
 
-        await chrome.storage.local.remove('filterFields')
+        await apiRemoveFilter()
         toast?.show('warning', MessagesEnum.FilterCleared)
     }
 }
 
 async function onStop() {
-    loading.value = false
+    if (window.confirm('Остановить парсинг ?')) {
+        loading.value = false
 
-    if (openedTab.value?.id) {
-        await chrome.tabs.remove(openedTab.value?.id)
-        openedTab.value = {}
-        toast?.show('warning', MessagesEnum.ParsingCanceled)
+        if (openedTab.value?.id) {
+            await chrome.tabs.remove(openedTab.value.id)
+            openedTab.value = {}
+            toast?.show('warning', MessagesEnum.ParsingCanceled)
+        }
     }
 }
 

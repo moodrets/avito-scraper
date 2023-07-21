@@ -27,7 +27,14 @@ const toast = useToast()
 onMounted(async () => {
   	appStart.value = Date.now()
 
-	chrome.runtime.onMessage.addListener(({toastType, toastText, action, profileInfo: profileInform}) => {
+	chrome.runtime.onMessage.addListener(({
+		toastType, 
+		toastText, 
+		action, 
+		profileInform, 
+		parsedReviewsList
+	}) => {
+		
 		if (toastType && toastText) {
 			toast?.show(toastType, toastText)
 		}
@@ -38,7 +45,10 @@ onMounted(async () => {
 
 		if (action === 'parsing-ended') {
 			loading.value = false
-			activeTab.value = 'parsing_result'
+
+			if (parsedReviewsList?.length) {
+				activeTab.value = 'parsing_result'
+			}
 		}
 
 		if (profileInform) {
