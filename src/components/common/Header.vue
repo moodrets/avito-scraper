@@ -28,20 +28,21 @@ import Button from '@/components/common/Button.vue'
 import { loading } from '@/reactive/useAppLoader';
 import { activeTab, changeMainTab } from '@/reactive/useMainTabs';
 import { profileInfo } from '@/reactive/useProfileInfo';
+import { MainTabsEnum } from '@/types/enums';
 
 const tabsList = [
     {
-        value: 'filter',
+        value: MainTabsEnum.Filter,
         text: 'Фильтр отзывов',
         icon: 'tune'
     },
     {
-        value: 'parsing_result',
+        value: MainTabsEnum.ReviewsResult,
         text: 'Результаты парсинга',
         icon: 'view_list'
     },
     {
-        value: 'profile_list',
+        value: MainTabsEnum.ProfileList,
         text: 'База профилей',
         icon: 'people'
     },

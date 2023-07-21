@@ -68,6 +68,79 @@ async function getProfileInfo(data: Record<string, any>): Promise<void> {
 }
 
 const ReviewsParser = {
+    getDateOrDeliveryText(textContent: string, target: 'date' | 'delivery'): string | null {
+        let splitStr = textContent.split(',')
+
+        if (splitStr[0] && target === 'date') {
+            return splitStr[0]
+        }
+
+        if (splitStr[1] && target === 'delivery') {
+            return splitStr[1]
+        }
+
+        return null
+    },
+    makeMonthNumberFromText(monthText: string): string {
+        let monthNumber = ''
+
+        switch (monthText) {
+            case 'января':
+                monthNumber = '01'
+                break
+            case 'февраля':
+                monthNumber = '02'
+                break
+            case 'марта':
+                monthNumber = '03'
+                break
+            case 'апреля':
+                monthNumber = '04'
+                break
+            case 'мая':
+                monthNumber = '05'
+                break
+            case 'июня':
+                monthNumber = '06'
+                break
+            case 'июля':
+                monthNumber = '07'
+                break
+            case 'августа':
+                monthNumber = '08'
+                break
+            case 'сентября':
+                monthNumber = '09'
+                break
+            case 'октября':
+                monthNumber = '10'
+                break
+            case 'ноября':
+                monthNumber = '11'
+                break
+            case 'декабря':
+                monthNumber = '12'
+                break
+        }
+
+        return monthNumber
+    },
+    makeDateFromString(dateString: string): number {
+        if (dateString.trim() === 'сегодня') {
+            return Date.now()
+        }
+
+        if (dateString.trim() === 'вчера') {
+            return new Date().setDate(new Date().getDate() - 1)
+        }
+
+        let splitDateString = dateString.split(' ')
+        let day = splitDateString[0]
+        let month = this.makeMonthNumberFromText(splitDateString[1])
+        let year = splitDateString[2] || `${new Date().getFullYear()}`
+
+        return Date.parse(`${year} ${month} ${day}`)
+    },
     loadMoreButton(){
         return document.querySelector(SELECTORS.reviewsMoreLoadButton) as HTMLButtonElement
     },
@@ -77,7 +150,7 @@ const ReviewsParser = {
 
         if (!reviewsItemsEls.length) {
             await sendMessage({
-                action: 'parsing-ended',
+                action: 'reviews-parsing-ended',
                 toastType: 'error', 
                 toastText: MessagesEnum.ReviewsNotFound,
             });
@@ -87,13 +160,37 @@ const ReviewsParser = {
         console.log(FILTER_FIELDS);
 
         reviewsItemsEls.forEach((item: Element) => {
-            // const ratingStarsEls = item.querySelector(SELECTORS.reviewsItemRatingStars)
-            // const productNameEl = item.querySelector(SELECTORS.reviewsItemProductName)
-            // const dateDeliveryEl = item.querySelector(SELECTORS.reviewsItemDateDelivery)
+            const ratingStarsEls = item.querySelectorAll(SELECTORS.reviewsItemRatingStars)
+            const productNameEl = item.querySelector(SELECTORS.reviewsItemProductName)
+            const dateDeliveryEl = item.querySelector(SELECTORS.reviewsItemDateDelivery)
+            
+            let deliveryText = null
+            let dateText = null
+            let date = null
+
+            if (dateDeliveryEl?.textContent) {
+                dateText = this.getDateOrDeliveryText(dateDeliveryEl.textContent, 'date')
+            }
+
+            if (dateDeliveryEl?.textContent) {
+                deliveryText = this.getDateOrDeliveryText(dateDeliveryEl.textContent, 'delivery')
+            }
+
+            if (dateText) {
+                date = this.makeDateFromString(dateText)
+            }
+
+            parsedReviewsList.push({
+                date: date || MessagesEnum.InfoNotFound,
+                dateText: dateText || MessagesEnum.InfoNotFound,
+                delivery: deliveryText ? true : false,
+                productName: productNameEl?.textContent || MessagesEnum.InfoNotFound,
+                rating: ratingStarsEls?.length || MessagesEnum.InfoNotFound,
+            })
         })
         
         await sendMessage({
-            action: 'parsing-ended',
+            action: 'reviews-parsing-ended',
             toastType: 'success',
             toastText: MessagesEnum.ParsingReviewsEnded,
             parsedReviewsList,
@@ -124,7 +221,7 @@ const ReviewsParser = {
     },
     async parsingStart() {
         await sendMessage({
-            action: 'parsing-started',
+            action: 'reviews-parsing-started',
             toastType: 'success', 
             toastText: MessagesEnum.ParsingReviewsStarted,
         });
@@ -144,7 +241,7 @@ chrome.runtime.onMessage.addListener(async ({action, filterFields}) => {
         return
     }
 
-    if (action === 'parsing-start' && filterFields) {
+    if (action === 'reviews-parsing-start' && filterFields) {
         FILTER_FIELDS = filterFields
         getProfileInfo(filterFields)
         ReviewsParser.parsingStart()

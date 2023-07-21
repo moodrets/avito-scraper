@@ -13,3 +13,9 @@ export enum MessagesEnum {
     ProfileLinkCopied = 'Ссылка скопирована в буффер',
     ProfileDeleted = 'Профиль успешно удален',
 }
+
+export enum MainTabsEnum {
+    Filter = 'filter',
+    ReviewsResult = 'reviews_list',
+    ProfileList = 'profile_list'
+}

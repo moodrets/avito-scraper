@@ -244,7 +244,7 @@ async function onSubmit() {
 
         if (currentTab.id) {
             chrome.tabs.sendMessage(currentTab.id, {
-                action: 'parsing-start',
+                action: 'reviews-parsing-start',
                 filterFields: fields
             })
         }

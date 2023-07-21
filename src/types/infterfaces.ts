@@ -27,9 +27,9 @@ export interface IProfileItemExt extends IProfileItem {
 }
 
 export interface IReviewsItem {
-    date: number,
-    parsedDate: string,
+    date: number | string,
+    dateText: string,
     productName: string,
     delivery: boolean,
-    rating: number
+    rating: number | string
 }
