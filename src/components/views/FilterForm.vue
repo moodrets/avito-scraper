@@ -132,8 +132,7 @@ import { getDateYesterday } from '@/helpers/date';
 import { createTab } from '@/helpers/common';
 import { MessagesEnum } from '@/types/enums';
 import { IFilterFields } from '@/types/infterfaces';
-import { apiGetFilter, apiRemoveFilter } from '@/api/Filter';
-import { apiCreateFilter } from '@/api/Filter';
+import { apiGetFilter, apiRemoveFilter, apiCreateFilter } from '@/api/Filter';
 
 const toast = useToast()
 

@@ -10,5 +10,5 @@ export async function apiGetFilter(): Promise<IFilterFields | null> {
 }
 
 export async function apiRemoveFilter(): Promise<void> {
-    await await chrome.storage.local.remove('filterFields')
+    await chrome.storage.local.remove('filterFields')
 }

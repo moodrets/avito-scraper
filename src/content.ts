@@ -23,13 +23,18 @@ const SELECTORS = {
     reviewsItemDateDelivery: '.desktop-11ffzh3',
     reviewsItemRatingStars: '.RatingStars-root-Edhhx .Attributes-yellow-star-PY9XT',
     reviewsMoreLoadButton: '[data-marker="rating-list/moreReviewsButton"]',
+    reviewsSummaryButton: '[data-marker="profile/summary"]',
+    reviewsModal: '[data-marker="profile-rating-detailed/popup"]',
+
+    // TODO: иногда выскакивает такая кнопка (нужно проверять наличие кнопки)
+    reviewsMoreLoadErrorButton: '[data-marker="errorMessage/button"]'
 }
 
 async function sendMessage(data: Record<string, any>){
     await chrome.runtime.sendMessage(data);
 }
 
-async function delay(timeout: number) {
+async function wait(timeout: number) {
     return new Promise(resolve => {
         setTimeout(()=>{
             resolve(true)
@@ -135,17 +140,83 @@ const ReviewsParser = {
         }
 
         let splitDateString = dateString.split(' ')
+
         let day = splitDateString[0]
         let month = this.makeMonthNumberFromText(splitDateString[1])
         let year = splitDateString[2] || `${new Date().getFullYear()}`
 
         return Date.parse(`${year} ${month} ${day}`)
     },
-    loadMoreButton(){
+    makeDateFromFilterString(dateString: string): number {
+        let splitString = dateString.split('.')
+        let day = splitString[0];
+        let month = splitString[1];
+        let year = splitString[2];
+
+        return Date.parse(`${year} ${month} ${day}`)
+    },
+    get loadMoreButton() {
         return document.querySelector(SELECTORS.reviewsMoreLoadButton) as HTMLButtonElement
     },
+    get summaryButton() {
+        return document.querySelector(SELECTORS.reviewsSummaryButton) as HTMLButtonElement
+    },
+    get modal() {
+        return document.querySelector(SELECTORS.reviewsModal) as HTMLElement
+    },
+    getFilteredList(reviewsDataList: IReviewsItem[]) {
+        let resultList = [...reviewsDataList]
+
+        // фильтруем по дате
+        if (FILTER_FIELDS?.dateFrom && FILTER_FIELDS?.dateTo) {
+            resultList = resultList.filter((item) => {
+                if (
+                    FILTER_FIELDS?.dateFrom && 
+                    FILTER_FIELDS?.dateTo &&
+                    item.date >= this.makeDateFromFilterString(FILTER_FIELDS.dateFrom) &&
+                    item.date <= this.makeDateFromFilterString(FILTER_FIELDS.dateTo)
+                ) {
+                    return item
+                }
+            })
+        }
+
+        // фильтруем по рейтингу
+        if (FILTER_FIELDS?.ratingFrom && FILTER_FIELDS?.ratingTo) {
+            resultList = resultList.filter((item) => {
+                if (
+                    FILTER_FIELDS?.ratingFrom &&
+                    FILTER_FIELDS?.ratingTo &&
+                    item.rating >= FILTER_FIELDS?.ratingFrom &&
+                    item.rating <= FILTER_FIELDS?.ratingTo
+                ) {
+                    return item
+                }
+            })
+        }
+
+        // фильтруем по названию
+        if (FILTER_FIELDS?.productName) {
+            resultList = resultList.filter((item) => {
+
+                let lowercaseProductName = item.productName.toLowerCase()
+                let lowercaseFilterProductName = (FILTER_FIELDS as IFilterFields).productName.toLowerCase()
+
+                if (lowercaseProductName.includes(lowercaseFilterProductName)) {
+                    return item
+                }
+            })
+        }
+
+        // ищем только с доставкой
+        if (FILTER_FIELDS?.deliveryOnly) {
+            resultList = resultList.filter((item) => item.delivery)
+        }
+
+        return resultList
+    },
     async parseItems(){
-        const parsedReviewsList: IReviewsItem[] = []
+        const reviewsDataList: IReviewsItem[] = []
         const reviewsItemsEls = document.querySelectorAll(SELECTORS.reviewsItem)
 
         if (!reviewsItemsEls.length) {
@@ -156,8 +227,6 @@ const ReviewsParser = {
             });
             return
         }
-
-        console.log(FILTER_FIELDS);
 
         reviewsItemsEls.forEach((item: Element) => {
             const ratingStarsEls = item.querySelectorAll(SELECTORS.reviewsItemRatingStars)
@@ -180,37 +249,42 @@ const ReviewsParser = {
                 date = this.makeDateFromString(dateText)
             }
 
-            parsedReviewsList.push({
-                date: date || MessagesEnum.InfoNotFound,
+            reviewsDataList.push({
+                date: date || 0,
                 dateText: dateText || MessagesEnum.InfoNotFound,
                 delivery: deliveryText ? true : false,
                 productName: productNameEl?.textContent || MessagesEnum.InfoNotFound,
-                rating: ratingStarsEls?.length || MessagesEnum.InfoNotFound,
+                rating: ratingStarsEls?.length || 0,
             })
         })
+
+        const reviewsFilteredList = this.getFilteredList(reviewsDataList)
         
         await sendMessage({
             action: 'reviews-parsing-ended',
             toastType: 'success',
             toastText: MessagesEnum.ParsingReviewsEnded,
-            parsedReviewsList,
+            reviewsFilteredList,
         });
 
         // window.close();
     },
+    async loadMoreInModal() {
+
+    },
     async loadMoreOnPage() {
         scrollPageToBottom()
-        await delay(2000)
-        const reviewsLoadMoreEl: HTMLButtonElement | null = this.loadMoreButton()
+        await wait(2000)
 
-        if (reviewsLoadMoreEl) {
-            reviewsLoadMoreEl?.click()
+        if (this.loadMoreButton) {
+            this.loadMoreButton.click()
             this.loadMoreOnPage()
         }
 
-        if (!reviewsLoadMoreEl) {
-            await delay(2000)
-            if (this.loadMoreButton()) {
+        if (!this.loadMoreButton) {
+            await wait(2000)
+
+            if (this.loadMoreButton) {
                 this.loadMoreOnPage()
                 return
             }
@@ -225,9 +299,19 @@ const ReviewsParser = {
             toastType: 'success', 
             toastText: MessagesEnum.ParsingReviewsStarted,
         });
+
+        this.summaryButton?.click()
+        await wait(3500)
+
+        // если отзывы в модальном окне
+        if (this.modal) {
+            this.loadMoreInModal()
+            return   
+        }
+
+        // если отзывы на странице
         scrollPageToBottom()
-        await delay(2000)
-        scrollPageToBottom()
+        await wait(2000)
         this.loadMoreOnPage()
     }
 }

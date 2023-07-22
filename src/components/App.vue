@@ -34,7 +34,7 @@ onMounted(async () => {
 		toastText, 
 		action, 
 		profileInform, 
-		parsedReviewsList
+		reviewsFilteredList
 	}) => {
 		
 		if (toastType && toastText) {
@@ -47,10 +47,10 @@ onMounted(async () => {
 
 		if (action === 'reviews-parsing-ended') {
 			loading.value = false
+			activeTab.value = MainTabsEnum.ReviewsResult
 
-			if (parsedReviewsList?.length) {
-				reviewsList.value = parsedReviewsList
-				activeTab.value = MainTabsEnum.ReviewsResult
+			if (reviewsFilteredList) {
+				reviewsList.value = reviewsFilteredList
 			}
 		}
 

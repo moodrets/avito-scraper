@@ -1,5 +1,5 @@
 <template>
-    <div v-if="profileInfo" class="rounded-lg bg-gray-600 p-5 shadow-xl mb-8 text-[16px]">
+    <div v-if="profileInfo" class="rounded-xl shadow-xl bg-gray-600 p-5 mb-8 text-[16px]">
         <div class="space-y-2">
             <div v-if="profileInfo.id" class="flex items-center">
                 <div class="mr-3 opacity-80">ID:</div>
@@ -36,8 +36,20 @@
                 </div>
             </div>
         </div>
-        <div v-if="!profileInfo.existsInDataBase" class="flex items-center gap-4 mt-5">
-            <Button type="button" icon="cloud_upload" @click.prevent="onSave">Сохранить в базу</Button>
+        <div class="flex items-center gap-4 mt-5 empty:hidden">
+            <Button 
+                v-if="!profileInfo.existsInDataBase"
+                type="button" 
+                icon="cloud_upload" 
+                @click.prevent="onSave"
+            >Сохранить в базу</Button>
+            <Button 
+                v-if="reviewsList.length" 
+                type="button" 
+                theme="success" 
+                icon="content_copy" 
+                @click.prevent="onCopy"
+            >Копировать отзывы</Button>
         </div>
     </div>
 </template>
@@ -49,6 +61,8 @@ import { profileInfo } from '@/reactive/useProfileInfo';
 import { useToast } from '@/reactive/useToast';
 import { watch } from 'vue';
 import { apiCreateProfile, apiGetProfileByUrl } from '@/api/Profiles';
+import { reviewsList } from '@/reactive/useReviewsList';
+import { copyToBuffer } from '@/helpers/common';
 
 const toast = useToast()
 
@@ -83,6 +97,35 @@ async function onSave() {
         } finally {
 
         }
+    }
+}
+
+function onCopy() {
+    let textValue: string = ''
+
+    if (profileInfo.value) {
+        textValue+= `Имя - ${profileInfo.value.name}\n`
+        textValue+= `Дата создания/парсинга - ${profileInfo.value.createdDateFormatted}\n`
+        textValue+= `Ссылка - ${profileInfo.value.url}\n`
+        textValue+= `Рейтинг - ${profileInfo.value.rating}\n`
+        textValue+= `Отзывы - ${profileInfo.value.reviewsCount}\n`
+        textValue+= `Подписки - ${profileInfo.value.subscribers}\n`
+        textValue+= `Продаж с доставкой - ${profileInfo.value.deliveryInfo}\n\n\n\n`
+    }
+
+    if (reviewsList.value.length) {
+        reviewsList.value.forEach(item => {
+            let date = new Date(item.date)
+            let day = new Intl.DateTimeFormat('ru', { day: '2-digit' }).format(date)
+            let month = new Intl.DateTimeFormat('ru', { month: '2-digit' }).format(date)
+            let year = new Intl.DateTimeFormat('ru', { year: 'numeric' }).format(date)
+            textValue += `${item.productName}~${month}.${year}${item.delivery ? '~Delivery' : ''}\n`
+        })
+    }
+
+    if (textValue) {
+        copyToBuffer(textValue)
+        toast?.show('success', 'Информация скопирована в буффер')
     }
 }
 </script>
