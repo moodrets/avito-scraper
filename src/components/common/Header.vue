@@ -1,13 +1,12 @@
 <template>
     <header class="mb-8 border-b border-gray-500 sticky top-0 z-[100] bg-gray-700">
-        <div class="centered py-3 flex flex-wrap items-center gap-2">
+        <div class="centered py-3 flex flex-wrap items-center gap-3">
             <Button 
                 v-for="tab in tabsList" 
-                class="border-2"
                 :key="tab.value" 
                 :icon="tab.icon"
                 :class="[
-                    activeTab === tab.value ? 'border-white' : 'border-transparent',
+                    activeTab === tab.value ? 'ring-2 ring-white' : '',
                 ]"
                 @click="changeMainTab(tab.value)"
             >{{ tab.text }}</Button>
