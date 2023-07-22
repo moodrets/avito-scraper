@@ -61,7 +61,7 @@
                     v-model="fields.ratingFrom"
                     tabindex="4"
                     type="number"
-                    min="0"
+                    min="1"
                     max="5"
                     required
                     class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
@@ -73,7 +73,7 @@
                     v-model="fields.ratingTo"
                     tabindex="5"
                     type="number"
-                    min="0"
+                    min="1"
                     max="5" 
                     required
                     class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"

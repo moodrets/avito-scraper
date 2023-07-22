@@ -6,7 +6,8 @@ enum MessagesEnum {
     FilterFieldsNotReceived = 'Страница не получила поля фильтра',
     ParsingReviewsStarted = 'Парсинг отзывов запущен',
     ParsingReviewsEnded = 'Парсинг отзывов завершен',
-    ReviewsNotFound = 'Отзывы не найдены'
+    ReviewsNotFound = 'Отзывы не найдены',
+    ReviewsSelectorsNotFound = 'Не найдены селекторы в отзывах'
 }
 
 let FILTER_FIELDS: IFilterFields | null = null
@@ -26,7 +27,7 @@ const SELECTORS = {
     reviewsSummaryButton: '[data-marker="profile/summary"]',
     reviewsModal: '[data-marker="profile-rating-detailed/popup"]',
 
-    // TODO: иногда выскакивает такая кнопка (нужно проверять наличие кнопки)
+    // TODO: иногда выскакивает такая кнопка (нужно проверять ее наличие)
     reviewsMoreLoadErrorButton: '[data-marker="errorMessage/button"]'
 }
 
@@ -53,15 +54,15 @@ async function getProfileInfo(data: Record<string, any>): Promise<void> {
     const profileSubscribersEl = document.querySelector(SELECTORS.profileSubscribers)
     const profileDeviveryInfoEl = document.querySelector(SELECTORS.profileDeviveryInfo)
 
+    let subscribersInfo = profileSubscribersEl?.textContent ? profileSubscribersEl.textContent.split(',')[0] : null
+
     const profileInform: IProfileItem = {
-        createdDate: Date.now(),
-        createdDateFormatted: new Date().toLocaleString('ru-RU'),
+        parsingDate: Date.now(),
         name: profileNameEl?.textContent || MessagesEnum.InfoNotFound,
         rating: profileRatingEl?.textContent || MessagesEnum.InfoNotFound,
         reviewsCount: profileReviewsEl?.textContent || MessagesEnum.InfoNotFound,
-        subscribers: profileSubscribersEl?.textContent || MessagesEnum.InfoNotFound,
+        subscribers: subscribersInfo || MessagesEnum.InfoNotFound,
         deliveryInfo: profileDeviveryInfoEl?.textContent || MessagesEnum.InfoNotFound,
-        existsInDataBase: false,
         url: data.profileLink
     }
 
@@ -130,7 +131,7 @@ const ReviewsParser = {
 
         return monthNumber
     },
-    makeDateFromString(dateString: string): number {
+    makeDateFromReviewString(dateString: string): number {
         if (dateString.trim() === 'сегодня') {
             return Date.now()
         }
@@ -218,6 +219,7 @@ const ReviewsParser = {
     async parseItems(){
         const reviewsDataList: IReviewsItem[] = []
         const reviewsItemsEls = document.querySelectorAll(SELECTORS.reviewsItem)
+        let parsingError = false
 
         if (!reviewsItemsEls.length) {
             await sendMessage({
@@ -246,7 +248,11 @@ const ReviewsParser = {
             }
 
             if (dateText) {
-                date = this.makeDateFromString(dateText)
+                date = this.makeDateFromReviewString(dateText)
+            }
+
+            if (!dateText || !date) {
+                parsingError = true
             }
 
             reviewsDataList.push({
@@ -257,6 +263,14 @@ const ReviewsParser = {
                 rating: ratingStarsEls?.length || 0,
             })
         })
+
+        if (parsingError) {
+            await sendMessage({
+                action: 'reviews-parsing-ended',
+                toastType: 'error',
+                toastText: MessagesEnum.ReviewsSelectorsNotFound,
+            });
+        }
 
         const reviewsFilteredList = this.getFilteredList(reviewsDataList)
         

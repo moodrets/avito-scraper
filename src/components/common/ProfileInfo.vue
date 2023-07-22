@@ -26,13 +26,19 @@
                 <div class="font-bold">{{ profileInfo.deliveryInfo }}</div>
             </div>
             <div class="flex items-center">
-                <div class="mr-3 opacity-80">{{ profileInfo.existsInDataBase ? 'Дата сохранения:' : 'Дата' }}</div>
-                <div class="font-bold">{{ profileInfo.createdDateFormatted }}</div>
+                <div class="mr-3 opacity-80">Дата парсинга:</div>
+                <div class="font-bold">{{ toLocaleString(profileInfo.parsingDate) }}</div>
+            </div>
+            <div class="flex items-center" v-if="profileInfo.savedDate">
+                <div class="mr-3 opacity-80">Дата сохранения:</div>
+                <div class="font-bold">{{ toLocaleString(profileInfo.savedDate) }}</div>
             </div>
             <div class="flex items-center">
                 <div class="mr-3 opacity-80">Найден в базе:</div>
                 <div class="font-bold">
-                    <strong :class="[profileInfo.existsInDataBase ? 'text-green-400' : 'text-red-400']">{{ profileInfo.existsInDataBase ? 'Да' : 'Нет' }}</strong>
+                    <strong 
+                        :class="[profileInfo.existsInDataBase ? 'text-green-400' : 'text-red-400']"
+                    >{{ profileInfo.existsInDataBase ? 'Да' : 'Нет' }}</strong>
                 </div>
             </div>
         </div>
@@ -63,6 +69,7 @@ import { watch } from 'vue';
 import { apiCreateProfile, apiGetProfileByUrl } from '@/api/Profiles';
 import { reviewsList } from '@/reactive/useReviewsList';
 import { copyToBuffer } from '@/helpers/common';
+import { toLocaleString } from '@/helpers/date';
 
 const toast = useToast()
 
@@ -72,8 +79,9 @@ const profileInfoWatcher = watch(profileInfo, async () => {
         const foundProfile = await apiGetProfileByUrl(profileInfo.value?.url)
 
         if (foundProfile) {
-            foundProfile.existsInDataBase = true
-            profileInfo.value = foundProfile
+            profileInfo.value.existsInDataBase = true
+            profileInfo.value.savedDate = foundProfile.savedDate
+            profileInfo.value.id = foundProfile.id
             profileInfoWatcher()
         }
     }
@@ -90,7 +98,7 @@ async function onSave() {
 
             profileInfo.value.id = newProfile.id
             profileInfo.value.existsInDataBase = true
-            profileInfo.value.createdDateFormatted = newProfile.createdDateFormatted
+            profileInfo.value.savedDate = newProfile.savedDate
 
         } catch(error: any) {
 
@@ -104,19 +112,19 @@ function onCopy() {
     let textValue: string = ''
 
     if (profileInfo.value) {
-        textValue+= `Имя - ${profileInfo.value.name}\n`
-        textValue+= `Дата создания/парсинга - ${profileInfo.value.createdDateFormatted}\n`
-        textValue+= `Ссылка - ${profileInfo.value.url}\n`
-        textValue+= `Рейтинг - ${profileInfo.value.rating}\n`
-        textValue+= `Отзывы - ${profileInfo.value.reviewsCount}\n`
-        textValue+= `Подписки - ${profileInfo.value.subscribers}\n`
-        textValue+= `Продаж с доставкой - ${profileInfo.value.deliveryInfo}\n\n\n\n`
+        textValue+= `Имя: ${profileInfo.value.name}\n`
+        textValue+= `Дата парсинга: ${toLocaleString(profileInfo.value.parsingDate)}\n`
+        textValue+= `Ссылка: ${profileInfo.value.url}\n`
+        textValue+= `Рейтинг: ${profileInfo.value.rating}\n`
+        textValue+= `Отзывы: ${profileInfo.value.reviewsCount}\n`
+        textValue+= `Подписки: ${profileInfo.value.subscribers}\n`
+        textValue+= `Продаж с доставкой: ${profileInfo.value.deliveryInfo}\n\n\n\n`
     }
 
     if (reviewsList.value.length) {
         reviewsList.value.forEach(item => {
             let date = new Date(item.date)
-            let day = new Intl.DateTimeFormat('ru', { day: '2-digit' }).format(date)
+            // let day = new Intl.DateTimeFormat('ru', { day: '2-digit' }).format(date)
             let month = new Intl.DateTimeFormat('ru', { month: '2-digit' }).format(date)
             let year = new Intl.DateTimeFormat('ru', { year: 'numeric' }).format(date)
             textValue += `${item.productName}~${month}.${year}${item.delivery ? '~Delivery' : ''}\n`
@@ -125,7 +133,7 @@ function onCopy() {
 
     if (textValue) {
         copyToBuffer(textValue)
-        toast?.show('success', 'Информация скопирована в буффер')
+        toast?.show('success', MessagesEnum.InfoCopied)
     }
 }
 </script>

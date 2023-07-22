@@ -25,9 +25,8 @@ export async function apiCreateProfile(profile: IProfileItem): Promise<IProfileI
     let profileListToStorage: IProfileItem[] = []
     let profileToStorage: IProfileItem = {...profile}
 
-    delete profileToStorage.existsInDataBase
-
     profileToStorage.id = Date.now()
+    profileToStorage.savedDate = Date.now()
 
     const { profileList } = await chrome.storage.local.get('profileList')
 

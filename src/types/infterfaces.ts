@@ -12,9 +12,9 @@ export interface IFilterFields {
 export interface IProfileItem {
     id?: number,
     existsInDataBase?: boolean,
+    savedDate?: number,
+    parsingDate: number,
     url: string,
-    createdDate: number,
-    createdDateFormatted: string,
     name: string,
     rating: string,
     reviewsCount: string,

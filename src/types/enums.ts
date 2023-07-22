@@ -12,6 +12,9 @@ export enum MessagesEnum {
     ProfileCreated = 'Профиль добавлен в базу',
     ProfileLinkCopied = 'Ссылка скопирована в буффер',
     ProfileDeleted = 'Профиль успешно удален',
+
+    InfoCopied = 'Информация скопирована в буффер',
+    ProductNameCopied = 'Имя товара скопировано в буффер'
 }
 
 export enum MainTabsEnum {
