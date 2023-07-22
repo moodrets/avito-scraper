@@ -12,11 +12,11 @@
                 <th class="text-left px-4 py-2 border border-white border-opacity-50">Доставка</th>
             </tr>
             <tr v-for="item, index in reviewsList" :key="index" class="text-[14px] hover:bg-gray-600">
-                <td class="px-4 py-2 border border-white border-opacity-50 font-medium">{{ item.dateText }}</td>
+                <td class="px-4 py-2 border border-white border-opacity-50 font-medium">{{ toLocaleString(item.date)?.slice(0, 10) }}</td>
                 <td class="px-4 py-2 border border-white border-opacity-50">
                     <div class="flex-none flex items-center">
                         <div class="text-base font-medium mr-1">({{ item.rating }}) - </div>
-                        <div v-for="star in item.rating" class="font-icon text-yellow-400">star</div>
+                        <div v-for="star in item.rating" class="text-[18px] font-icon text-yellow-400">star</div>
                     </div>
                 </td>
                 <td class="px-4 py-2 border border-white border-opacity-50">
@@ -39,6 +39,7 @@
 <script setup lang="ts">
 import ProfileInfo from '@/components/common/ProfileInfo.vue'
 import { copyToBuffer } from '@/helpers/common';
+import { toLocaleString } from '@/helpers/date';
 import { reviewsList } from '@/reactive/useReviewsList';
 import { useToast } from '@/reactive/useToast';
 import { MessagesEnum } from '@/types/enums';

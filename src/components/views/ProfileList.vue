@@ -8,7 +8,7 @@
         <div
             v-for="profile in profileDataList"
             :key="profile.id"
-            :class="profile.opened ? 'outline outline-3 outline-blue-400' : ''"
+            :class="profile.opened ? 'ring ring-blue-400' : ''"
             class="rounded-lg bg-gray-600 px-5 py-3 shadow-xl mb-4 cursor-pointer"
             @click="profile.opened = !profile.opened"
         >
