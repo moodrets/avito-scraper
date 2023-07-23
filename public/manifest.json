@@ -1,12 +1,12 @@
 {
     "manifest_version": 3,
-    "name": "Avito Scrapper",
+    "name": "Avito Scraper",
     "version": "1.0.0",
     "action": {
         "default_icon": {
             "16": "avito-icon.png"
         },
-        "default_title": "Парсер отзывов Авито"
+        "default_title": "Парсер Авито"
     },
     "icons": {
         "16": "avito-icon.png",

@@ -9,10 +9,9 @@
             v-for="profile in profileDataList"
             :key="profile.id"
             :class="profile.opened ? 'ring ring-blue-400' : ''"
-            class="rounded-lg bg-gray-600 px-5 py-3 shadow-xl mb-3 cursor-pointer"
-            @click="onOpenProfileDetails(profile)"
+            class="rounded-lg bg-gray-600 shadow-xl mb-3 "
         >
-            <div class="flex items-center gap-4 select-none">
+            <div class="px-4 py-2 flex items-center gap-4 select-none cursor-pointer" @click="onOpenProfileDetails(profile)">
                 <div class="text-xl min-w-0 font-medium">{{ profile.name }}</div>
                 <div class="text-[16px] text-gray-300 font-medium">{{ toLocaleString(profile.savedDate) }}</div>
                 <div class="text-[16px] text-blue-300 font-medium">{{ profile.rating }}</div>
@@ -25,10 +24,10 @@
                     <i class="font-icon text-3xl text-sky-500">content_copy</i>
                 </div>
                 <div class="flex-none" @click.stop="onDeleteProfile(profile)">
-                    <i class="font-icon text-3xl text-red-400">cancel</i>
+                    <i class="font-icon text-3xl text-red-400">delete_forever</i>
                 </div>
             </div>
-            <div v-if="profile.opened" class="text-[14px] mt-5 pb-3">
+            <div v-if="profile.opened" class="text-[14px] px-4 p-5">
                 <template v-if="profile.loading">
                     <div class="flex justify-center">
                         <Spinner class="w-6 h-6"></Spinner>
