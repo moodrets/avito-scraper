@@ -1,4 +1,4 @@
-import { IFilterFields } from "@/types/infterfaces";
+import { IFilterFields } from "@/types/interfaces";
 
 export async function apiCreateFilter(filterFields: IFilterFields): Promise<void> {
     await chrome.storage.local.set({ filterFields })

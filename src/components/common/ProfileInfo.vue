@@ -70,6 +70,7 @@ import { apiCreateProfile, apiGetProfileByUrl } from '@/api/Profiles';
 import { reviewsList } from '@/reactive/useReviewsList';
 import { copyToBuffer } from '@/helpers/common';
 import { toLocaleString } from '@/helpers/date';
+import { apiCreateParsingResult } from '@/api/ParsingResults';
 
 const toast = useToast()
 
@@ -99,6 +100,10 @@ async function onSave() {
             profileInfo.value.id = newProfile.id
             profileInfo.value.existsInDataBase = true
             profileInfo.value.savedDate = newProfile.savedDate
+
+            if (reviewsList.value.length) {
+                await apiCreateParsingResult(profileInfo.value)
+            }
 
         } catch(error: any) {
 

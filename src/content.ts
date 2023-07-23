@@ -1,4 +1,4 @@
-import { IFilterFields, IProfileItem, IReviewsItem } from "@/types/infterfaces";
+import { IFilterFields, IProfileItem, IReviewsItem } from "@/types/interfaces";
 
 enum MessagesEnum {
     InfoNotFound = 'Информация не найдена',
@@ -215,7 +215,7 @@ const ReviewsParser = {
         return resultList
     },
     async parseItems(){
-        const reviewsDataList: IReviewsItem[] = []
+        let reviewsDataList: IReviewsItem[] = []
         const reviewsItemsEls = [...document.querySelectorAll(SELECTORS.reviewsItem)]
 
         if (!reviewsItemsEls.length) {
@@ -282,6 +282,8 @@ const ReviewsParser = {
             });
 
         } else {
+            reviewsDataList = []
+
             if (this.modal) {
                 this.loadMoreInModal()
             } else {
@@ -322,8 +324,9 @@ const ReviewsParser = {
             toastText: MessagesEnum.ParsingReviewsStarted,
         });
 
+        await wait(1000)
         this.summaryButton?.click()
-        await wait(4000)
+        await wait(3000)
         this.parseItems()
     }
 }

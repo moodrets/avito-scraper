@@ -1,4 +1,4 @@
-import { IProfileItem } from "@/types/infterfaces"
+import { IProfileItem } from "@/types/interfaces"
 
 export async function apiGetProfileList(urlParams?: string): Promise<IProfileItem[]> {
     let { profileList } = await chrome.storage.local.get('profileList')

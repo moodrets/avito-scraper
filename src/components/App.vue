@@ -22,6 +22,7 @@ import { loading } from '@/reactive/useAppLoader';
 import { profileInfo } from '@/reactive/useProfileInfo';
 import { reviewsList } from '@/reactive/useReviewsList';
 import { MainTabsEnum } from '@/types/enums';
+import { apiCreateParsingResult } from '@/api/ParsingResults';
 
 const toast = useToast();
 
@@ -41,6 +42,10 @@ onMounted(async () => {
 
             if (reviewsFilteredList) {
                 reviewsList.value = reviewsFilteredList;
+
+                if (profileInfo.value?.existsInDataBase) {
+                    apiCreateParsingResult(profileInfo.value)
+                }
             }
         }
 

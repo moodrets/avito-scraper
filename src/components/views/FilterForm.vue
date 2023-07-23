@@ -130,7 +130,7 @@ import { loading } from '@/reactive/useAppLoader';
 import { getDateYesterday } from '@/helpers/date';
 import { createTab } from '@/helpers/common';
 import { MessagesEnum } from '@/types/enums';
-import { IFilterFields } from '@/types/infterfaces';
+import { IFilterFields } from '@/types/interfaces';
 import { apiGetFilter, apiRemoveFilter, apiCreateFilter } from '@/api/Filter';
 
 const toast = useToast()
