@@ -64,14 +64,14 @@ async function getProfileInfo(data: Record<string, any>): Promise<void> {
     let profileSubscribersEl = document.querySelector(SELECTORS.profileSubscribers)
     let profileDeviveryInfoEl = [...document.querySelectorAll(SELECTORS.profileAsideInfoItems)]?.find(item => item.textContent?.includes('продаж'))
 
-    let subscribersInfo = profileSubscribersEl?.textContent ? profileSubscribersEl.textContent.split(',')[0] : null
+    let profileSubscribersInfo = profileSubscribersEl?.textContent ? profileSubscribersEl.textContent.split(',')[0] : null
 
     let profileInform: IProfileItem = {
         parsingDate: Date.now(),
         name: profileNameEl?.textContent || MessagesEnum.InfoNotFound,
         rating: profileRatingEl?.textContent || MessagesEnum.InfoNotFound,
         reviewsCount: profileReviewsEl?.textContent || MessagesEnum.InfoNotFound,
-        subscribers: subscribersInfo || MessagesEnum.InfoNotFound,
+        subscribers: profileSubscribersInfo || MessagesEnum.InfoNotFound,
         deliveryInfo: profileDeviveryInfoEl?.textContent || MessagesEnum.InfoNotFound,
         url: data.profileLink
     }
