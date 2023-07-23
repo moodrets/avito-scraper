@@ -18,7 +18,7 @@ const SELECTORS = {
     profileReviewsCount: '.Sidebar-root-h24MJ .desktop-fgq05w',
     profileRating: '.Sidebar-root-h24MJ [data-marker="profile/score"]',
     profileSubscribers: '.Sidebar-root-h24MJ [data-marker="favorite-seller-counters"]',
-    profileDeviveryInfo: '.Sidebar-root-h24MJ .ProfileBadge-root-bcR8G:nth-child(2)',
+    profileAsideInfoItems: '.Sidebar-root-h24MJ .ProfileBadge-root-bcR8G',
 
     reviewsItem: '.style-snippet-E6g8Y',
     reviewsItemProductName: '.desktop-35wlrd',
@@ -62,7 +62,7 @@ async function getProfileInfo(data: Record<string, any>): Promise<void> {
     let profileReviewsEl = document.querySelector(SELECTORS.profileReviewsCount)
     let profileRatingEl = document.querySelector(SELECTORS.profileRating)
     let profileSubscribersEl = document.querySelector(SELECTORS.profileSubscribers)
-    let profileDeviveryInfoEl = document.querySelector(SELECTORS.profileDeviveryInfo)
+    let profileDeviveryInfoEl = [...document.querySelectorAll(SELECTORS.profileAsideInfoItems)]?.find(item => item.textContent?.includes('продаж'))
 
     let subscribersInfo = profileSubscribersEl?.textContent ? profileSubscribersEl.textContent.split(',')[0] : null
 
@@ -284,6 +284,7 @@ const ReviewsParser = {
             window.close()
 
         } else {
+            
             reviewsDataList = []
 
             if (this.modal) {
@@ -345,7 +346,7 @@ chrome.runtime.onMessage.addListener(async ({action, filterFields}) => {
 
     if (action === 'reviews-parsing-start' && filterFields) {
         FILTER_FIELDS = filterFields
-        getProfileInfo(filterFields)
+        FILTER_FIELDS && getProfileInfo(FILTER_FIELDS)
         ReviewsParser.parsingStart()
     }
 })
