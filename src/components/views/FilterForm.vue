@@ -7,7 +7,7 @@
                 <input 
                     v-model="fields.profileLink"
                     tabindex="1"
-                    type="text"
+                    type="search"
                     required
                     class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
                 >
@@ -17,7 +17,7 @@
                 <input 
                     v-model="fields.productName"
                     tabindex="9"
-                    type="text" 
+                    type="search" 
                     class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
                 >
             </div>

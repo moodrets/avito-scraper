@@ -13,8 +13,12 @@
             @click="onOpenProfileDetails(profile)"
         >
             <div class="flex items-center gap-4 select-none">
-                <div class="text-xl flex-1 min-w-0 font-medium">{{ profile.name }}</div>
-                <div class="flex-none" @click.stop="onOpenLink(profile)">
+                <div class="text-xl min-w-0 font-medium">{{ profile.name }}</div>
+                <div class="text-[16px] text-gray-300 font-medium">{{ toLocaleString(profile.savedDate) }}</div>
+                <div class="text-[16px] text-blue-300 font-medium">{{ profile.rating }}</div>
+                <div class="text-[16px] text-yellow-300 font-medium">{{ profile.reviewsCount }}</div>
+                <div class="text-[16px] text-teal-300 font-medium">{{ profile.subscribers }}</div>
+                <div class="flex-none ml-auto" @click.stop="onOpenLink(profile)">
                     <i class="font-icon text-3xl text-green-500">open_in_new</i>
                 </div>
                 <div class="flex-none" @click.stop="onCopyLink(profile)">

@@ -14,10 +14,10 @@ enum MessagesEnum {
 let FILTER_FIELDS: IFilterFields | null = null
 
 const SELECTORS = {
-    profileName: '.desktop-1r4tu1s',
-    profileReviewsCount: '.desktop-fgq05w',
-    profileRating: '[data-marker="profile/score"]',
-    profileSubscribers: '[data-marker="favorite-seller-counters"]',
+    profileName: '.Sidebar-root-h24MJ .desktop-1r4tu1s',
+    profileReviewsCount: '.Sidebar-root-h24MJ .desktop-fgq05w',
+    profileRating: '.Sidebar-root-h24MJ [data-marker="profile/score"]',
+    profileSubscribers: '.Sidebar-root-h24MJ [data-marker="favorite-seller-counters"]',
     profileDeviveryInfo: '.Sidebar-root-h24MJ .ProfileBadge-root-bcR8G:nth-child(2)',
 
     reviewsItem: '.style-snippet-E6g8Y',
@@ -58,15 +58,15 @@ function scrollElement(element: HTMLElement | Element, top: number){
 }
 
 async function getProfileInfo(data: Record<string, any>): Promise<void> {
-    const profileNameEl = document.querySelector(SELECTORS.profileName)
-    const profileReviewsEl = document.querySelector(SELECTORS.profileReviewsCount)
-    const profileRatingEl = document.querySelector(SELECTORS.profileRating)
-    const profileSubscribersEl = document.querySelector(SELECTORS.profileSubscribers)
-    const profileDeviveryInfoEl = document.querySelector(SELECTORS.profileDeviveryInfo)
+    let profileNameEl = document.querySelector(SELECTORS.profileName)
+    let profileReviewsEl = document.querySelector(SELECTORS.profileReviewsCount)
+    let profileRatingEl = document.querySelector(SELECTORS.profileRating)
+    let profileSubscribersEl = document.querySelector(SELECTORS.profileSubscribers)
+    let profileDeviveryInfoEl = document.querySelector(SELECTORS.profileDeviveryInfo)
 
     let subscribersInfo = profileSubscribersEl?.textContent ? profileSubscribersEl.textContent.split(',')[0] : null
 
-    const profileInform: IProfileItem = {
+    let profileInform: IProfileItem = {
         parsingDate: Date.now(),
         name: profileNameEl?.textContent || MessagesEnum.InfoNotFound,
         rating: profileRatingEl?.textContent || MessagesEnum.InfoNotFound,
@@ -214,9 +214,9 @@ const ReviewsParser = {
 
         return resultList
     },
-    async parseItems(){
+    async parseItems() {
         let reviewsDataList: IReviewsItem[] = []
-        const reviewsItemsEls = [...document.querySelectorAll(SELECTORS.reviewsItem)]
+        let reviewsItemsEls = [...document.querySelectorAll(SELECTORS.reviewsItem)]
 
         if (!reviewsItemsEls.length) {
             await sendMessage({
@@ -228,9 +228,9 @@ const ReviewsParser = {
         }
 
         for (const item of reviewsItemsEls) {
-            const ratingStarsEls = item.querySelectorAll(SELECTORS.reviewsItemRatingStars)
-            const productNameEl = item.querySelector(SELECTORS.reviewsItemProductName)
-            const dateDeliveryEl = item.querySelector(SELECTORS.reviewsItemDateDelivery)
+            let ratingStarsEls = item.querySelectorAll(SELECTORS.reviewsItemRatingStars)
+            let productNameEl = item.querySelector(SELECTORS.reviewsItemProductName)
+            let dateDeliveryEl = item.querySelector(SELECTORS.reviewsItemDateDelivery)
 
             let deliveryText = null
             let dateText = null
@@ -254,7 +254,7 @@ const ReviewsParser = {
                 break 
             }
 
-            const parsedReviewItem: IReviewsItem = {
+            let parsedReviewItem: IReviewsItem = {
                 date: date || 0,
                 dateText: dateText || MessagesEnum.InfoNotFound,
                 delivery: deliveryText ? true : false,
@@ -280,6 +280,8 @@ const ReviewsParser = {
                 toastText: MessagesEnum.ParsingReviewsEnded,
                 reviewsFilteredList,
             });
+
+            window.close()
 
         } else {
             reviewsDataList = []
@@ -311,6 +313,7 @@ const ReviewsParser = {
     },
     async loadMoreOnPage() {
         scrollPageToBottom()
+        await wait(2000)
         if (this.loadMoreButton) {
             this.loadMoreButton.click()
         }
