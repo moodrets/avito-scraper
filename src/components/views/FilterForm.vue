@@ -119,13 +119,12 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
+import { onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 import AirDatepicker from 'air-datepicker';
 import Button from '@/components/common/Button.vue'
 import Switch from '@/components/common/Switch.vue'
 import ProfileInfo from '@/components/common/ProfileInfo.vue'
 
-import { appStart } from '@/reactive/useAppState';
 import { useToast } from '@/reactive/useToast';
 import { loading } from '@/reactive/useAppLoader';
 import { getDateYesterday } from '@/helpers/date';
@@ -167,8 +166,7 @@ const datePickersConfig: Record<string, any> = {
     }
 }
 
-watch(appStart, async () => {
-
+async function setFilterFromStorage() {
     const filterFieldsStorage = await apiGetFilter()
 
     if (filterFieldsStorage) {
@@ -182,9 +180,9 @@ watch(appStart, async () => {
         datePickers.dateFrom.selectDate(filterFieldsStorage['dateFrom'])
         datePickers.dateTo.selectDate(filterFieldsStorage['dateTo'])
     }
-})
+}
 
-async function saveFilterToLocalStorage() {
+async function saveFilter() {
     try {
         const fieldsToStorage = {...fields}
 
@@ -230,12 +228,12 @@ async function onStop() {
 }
 
 async function onSave() {
-    await saveFilterToLocalStorage()
+    await saveFilter()
 }
 
 async function onSubmit() {
 
-    await saveFilterToLocalStorage()
+    await saveFilter()
 
     try {
         const currentTab = await createTab(fields.profileLink)
@@ -257,6 +255,7 @@ onMounted(() => {
     datePickers.dateTo = new AirDatepicker('#dateTo', datePickersConfig)
     datePickers.dateFrom.selectDate(getDateYesterday())
     datePickers.dateTo.selectDate(new Date())
+    setFilterFromStorage()
 })
 
 onBeforeUnmount(()=>{

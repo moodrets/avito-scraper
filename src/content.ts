@@ -7,7 +7,8 @@ enum MessagesEnum {
     ParsingReviewsStarted = 'Парсинг отзывов запущен',
     ParsingReviewsEnded = 'Парсинг отзывов завершен',
     ReviewsNotFound = 'Отзывы не найдены',
-    ReviewsSelectorsNotFound = 'Не найдены селекторы в отзывах'
+    ReviewsSelectorsNotFound = 'Не найдены селекторы в отзывах',
+    ReviewsModalScrollerNotFound = 'Не найден селектор для скрола в модалке',
 }
 
 let FILTER_FIELDS: IFilterFields | null = null
@@ -26,6 +27,8 @@ const SELECTORS = {
     reviewsMoreLoadButton: '[data-marker="rating-list/moreReviewsButton"]',
     reviewsSummaryButton: '[data-marker="profile/summary"]',
     reviewsModal: '[data-marker="profile-rating-detailed/popup"]',
+    reviewsModalScroller: '.desktop-y382as',
+    reviewsModalScrollerInner: '.style-root-qXsDs',
 
     // TODO: иногда выскакивает такая кнопка (нужно проверять ее наличие)
     reviewsMoreLoadErrorButton: '[data-marker="errorMessage/button"]'
@@ -45,6 +48,13 @@ async function wait(timeout: number) {
 
 function scrollPageToBottom() {
     window.scrollTo({ left: 0, top: document.body.scrollHeight, behavior: "smooth" });
+}
+
+function scrollElement(element: HTMLElement | Element, top: number){
+    element.scrollTo({
+        top: top,
+        behavior: 'smooth'
+    })
 }
 
 async function getProfileInfo(data: Record<string, any>): Promise<void> {
@@ -74,19 +84,7 @@ async function getProfileInfo(data: Record<string, any>): Promise<void> {
 }
 
 const ReviewsParser = {
-    getDateOrDeliveryText(textContent: string, target: 'date' | 'delivery'): string | null {
-        let splitStr = textContent.split(',')
-
-        if (splitStr[0] && target === 'date') {
-            return splitStr[0]
-        }
-
-        if (splitStr[1] && target === 'delivery') {
-            return splitStr[1]
-        }
-
-        return null
-    },
+    parsingEnded: false,
     makeMonthNumberFromText(monthText: string): string {
         let monthNumber = ''
 
@@ -218,33 +216,29 @@ const ReviewsParser = {
     },
     async parseItems(){
         const reviewsDataList: IReviewsItem[] = []
-        const reviewsItemsEls = document.querySelectorAll(SELECTORS.reviewsItem)
-        let parsingError = false
+        const reviewsItemsEls = [...document.querySelectorAll(SELECTORS.reviewsItem)]
 
         if (!reviewsItemsEls.length) {
             await sendMessage({
                 action: 'reviews-parsing-ended',
-                toastType: 'error', 
+                toastType: 'error',
                 toastText: MessagesEnum.ReviewsNotFound,
             });
             return
         }
 
-        reviewsItemsEls.forEach((item: Element) => {
+        for (const item of reviewsItemsEls) {
             const ratingStarsEls = item.querySelectorAll(SELECTORS.reviewsItemRatingStars)
             const productNameEl = item.querySelector(SELECTORS.reviewsItemProductName)
             const dateDeliveryEl = item.querySelector(SELECTORS.reviewsItemDateDelivery)
-            
+
             let deliveryText = null
             let dateText = null
             let date = null
 
             if (dateDeliveryEl?.textContent) {
-                dateText = this.getDateOrDeliveryText(dateDeliveryEl.textContent, 'date')
-            }
-
-            if (dateDeliveryEl?.textContent) {
-                deliveryText = this.getDateOrDeliveryText(dateDeliveryEl.textContent, 'delivery')
+                dateText = dateDeliveryEl?.textContent.split(',')[0] || null
+                deliveryText = dateDeliveryEl?.textContent.split(',')[1] || null
             }
 
             if (dateText) {
@@ -252,60 +246,74 @@ const ReviewsParser = {
             }
 
             if (!dateText || !date) {
-                parsingError = true
+                await sendMessage({
+                    action: 'reviews-parsing-ended',
+                    toastType: 'error',
+                    toastText: MessagesEnum.ReviewsSelectorsNotFound,
+                });
+                break 
             }
 
-            reviewsDataList.push({
+            const parsedReviewItem: IReviewsItem = {
                 date: date || 0,
                 dateText: dateText || MessagesEnum.InfoNotFound,
                 delivery: deliveryText ? true : false,
                 productName: productNameEl?.textContent || MessagesEnum.InfoNotFound,
                 rating: ratingStarsEls?.length || 0,
-            })
-        })
+            }
 
-        if (parsingError) {
+            reviewsDataList.push(parsedReviewItem)
+
+            if (FILTER_FIELDS?.dateFrom && parsedReviewItem.date <= this.makeDateFromFilterString(FILTER_FIELDS?.dateFrom)) {
+                this.parsingEnded = true
+                break
+            }
+        }
+
+        if (this.parsingEnded) {
+
+            const reviewsFilteredList = this.getFilteredList(reviewsDataList)
+        
+            await sendMessage({
+                action: 'reviews-parsing-ended',
+                toastType: 'success',
+                toastText: MessagesEnum.ParsingReviewsEnded,
+                reviewsFilteredList,
+            });
+
+        } else {
+            if (this.modal) {
+                this.loadMoreInModal()
+            } else {
+                this.loadMoreOnPage()
+            }
+        }
+    },
+    async loadMoreInModal() {
+        const reviewsModalScrollerEl = this.modal?.querySelector(SELECTORS.reviewsModalScroller)
+        const reviewsModalScrollerInnerEl = this.modal?.querySelector(SELECTORS.reviewsModalScrollerInner)
+
+        if (!reviewsModalScrollerEl || !reviewsModalScrollerInnerEl) {
             await sendMessage({
                 action: 'reviews-parsing-ended',
                 toastType: 'error',
-                toastText: MessagesEnum.ReviewsSelectorsNotFound,
+                toastText: MessagesEnum.ReviewsModalScrollerNotFound,
             });
         }
 
-        const reviewsFilteredList = this.getFilteredList(reviewsDataList)
-        
-        await sendMessage({
-            action: 'reviews-parsing-ended',
-            toastType: 'success',
-            toastText: MessagesEnum.ParsingReviewsEnded,
-            reviewsFilteredList,
-        });
-
-        // window.close();
-    },
-    async loadMoreInModal() {
-
+        if (reviewsModalScrollerEl && reviewsModalScrollerInnerEl) {
+            scrollElement(reviewsModalScrollerEl, reviewsModalScrollerInnerEl.clientHeight)
+            await wait(2000)
+            this.parseItems()
+        }
     },
     async loadMoreOnPage() {
         scrollPageToBottom()
-        await wait(2000)
-
         if (this.loadMoreButton) {
             this.loadMoreButton.click()
-            this.loadMoreOnPage()
         }
-
-        if (!this.loadMoreButton) {
-            await wait(2000)
-
-            if (this.loadMoreButton) {
-                this.loadMoreOnPage()
-                return
-            }
-
-            scrollPageToBottom()
-            this.parseItems()
-        }
+        await wait(3000)
+        this.parseItems()
     },
     async parsingStart() {
         await sendMessage({
@@ -315,18 +323,8 @@ const ReviewsParser = {
         });
 
         this.summaryButton?.click()
-        await wait(3500)
-
-        // если отзывы в модальном окне
-        if (this.modal) {
-            this.loadMoreInModal()
-            return   
-        }
-
-        // если отзывы на странице
-        scrollPageToBottom()
-        await wait(2000)
-        this.loadMoreOnPage()
+        await wait(4000)
+        this.parseItems()
     }
 }
 
