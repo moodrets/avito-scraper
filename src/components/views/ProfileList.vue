@@ -11,8 +11,10 @@
             :class="profile.opened ? 'ring ring-blue-400' : ''"
             class="rounded-lg bg-gray-600 shadow-xl mb-3 "
         >
-            <div class="px-4 py-2 flex items-center gap-4 select-none cursor-pointer" @click="onOpenProfileDetails(profile)">
-                <div class="text-xl w-2/5 min-w-0 font-medium">{{ profile.name }}</div>
+            <div 
+                class="px-4 py-2 flex items-center gap-4 select-none cursor-pointer" @click="onOpenProfileDetails(profile)"
+            >
+                <div class="text-xl w-1/3 min-w-0 font-medium">{{ profile.name }}</div>
                 <div class="text-[16px] text-gray-300 font-medium">{{ toLocaleString(profile.savedDate) }}</div>
                 <div class="text-[16px] text-blue-300 font-medium">{{ profile.rating }}</div>
                 <div class="text-[16px] text-yellow-300 font-medium">{{ profile.reviewsCount }}</div>
@@ -52,7 +54,7 @@
                     </table>
                 </template>
                 <template v-else>
-                    <div class="text-center text-xl font-medium">Парсинги отзывов не найдены</div>
+                    <div class="text-center text-xl font-medium">Парсинги не найдены</div>
                 </template>
             </div>
         </div>
