@@ -75,15 +75,14 @@ import { apiCreateParsingResult } from '@/api/ParsingResults';
 const toast = useToast()
 
 const profileInfoWatcher = watch(profileInfo, async () => {
-    if (profileInfo.value?.url) {
+    if (!profileInfo.value?.id && profileInfo.value?.url) {
 
-        const foundProfile = await apiGetProfileByUrl(profileInfo.value?.url)
+        const foundProfile = await apiGetProfileByUrl(profileInfo.value.url)
 
         if (foundProfile) {
             profileInfo.value.existsInDataBase = true
             profileInfo.value.savedDate = foundProfile.savedDate
             profileInfo.value.id = foundProfile.id
-            profileInfoWatcher()
         }
     }
 })
