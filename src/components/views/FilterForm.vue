@@ -127,7 +127,7 @@ import ProfileInfo from '@/components/common/ProfileInfo.vue'
 
 import { useToast } from '@/reactive/useToast';
 import { loading } from '@/reactive/useAppLoader';
-import { getDateYesterday } from '@/helpers/date';
+import { getDateTwoMonthAgo } from '@/helpers/date';
 import { createTab } from '@/helpers/common';
 import { MessagesEnum } from '@/types/enums';
 import { IFilterFields } from '@/types/interfaces';
@@ -207,7 +207,7 @@ async function onReset() {
         fields.interval = 2
         fields.deliveryOnly = false
 
-        datePickers.dateFrom.selectDate(getDateYesterday()) 
+        datePickers.dateFrom.selectDate(getDateTwoMonthAgo()) 
         datePickers.dateTo.selectDate(new Date())
 
         await apiRemoveFilter()
@@ -253,7 +253,7 @@ async function onSubmit() {
 onMounted(() => {
     datePickers.dateFrom = new AirDatepicker('#dateFrom', datePickersConfig)
     datePickers.dateTo = new AirDatepicker('#dateTo', datePickersConfig)
-    datePickers.dateFrom.selectDate(getDateYesterday())
+    datePickers.dateFrom.selectDate(getDateTwoMonthAgo())
     datePickers.dateTo.selectDate(new Date())
     setFilterFromStorage()
 })
