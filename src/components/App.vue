@@ -6,6 +6,7 @@
         </keep-alive>
         <ReviewsList v-if="activeTab === MainTabsEnum.ReviewsResult"></ReviewsList>
         <ProfileList v-if="activeTab === MainTabsEnum.ProfileList"></ProfileList>
+        <Settings v-if="activeTab === MainTabsEnum.Settings"></Settings>
     </main>
 </template>
 
@@ -14,6 +15,7 @@ import Header from '@/components/common/Header.vue';
 import FilterForm from '@/components/views/FilterForm.vue';
 import ReviewsList from '@/components/views/ReviewsList.vue';
 import ProfileList from '@/components/views/ProfileList.vue';
+import Settings from '@/components/views/Settings.vue';
 
 import { onMounted } from 'vue';
 import { activeTab } from '@/reactive/useMainTabs';

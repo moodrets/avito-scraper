@@ -20,5 +20,6 @@ export enum MessagesEnum {
 export enum MainTabsEnum {
     Filter = 'filter',
     ReviewsResult = 'reviews_list',
-    ProfileList = 'profile_list'
+    ProfileList = 'profile_list',
+    Settings = 'settings'
 }

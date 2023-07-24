@@ -11,12 +11,15 @@
                 @click="changeMainTab(tab.value)"
             >{{ tab.text }}</Button>
             <Button 
-                theme="danger" 
-                type="button" 
-                icon="remove_circle" 
+                theme="info" 
+                type="button"
+                icon="settings" 
                 class="ml-auto"
-                @click.prevent="onClear"
-            >Очистить хранилище</Button>
+                :class="[
+                    activeTab === MainTabsEnum.Settings ? 'ring-2 ring-white' : '',
+                ]"
+                @click="changeMainTab(MainTabsEnum.Settings)"
+            ></Button>
         </div>
         <div class="h-1.5 progress-loader transition-all" :class="{'opacity-0': !loading}"></div>
     </header>
@@ -26,7 +29,6 @@
 import Button from '@/components/common/Button.vue'
 import { loading } from '@/reactive/useAppLoader';
 import { activeTab, changeMainTab } from '@/reactive/useMainTabs';
-import { profileInfo } from '@/reactive/useProfileInfo';
 import { MainTabsEnum } from '@/types/enums';
 
 const tabsList = [
@@ -46,12 +48,4 @@ const tabsList = [
         icon: 'people'
     },
 ]
-
-async function onClear() {
-    if (window.confirm('Мы сносим пользователей и результаты парсинга ?')) {
-        await chrome.storage.local.remove(['profileList', 'parsingResults'])
-        profileInfo.value && (profileInfo.value.existsInDataBase = false)
-        window.location.reload()
-    }
-}
 </script>
