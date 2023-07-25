@@ -11,6 +11,15 @@ export async function createTab(url: string): Promise<chrome.tabs.Tab> {
     });
 }
 
+export async function setExtensionTabActive(): Promise<void> {
+    const tabs = await chrome.tabs.query({active: false});
+    const extensionTab = tabs.find(tab => tab.url?.includes('options.html'))
+
+    if (extensionTab && extensionTab.id) {
+        chrome.tabs.update(extensionTab.id, {active: true})
+    }
+}
+
 export function copyToBuffer(text: string) {
     const textareaElement: HTMLTextAreaElement = document.createElement('textarea')
     textareaElement.style.cssText = 'position: absolute; left: -9999px; top: -9999px;'

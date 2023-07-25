@@ -125,15 +125,13 @@ function onCopy() {
         textValue+= `Продаж с доставкой: ${profileInfo.value.deliveryInfo}\n\n\n\n`
     }
 
-    if (reviewsList.value.length) {
-        reviewsList.value.forEach(item => {
-            let date = new Date(item.date)
-            // let day = new Intl.DateTimeFormat('ru', { day: '2-digit' }).format(date)
-            let month = new Intl.DateTimeFormat('ru', { month: '2-digit' }).format(date)
-            let year = new Intl.DateTimeFormat('ru', { year: 'numeric' }).format(date)
-            textValue += `${item.productName}~${month}.${year}${item.delivery ? '~Delivery' : ''}\n`
-        })
-    }
+    reviewsList.value.forEach(item => {
+        let date = new Date(item.date)
+        // let day = new Intl.DateTimeFormat('ru', { day: '2-digit' }).format(date)
+        let month = new Intl.DateTimeFormat('ru', { month: '2-digit' }).format(date)
+        let year = new Intl.DateTimeFormat('ru', { year: 'numeric' }).format(date)
+        textValue += `${item.productName}~${month}.${year}${item.delivery ? '~Delivery' : ''}\n`
+    })
 
     if (textValue) {
         copyToBuffer(textValue)

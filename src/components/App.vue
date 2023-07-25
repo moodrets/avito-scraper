@@ -25,11 +25,12 @@ import { profileInfo } from '@/reactive/useProfileInfo';
 import { reviewsList } from '@/reactive/useReviewsList';
 import { MainTabsEnum } from '@/types/enums';
 import { apiCreateParsingResult } from '@/api/ParsingResults';
+import { setExtensionTabActive } from '@/helpers/common';
 
 const toast = useToast();
 
 onMounted(async () => {
-    chrome.runtime.onMessage.addListener(({ toastType, toastText, action, profileInform, reviewsFilteredList }) => {
+    chrome.runtime.onMessage.addListener(async ({ toastType, toastText, action, profileInform, reviewsFilteredList }) => {
         if (toastType && toastText) {
             toast?.show(toastType, toastText);
         }
@@ -41,6 +42,8 @@ onMounted(async () => {
         if (action === 'reviews-parsing-ended') {
             loading.value = false;
             activeTab.value = MainTabsEnum.ReviewsResult;
+
+            setExtensionTabActive()
 
             if (reviewsFilteredList) {
                 reviewsList.value = reviewsFilteredList;
