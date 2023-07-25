@@ -2,24 +2,33 @@
     <form class="pb-20" @submit.prevent="onSubmit">
         <ProfileInfo />
         <div class="grid grid-cols-4 gap-5">
-            <div class="col-span-2">
-                <div class="mb-2 text-sm font-medium">Ссылка на профиль</div>
-                <input 
-                    v-model="fields.profileLink"
-                    tabindex="1"
-                    type="search"
-                    required
-                    class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
+            <div class="col-span-4">
+                <div class="text-sm font-medium mb-2">Ссылки на профили</div>
+                <div
+                    v-for="link, index in fields.profilesLinks" 
+                    :key="index" 
+                    class="flex items-center gap-4"
+                    :class="index > 0 ? 'mt-5' : ''"
                 >
-            </div>
-            <div class="col-span-2">
-                <div class="mb-2 text-sm font-medium">Название товара</div>
-                <input 
-                    v-model="fields.productName"
-                    tabindex="9"
-                    type="search" 
-                    class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
-                >
+                    <div class="flex-none select-none">
+                        <i v-if="link.status === 'success'" class="font-icon text-3xl block text-green-400">check_circle</i>
+                        <i v-if="link.status === 'fail'" class="font-icon text-3xl block text-red-400">cancel</i>
+                        <i v-if="link.status === 'wait'" class="font-icon text-3xl block text-gray-400">watch_later</i>
+                    </div>
+                    <input
+                        v-model="link.url"
+                        tabindex="1"
+                        type="search"
+                        required
+                        class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
+                    >
+                    <div v-if="fields.profilesLinks.length > 1" class="flex-none cursor-pointer select-none">
+                        <i class="font-icon text-3xl block text-red-400" @click="onRemoveProfileLink(index)">remove_circle_outline</i>
+                    </div>
+                    <div class="flex-none cursor-pointer select-none ml-auto">
+                        <i class="font-icon text-3xl block text-green-400" @click="onAddProfileLink">add_circle_outline</i>
+                    </div>
+                </div>
             </div>
             <div>
                 <div class="mb-2 text-sm font-medium">Дата от</div>
@@ -46,15 +55,15 @@
                 >
             </div>
             <div class="col-span-2">
-                <div class="mb-2 text-sm font-medium">Интервал прокрутки отзывов (указываем в секундах)</div>
+                <div class="mb-2 text-sm font-medium">Название товара</div>
                 <input 
-                    v-model="fields.interval"
-                    tabindex="10"
-                    type="number"
-                    min="0"
+                    v-model="fields.productName"
+                    tabindex="9"
+                    type="search" 
                     class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
                 >
             </div>
+            
             <div>
                 <div class="mb-2 text-sm font-medium">Рейтинг от</div>
                 <input 
@@ -76,6 +85,16 @@
                     min="1"
                     max="5" 
                     required
+                    class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
+                >
+            </div>
+            <div class="col-span-2">
+                <div class="mb-2 text-sm font-medium">Интервал прокрутки отзывов (указываем в секундах)</div>
+                <input 
+                    v-model="fields.interval"
+                    tabindex="10"
+                    type="number"
+                    min="0"
                     class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
                 >
             </div>
@@ -138,7 +157,9 @@ const toast = useToast()
 const openedTab = ref<Record<string, any>>({})
 
 const fields = reactive<IFilterFields>({
-    profileLink: '',
+    profilesLinks: [
+        {url: '', status: 'wait'},
+    ],
     productName: '',
     dateFrom: '',
     dateTo: '',
@@ -166,11 +187,22 @@ const datePickersConfig: Record<string, any> = {
     }
 }
 
+function onAddProfileLink(){
+    fields.profilesLinks.push({
+        status: 'wait',
+        url: ''
+    })
+}
+
+function onRemoveProfileLink(index: number) {
+    fields.profilesLinks.splice(index, 1)
+}
+
 async function setFilterFromStorage() {
     const filterFieldsStorage = await apiGetFilter()
 
     if (filterFieldsStorage) {
-        fields.profileLink = filterFieldsStorage['profileLink']
+        fields.profilesLinks = Object.values(filterFieldsStorage['profilesLinks'])
         fields.productName = filterFieldsStorage['productName']
         fields.ratingFrom = filterFieldsStorage['ratingFrom']
         fields.ratingTo = filterFieldsStorage['ratingTo']
@@ -200,7 +232,6 @@ async function saveFilter() {
 
 async function onReset() {
     if (window.confirm('Сбросить фильтр ?')) {
-        fields.profileLink = '',
         fields.productName = '',
         fields.ratingFrom = 4
         fields.ratingTo = 5
@@ -236,14 +267,18 @@ async function onSubmit() {
     await saveFilter()
 
     try {
-        const currentTab = await createTab(fields.profileLink)
-        openedTab.value = currentTab
+        const findWaitLink = fields.profilesLinks.find(link => link.status === 'wait')
 
-        if (currentTab.id) {
-            chrome.tabs.sendMessage(currentTab.id, {
-                action: 'reviews-parsing-start',
-                filterFields: fields
-            })
+        if (findWaitLink) {
+            const currentTab = await createTab(findWaitLink?.url)
+            openedTab.value = currentTab
+
+            if (currentTab.id) {
+                chrome.tabs.sendMessage(currentTab.id, {
+                    action: 'reviews-parsing-start',
+                    filterFields: fields
+                })
+            }
         }
     } catch (error: any) {
         toast?.show('error', MessagesEnum.TabOpenError)

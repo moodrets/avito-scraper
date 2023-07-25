@@ -1,5 +1,10 @@
+export interface IProfileLinkField {
+    status: 'success' | 'fail' | 'wait',
+    url: string
+}
+
 export interface IFilterFields {
-    profileLink: string
+    profilesLinks: IProfileLinkField[]
     productName: string
     dateFrom: string
     dateTo: string
