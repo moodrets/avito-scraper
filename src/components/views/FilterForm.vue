@@ -5,7 +5,7 @@
             <div class="col-span-4">
                 <div class="text-sm font-medium mb-2">Ссылки на профили</div>
                 <div
-                    v-for="link, index in fields.profilesLinks" 
+                    v-for="link, index in filterFields.profilesLinks" 
                     :key="index" 
                     class="flex items-center gap-4"
                     :class="index > 0 ? 'mt-5' : ''"
@@ -22,7 +22,7 @@
                         required
                         class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
                     >
-                    <div v-if="fields.profilesLinks.length > 1" class="flex-none cursor-pointer select-none">
+                    <div v-if="filterFields.profilesLinks.length > 1" class="flex-none cursor-pointer select-none">
                         <i class="font-icon text-3xl block text-red-400" @click="onRemoveProfileLink(index)">remove_circle_outline</i>
                     </div>
                     <div class="flex-none cursor-pointer select-none ml-auto">
@@ -33,7 +33,7 @@
             <div>
                 <div class="mb-2 text-sm font-medium">Дата от</div>
                 <input 
-                    v-model="fields.dateFrom"
+                    v-model="filterFields.dateFrom"
                     tabindex="2"
                     required
                     autocomplete="off"
@@ -45,7 +45,7 @@
             <div>
                 <div class="mb-2 text-sm font-medium">Дата до</div>
                 <input 
-                    v-model="fields.dateTo"
+                    v-model="filterFields.dateTo"
                     tabindex="3"
                     autocomplete="off"
                     required 
@@ -57,7 +57,7 @@
             <div class="col-span-2">
                 <div class="mb-2 text-sm font-medium">Название товара</div>
                 <input 
-                    v-model="fields.productName"
+                    v-model="filterFields.productName"
                     tabindex="9"
                     type="search" 
                     class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
@@ -67,7 +67,7 @@
             <div>
                 <div class="mb-2 text-sm font-medium">Рейтинг от</div>
                 <input 
-                    v-model="fields.ratingFrom"
+                    v-model="filterFields.ratingFrom"
                     tabindex="4"
                     type="number"
                     min="1"
@@ -79,7 +79,7 @@
             <div>
                 <div class="mb-2 text-sm font-medium">Рейтинг до</div>
                 <input 
-                    v-model="fields.ratingTo"
+                    v-model="filterFields.ratingTo"
                     tabindex="5"
                     type="number"
                     min="1"
@@ -91,7 +91,7 @@
             <div class="col-span-2">
                 <div class="mb-2 text-sm font-medium">Интервал прокрутки отзывов (указываем в секундах)</div>
                 <input 
-                    v-model="fields.interval"
+                    v-model="filterFields.interval"
                     tabindex="10"
                     type="number"
                     min="0"
@@ -101,7 +101,7 @@
             <div class="col-span-4 select-none">
                 <label class="inline-block">
                     <div class="mb-3 text-sm font-medium">Только с доставкой</div>
-                    <Switch :tabindex="6" v-model="fields.deliveryOnly"></Switch>
+                    <Switch :tabindex="6" v-model="filterFields.deliveryOnly"></Switch>
                 </label>
             </div>
         </div>
@@ -126,48 +126,35 @@
                 icon="restore" 
                 @click.stop.prevent="onReset"
             >Сбросить фильтр</Button>
-            <Button
+            <!-- <Button
                 tabindex="12"
                 theme="danger" 
                 type="button" 
                 icon="cancel"
                 @click.stop.prevent="onStop"
-            >Остановить парсинг</Button>
+            >Остановить парсинг</Button> -->
         </div>
     </form>
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, reactive, ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 import AirDatepicker from 'air-datepicker';
 import Button from '@/components/common/Button.vue'
 import Switch from '@/components/common/Switch.vue'
 import ProfileInfo from '@/components/common/ProfileInfo.vue'
 
 import { useToast } from '@/reactive/useToast';
+import { filterFields } from '@/reactive/useFilterFields'
 import { loading } from '@/reactive/useAppLoader';
 import { getDateTwoMonthAgo } from '@/helpers/date';
 import { createTab } from '@/helpers/common';
 import { MessagesEnum } from '@/types/enums';
-import { IFilterFields } from '@/types/interfaces';
 import { apiGetFilter, apiRemoveFilter, apiCreateFilter } from '@/api/Filter';
 
 const toast = useToast()
 
 const openedTab = ref<Record<string, any>>({})
-
-const fields = reactive<IFilterFields>({
-    profilesLinks: [
-        {url: '', status: 'wait'},
-    ],
-    productName: '',
-    dateFrom: '',
-    dateTo: '',
-    ratingFrom: 4,
-    ratingTo: 5,
-    interval: 2,
-    deliveryOnly: false,
-})
 
 const datePickers: Record<string, any> = {
     dateFrom: null,
@@ -178,36 +165,36 @@ const datePickersConfig: Record<string, any> = {
     autoClose: true,
     onSelect: ({formattedDate, datepicker}: any) => {
         if (datepicker.$el.id === 'dateFrom') {
-            fields.dateFrom = formattedDate
+            filterFields.dateFrom = formattedDate
         }
 
         if (datepicker.$el.id === 'dateTo') {
-            fields.dateTo = formattedDate
+            filterFields.dateTo = formattedDate
         }
     }
 }
 
 function onAddProfileLink(){
-    fields.profilesLinks.push({
+    filterFields.profilesLinks.push({
         status: 'wait',
         url: ''
     })
 }
 
 function onRemoveProfileLink(index: number) {
-    fields.profilesLinks.splice(index, 1)
+    filterFields.profilesLinks.splice(index, 1)
 }
 
 async function setFilterFromStorage() {
     const filterFieldsStorage = await apiGetFilter()
 
     if (filterFieldsStorage) {
-        fields.profilesLinks = Object.values(filterFieldsStorage['profilesLinks'])
-        fields.productName = filterFieldsStorage['productName']
-        fields.ratingFrom = filterFieldsStorage['ratingFrom']
-        fields.ratingTo = filterFieldsStorage['ratingTo']
-        fields.interval = filterFieldsStorage['interval']
-        fields.deliveryOnly = filterFieldsStorage['deliveryOnly']
+        filterFields.profilesLinks = Object.values(filterFieldsStorage['profilesLinks'])
+        filterFields.productName = filterFieldsStorage['productName']
+        filterFields.ratingFrom = filterFieldsStorage['ratingFrom']
+        filterFields.ratingTo = filterFieldsStorage['ratingTo']
+        filterFields.interval = filterFieldsStorage['interval']
+        filterFields.deliveryOnly = filterFieldsStorage['deliveryOnly']
 
         datePickers.dateFrom.selectDate(filterFieldsStorage['dateFrom'])
         datePickers.dateTo.selectDate(filterFieldsStorage['dateTo'])
@@ -216,7 +203,7 @@ async function setFilterFromStorage() {
 
 async function saveFilter() {
     try {
-        const fieldsToStorage = {...fields}
+        const fieldsToStorage = {...filterFields}
 
         fieldsToStorage.dateFrom = datePickers.dateFrom.selectedDates[0].toString()
         fieldsToStorage.dateTo = datePickers.dateTo.selectedDates[0].toString()
@@ -232,11 +219,15 @@ async function saveFilter() {
 
 async function onReset() {
     if (window.confirm('Сбросить фильтр ?')) {
-        fields.productName = '',
-        fields.ratingFrom = 4
-        fields.ratingTo = 5
-        fields.interval = 2
-        fields.deliveryOnly = false
+        filterFields.profilesLinks = [{
+            url: '',
+            status: 'wait'
+        }]
+        filterFields.productName = '',
+        filterFields.ratingFrom = 4
+        filterFields.ratingTo = 5
+        filterFields.interval = 2
+        filterFields.deliveryOnly = false
 
         datePickers.dateFrom.selectDate(getDateTwoMonthAgo()) 
         datePickers.dateTo.selectDate(new Date())
@@ -246,17 +237,17 @@ async function onReset() {
     }
 }
 
-async function onStop() {
-    if (window.confirm('Остановить парсинг ?')) {
-        loading.value = false
+// async function onStop() {
+//     if (window.confirm('Остановить парсинг ?')) {
+//         loading.value = false
 
-        if (openedTab.value?.id) {
-            await chrome.tabs.remove(openedTab.value.id)
-            openedTab.value = {}
-            toast?.show('warning', MessagesEnum.ParsingCanceled)
-        }
-    }
-}
+//         if (openedTab.value?.id) {
+//             await chrome.tabs.remove(openedTab.value.id)
+//             openedTab.value = {}
+//             toast?.show('warning', MessagesEnum.ParsingCanceled)
+//         }
+//     }
+// }
 
 async function onSave() {
     await saveFilter()
@@ -267,7 +258,7 @@ async function onSubmit() {
     await saveFilter()
 
     try {
-        const findWaitLink = fields.profilesLinks.find(link => link.status === 'wait')
+        const findWaitLink = filterFields.profilesLinks.find(link => link.status === 'wait')
 
         if (findWaitLink) {
             const currentTab = await createTab(findWaitLink?.url)
@@ -276,7 +267,7 @@ async function onSubmit() {
             if (currentTab.id) {
                 chrome.tabs.sendMessage(currentTab.id, {
                     action: 'reviews-parsing-start',
-                    filterFields: fields
+                    filterFields: filterFields
                 })
             }
         }
