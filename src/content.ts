@@ -1,4 +1,6 @@
-import { IFilterFields, IProfileItem, IReviewsItem } from "@/types/interfaces";
+import { IReviewsFilter } from "@/reactive/useReviewsFilter";
+import { IProfileItem } from "@/reactive/useProfileList";
+import { IReviewsItem } from "@/reactive/useReviewsItems";
 
 enum MessagesEnum {
     InfoNotFound = 'Информация не найдена',
@@ -11,7 +13,8 @@ enum MessagesEnum {
     ReviewsModalScrollerNotFound = 'Не найден селектор для скрола в модалке',
 }
 
-let FILTER_FIELDS: IFilterFields | null = null
+let FILTER_FIELDS: IReviewsFilter | null = null
+let CURRENT_URL: string = ''
 
 const SELECTORS = {
     profileName: '.Sidebar-root-h24MJ .desktop-1r4tu1s',
@@ -57,7 +60,7 @@ function scrollElement(element: HTMLElement | Element, top: number){
     })
 }
 
-async function getProfileInfo(data: Record<string, any>): Promise<void> {
+async function getProfileInfo(): Promise<void> {
     let profileNameEl = document.querySelector(SELECTORS.profileName)
     let profileReviewsEl = document.querySelector(SELECTORS.profileReviewsCount)
     let profileRatingEl = document.querySelector(SELECTORS.profileRating)
@@ -73,13 +76,15 @@ async function getProfileInfo(data: Record<string, any>): Promise<void> {
         reviewsCount: profileReviewsEl?.textContent || MessagesEnum.InfoNotFound,
         subscribers: profileSubscribersInfo || MessagesEnum.InfoNotFound,
         deliveryInfo: profileDeviveryInfoEl?.textContent || MessagesEnum.InfoNotFound,
-        url: data.profileLink
+        url: CURRENT_URL
     }
 
     await sendMessage({
-        toastType: 'success', 
-        toastText: MessagesEnum.ProfileInfoSuccess,
-        profileInform,
+        action: 'profile-info',
+        status: 'success',
+        currentUrl: CURRENT_URL,
+        messsage: MessagesEnum.ProfileInfoSuccess,
+        data: profileInform,
     })
 }
 
@@ -199,7 +204,7 @@ const ReviewsParser = {
             resultList = resultList.filter((item) => {
 
                 let lowercaseProductName = item.productName.toLowerCase()
-                let lowercaseFilterProductName = (FILTER_FIELDS as IFilterFields).productName.toLowerCase()
+                let lowercaseFilterProductName = (FILTER_FIELDS as IReviewsFilter).productName.toLowerCase()
 
                 if (lowercaseProductName.includes(lowercaseFilterProductName)) {
                     return item
@@ -221,8 +226,9 @@ const ReviewsParser = {
         if (!reviewsItemsEls.length) {
             await sendMessage({
                 action: 'reviews-parsing-ended',
-                toastType: 'error',
-                toastText: MessagesEnum.ReviewsNotFound,
+                status: 'error',
+                currentUrl: CURRENT_URL,
+                message: MessagesEnum.ReviewsNotFound,
             });
             return
         }
@@ -248,8 +254,9 @@ const ReviewsParser = {
             if (!dateText || !date) {
                 await sendMessage({
                     action: 'reviews-parsing-ended',
-                    toastType: 'error',
-                    toastText: MessagesEnum.ReviewsSelectorsNotFound,
+                    status: 'error',
+                    currentUrl: CURRENT_URL,
+                    message: MessagesEnum.ReviewsSelectorsNotFound,
                 });
                 break 
             }
@@ -260,6 +267,7 @@ const ReviewsParser = {
                 delivery: deliveryText ? true : false,
                 productName: productNameEl?.textContent || MessagesEnum.InfoNotFound,
                 rating: ratingStarsEls?.length || 0,
+                profileUrl: CURRENT_URL
             }
 
             reviewsDataList.push(parsedReviewItem)
@@ -276,9 +284,10 @@ const ReviewsParser = {
         
             await sendMessage({
                 action: 'reviews-parsing-ended',
-                toastType: 'success',
-                toastText: MessagesEnum.ParsingReviewsEnded,
-                reviewsFilteredList,
+                status: 'success',
+                currentUrl: CURRENT_URL,
+                message: MessagesEnum.ParsingReviewsEnded,
+                data: reviewsFilteredList,
             });
 
             window.close()
@@ -301,8 +310,9 @@ const ReviewsParser = {
         if (!reviewsModalScrollerEl || !reviewsModalScrollerInnerEl) {
             await sendMessage({
                 action: 'reviews-parsing-ended',
-                toastType: 'error',
-                toastText: MessagesEnum.ReviewsModalScrollerNotFound,
+                status: 'error',
+                currentUrl: CURRENT_URL,
+                message: MessagesEnum.ReviewsModalScrollerNotFound,
             });
         }
 
@@ -324,8 +334,9 @@ const ReviewsParser = {
     async parsingStart() {
         await sendMessage({
             action: 'reviews-parsing-started',
-            toastType: 'success', 
-            toastText: MessagesEnum.ParsingReviewsStarted,
+            status: 'success',
+            currentUrl: CURRENT_URL,
+            message: MessagesEnum.ParsingReviewsStarted,
         });
 
         await wait(1000)
@@ -335,18 +346,21 @@ const ReviewsParser = {
     }
 }
 
-chrome.runtime.onMessage.addListener(async ({action, filterFields}) => {
+chrome.runtime.onMessage.addListener(async ({action, filterFields, currentUrl}) => {
     if (!filterFields) {
         await sendMessage({
-            toastType: 'success', 
-            toastText: MessagesEnum.FilterFieldsNotReceived,
+            action: 'reviews-parsing-ended',
+            status: 'error',
+            currentUrl: CURRENT_URL,
+            message: MessagesEnum.FilterFieldsNotReceived,
         });
         return
     }
 
     if (action === 'reviews-parsing-start' && filterFields) {
+        CURRENT_URL = currentUrl
         FILTER_FIELDS = filterFields
-        FILTER_FIELDS && getProfileInfo(FILTER_FIELDS)
+        FILTER_FIELDS && getProfileInfo()
         ReviewsParser.parsingStart()
     }
 })

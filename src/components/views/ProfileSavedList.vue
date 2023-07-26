@@ -4,9 +4,9 @@
             <Spinner class="w-10 h-10 flex-none"></Spinner>
         </div>
     </template>
-    <template v-else-if="profileDataList.length">
+    <template v-else-if="profileSavedList.length">
         <div
-            v-for="profile in profileDataList"
+            v-for="profile in profileSavedList"
             :key="profile.id"
             :class="profile.opened ? 'ring ring-blue-400' : ''"
             class="rounded-lg bg-gray-600 shadow-xl mb-3 "
@@ -70,17 +70,14 @@ import Spinner from '@/components/common/Spinner.vue'
 
 import { MessagesEnum } from '@/types/enums'
 import { useToast } from '@/reactive/useToast'
-import { apiGetProfileList, apiRemoveProfile } from '@/api/Profiles';
-import { IProfileItemExt, IProfileItem } from '@/types/interfaces';
 import { copyToBuffer } from '@/helpers/common';
-import { apiGetParsingItemsByUrl, apiRemoveParsingItemsByUrl } from '@/api/ParsingResults';
 import { toLocaleString } from '@/helpers/date';
+import { IProfileItem, IProfileItemExt, apiProfileGetList, apiProfileRemove, profileSavedList } from '@/reactive/useProfileList';
+import { apiParsingResultsGetListByUrl } from '@/reactive/useParsingResults';
 
 const toast = useToast()
 
 const loadingComponent = ref<boolean>(false)
-
-const profileDataList = ref<IProfileItemExt[]>([])
 
 function onOpenLink(profile: IProfileItemExt) {
     if (profile.url) {
@@ -105,7 +102,7 @@ async function onOpenProfileDetails(profile: IProfileItemExt) {
     } else {
         try {
             profile.loading = true
-            const parsingResults = await apiGetParsingItemsByUrl(profile.url)
+            const parsingResults = await apiParsingResultsGetListByUrl(profile.url)
 
             if (parsingResults.length) {
                 profile.paringResults = parsingResults
@@ -122,8 +119,8 @@ async function onOpenProfileDetails(profile: IProfileItemExt) {
 async function onDeleteProfile(profile: IProfileItemExt) {
     if (window.confirm(`Удаляем "${profile.name}" ?`)) {
         if (profile.id) {
-            await apiRemoveParsingItemsByUrl(profile.url)
-            await apiRemoveProfile(profile.id)
+            await apiParsingResultsGetListByUrl(profile.url)
+            await apiProfileRemove(profile.id)
             toast?.show('success', MessagesEnum.ProfileDeleted)
             getProfileList()
         }
@@ -134,7 +131,7 @@ async function getProfileList() {
     try {
         loadingComponent.value = true
 
-        const result = await apiGetProfileList()
+        const result = await apiProfileGetList()
         const convertedList: IProfileItemExt[] = result.map((item: IProfileItem) => ({
             ...item, 
             loading: false, 
@@ -142,7 +139,7 @@ async function getProfileList() {
             paringResults: []
         }))
 
-        profileDataList.value = convertedList
+        profileSavedList.value = convertedList
 
     } catch(error: any) {
 

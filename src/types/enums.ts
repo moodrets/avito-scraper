@@ -18,8 +18,8 @@ export enum MessagesEnum {
 }
 
 export enum MainTabsEnum {
-    Filter = 'filter',
-    ReviewsResult = 'reviews_list',
-    ProfileList = 'profile_list',
+    ReviewsFilter = 'reviews_filter',
+    ProfileInfoList = 'profile_info_list',
+    ProfileSavedList = 'profile_saved_list',
     Settings = 'settings'
 }

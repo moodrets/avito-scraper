@@ -21,12 +21,10 @@
 
 <script setup lang="ts">
 import Button from '@/components/common/Button.vue'
-import { profileInfo } from '@/reactive/useProfileInfo';
 
 async function onClear() {
     if (window.confirm('Мы сносим пользователей и результаты парсинга ?')) {
-        await chrome.storage.local.remove(['profileList', 'parsingResults'])
-        profileInfo.value && (profileInfo.value.existsInDataBase = false)
+        await chrome.storage.local.remove(['profileList', 'parsingResults', 'filterFields'])
         window.location.reload()
     }
 }

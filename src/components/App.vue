@@ -2,61 +2,75 @@
     <Header></Header>
     <main class="centered">
         <keep-alive>
-            <FilterForm v-if="activeTab === MainTabsEnum.Filter"></FilterForm>
+            <ReviewsFilter ref="filterRef" v-if="activeTab === MainTabsEnum.ReviewsFilter"></ReviewsFilter>
         </keep-alive>
-        <ReviewsList v-if="activeTab === MainTabsEnum.ReviewsResult"></ReviewsList>
-        <ProfileList v-if="activeTab === MainTabsEnum.ProfileList"></ProfileList>
+        <ProfileInfoList v-if="activeTab === MainTabsEnum.ProfileInfoList"></ProfileInfoList>
+        <ProfileSavedList v-if="activeTab === MainTabsEnum.ProfileSavedList"></ProfileSavedList>
         <Settings v-if="activeTab === MainTabsEnum.Settings"></Settings>
     </main>
 </template>
 
 <script lang="ts" setup>
 import Header from '@/components/common/Header.vue';
-import FilterForm from '@/components/views/FilterForm.vue';
-import ReviewsList from '@/components/views/ReviewsList.vue';
-import ProfileList from '@/components/views/ProfileList.vue';
+import ReviewsFilter from '@/components/views/ReviewsFilter.vue';
+import ProfileInfoList from '@/components/views/ProfileInfoList.vue';
 import Settings from '@/components/views/Settings.vue';
 
-import { onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
 import { activeTab } from '@/reactive/useMainTabs';
 import { useToast } from '@/reactive/useToast';
-import { loading } from '@/reactive/useAppLoader';
-import { profileInfo } from '@/reactive/useProfileInfo';
-import { reviewsList } from '@/reactive/useReviewsList';
 import { MainTabsEnum } from '@/types/enums';
-import { apiCreateParsingResult } from '@/api/ParsingResults';
-import { setExtensionTabActive } from '@/helpers/common';
+import { profileInfoListPushData } from '@/reactive/useProfileList';
+import { reviewsFilterFindLinkByUrl } from '@/reactive/useReviewsFilter';
+import { reviewsFilterFindNewLink } from '@/reactive/useReviewsFilter';
+import { parsedReviewsList } from '@/reactive/useReviewsItems';
 
 const toast = useToast();
 
+const filterRef = ref<any>()
+
 onMounted(async () => {
-    chrome.runtime.onMessage.addListener(async ({ toastType, toastText, action, profileInform, reviewsFilteredList }) => {
-        if (toastType && toastText) {
-            toast?.show(toastType, toastText);
+    chrome.runtime.onMessage.addListener(async ({ 
+        message,
+        action,
+        status,
+        currentUrl,
+        data,
+    }) => {
+
+        if (status && message) {
+            toast?.show(status, message)
         }
 
         if (action === 'reviews-parsing-started') {
-            loading.value = true;
+            const currentProfileLink = reviewsFilterFindLinkByUrl(currentUrl)
+            currentProfileLink && (currentProfileLink.status = 'wait')
         }
 
         if (action === 'reviews-parsing-ended') {
-            loading.value = false;
-            activeTab.value = MainTabsEnum.ReviewsResult;
+            if (status === 'success') {
+                parsedReviewsList.push(...data)
+                const currentProfileLink = reviewsFilterFindLinkByUrl(currentUrl)
+                currentProfileLink && (currentProfileLink.status = 'success')
+            }
 
-            setExtensionTabActive()
+            if (status === 'error') {
+                const currentProfileLink = reviewsFilterFindLinkByUrl(currentUrl)
+                currentProfileLink && (currentProfileLink.status = 'error')
+            }
 
-            if (reviewsFilteredList) {
-                reviewsList.value = reviewsFilteredList;
+            const findNewLink = reviewsFilterFindNewLink()
 
-                if (profileInfo.value?.existsInDataBase) {
-                    apiCreateParsingResult(profileInfo.value)
-                }
+            if (findNewLink) {
+                filterRef.value?.onSubmit()
+            } else {
+                activeTab.value = MainTabsEnum.ProfileInfoList
             }
         }
 
-        if (profileInform) {
-            profileInfo.value = profileInform;
+        if (action === 'profile-info') {
+            profileInfoListPushData(data)
         }
-    });
-});
+    })
+})
 </script>

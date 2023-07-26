@@ -2,7 +2,7 @@
     <header class="mb-8 border-b border-gray-500 sticky top-0 z-[100] bg-gray-700">
         <div class="centered py-3 flex flex-wrap items-center gap-3">
             <Button 
-                v-for="tab in tabsList" 
+                v-for="tab in tabsList"
                 :key="tab.value" 
                 :icon="tab.icon"
                 :class="[
@@ -33,17 +33,17 @@ import { MainTabsEnum } from '@/types/enums';
 
 const tabsList = [
     {
-        value: MainTabsEnum.Filter,
+        value: MainTabsEnum.ReviewsFilter,
         text: 'Фильтр отзывов',
         icon: 'tune'
     },
     {
-        value: MainTabsEnum.ReviewsResult,
+        value: MainTabsEnum.ProfileInfoList,
         text: 'Результаты парсинга',
         icon: 'view_list'
     },
     {
-        value: MainTabsEnum.ProfileList,
+        value: MainTabsEnum.ProfileSavedList,
         text: 'База профилей',
         icon: 'people'
     },

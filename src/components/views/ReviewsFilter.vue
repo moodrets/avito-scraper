@@ -1,19 +1,19 @@
 <template>
-    <form class="pb-20" @submit.prevent="onSubmit">
-        <ProfileInfo />
+    <form class="pb-20" @submit.prevent="onParsingStart">
         <div class="grid grid-cols-4 gap-5">
             <div class="col-span-4">
                 <div class="text-sm font-medium mb-2">Ссылки на профили</div>
                 <div
-                    v-for="link, index in filterFields.profilesLinks" 
+                    v-for="link, index in reviewsFilterFields.profilesLinks" 
                     :key="index" 
                     class="flex items-center gap-4"
                     :class="index > 0 ? 'mt-5' : ''"
                 >
                     <div class="flex-none select-none">
                         <i v-if="link.status === 'success'" class="font-icon text-3xl block text-green-400">check_circle</i>
-                        <i v-if="link.status === 'fail'" class="font-icon text-3xl block text-red-400">cancel</i>
-                        <i v-if="link.status === 'wait'" class="font-icon text-3xl block text-gray-400">watch_later</i>
+                        <i v-if="link.status === 'error'" class="font-icon text-3xl block text-red-400">cancel</i>
+                        <i v-if="link.status === 'wait'" class="font-icon text-3xl block text-green-400 animate-spin">rotate_right</i>
+                        <i v-if="link.status === 'new'" class="font-icon text-3xl block text-gray-400">watch_later</i>
                     </div>
                     <input
                         v-model="link.url"
@@ -22,18 +22,18 @@
                         required
                         class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
                     >
-                    <div v-if="filterFields.profilesLinks.length > 1" class="flex-none cursor-pointer select-none">
-                        <i class="font-icon text-3xl block text-red-400" @click="onRemoveProfileLink(index)">remove_circle_outline</i>
+                    <div v-if="reviewsFilterFields.profilesLinks.length > 1" class="flex-none cursor-pointer select-none">
+                        <i class="font-icon text-3xl block text-red-400" @click="reviewsFilterRemoveProfileLink(index)">remove_circle_outline</i>
                     </div>
                     <div class="flex-none cursor-pointer select-none ml-auto">
-                        <i class="font-icon text-3xl block text-green-400" @click="onAddProfileLink">add_circle_outline</i>
+                        <i class="font-icon text-3xl block text-green-400" @click="reviewsFilterAddProfileLink">add_circle_outline</i>
                     </div>
                 </div>
             </div>
             <div>
                 <div class="mb-2 text-sm font-medium">Дата от</div>
                 <input 
-                    v-model="filterFields.dateFrom"
+                    v-model="reviewsFilterFields.dateFrom"
                     tabindex="2"
                     required
                     autocomplete="off"
@@ -45,7 +45,7 @@
             <div>
                 <div class="mb-2 text-sm font-medium">Дата до</div>
                 <input 
-                    v-model="filterFields.dateTo"
+                    v-model="reviewsFilterFields.dateTo"
                     tabindex="3"
                     autocomplete="off"
                     required 
@@ -57,7 +57,7 @@
             <div class="col-span-2">
                 <div class="mb-2 text-sm font-medium">Название товара</div>
                 <input 
-                    v-model="filterFields.productName"
+                    v-model="reviewsFilterFields.productName"
                     tabindex="9"
                     type="search" 
                     class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
@@ -67,7 +67,7 @@
             <div>
                 <div class="mb-2 text-sm font-medium">Рейтинг от</div>
                 <input 
-                    v-model="filterFields.ratingFrom"
+                    v-model="reviewsFilterFields.ratingFrom"
                     tabindex="4"
                     type="number"
                     min="1"
@@ -79,7 +79,7 @@
             <div>
                 <div class="mb-2 text-sm font-medium">Рейтинг до</div>
                 <input 
-                    v-model="filterFields.ratingTo"
+                    v-model="reviewsFilterFields.ratingTo"
                     tabindex="5"
                     type="number"
                     min="1"
@@ -91,7 +91,7 @@
             <div class="col-span-2">
                 <div class="mb-2 text-sm font-medium">Интервал прокрутки отзывов (указываем в секундах)</div>
                 <input 
-                    v-model="filterFields.interval"
+                    v-model="reviewsFilterFields.interval"
                     tabindex="10"
                     type="number"
                     min="0"
@@ -101,7 +101,7 @@
             <div class="col-span-4 select-none">
                 <label class="inline-block">
                     <div class="mb-3 text-sm font-medium">Только с доставкой</div>
-                    <Switch :tabindex="6" v-model="filterFields.deliveryOnly"></Switch>
+                    <Switch :tabindex="6" v-model="reviewsFilterFields.deliveryOnly"></Switch>
                 </label>
             </div>
         </div>
@@ -138,19 +138,24 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref, toRaw } from 'vue';
 import AirDatepicker from 'air-datepicker';
 import Button from '@/components/common/Button.vue'
 import Switch from '@/components/common/Switch.vue'
-import ProfileInfo from '@/components/common/ProfileInfo.vue'
 
 import { useToast } from '@/reactive/useToast';
-import { filterFields } from '@/reactive/useFilterFields'
-import { loading } from '@/reactive/useAppLoader';
 import { getDateTwoMonthAgo } from '@/helpers/date';
 import { createTab } from '@/helpers/common';
 import { MessagesEnum } from '@/types/enums';
-import { apiGetFilter, apiRemoveFilter, apiCreateFilter } from '@/api/Filter';
+import {
+    apiReviewsCreateFilter,
+    apiReviewsGetFilter,
+    apiReviewsRemoveFilter,
+    reviewsFilterFields,
+    reviewsFilterFindNewLink,
+    reviewsFilterAddProfileLink,
+    reviewsFilterRemoveProfileLink
+} from '@/reactive/useReviewsFilter';
 
 const toast = useToast()
 
@@ -165,74 +170,47 @@ const datePickersConfig: Record<string, any> = {
     autoClose: true,
     onSelect: ({formattedDate, datepicker}: any) => {
         if (datepicker.$el.id === 'dateFrom') {
-            filterFields.dateFrom = formattedDate
+            reviewsFilterFields.dateFrom = formattedDate
         }
 
         if (datepicker.$el.id === 'dateTo') {
-            filterFields.dateTo = formattedDate
+            reviewsFilterFields.dateTo = formattedDate
         }
     }
 }
 
-function onAddProfileLink(){
-    filterFields.profilesLinks.push({
-        status: 'wait',
-        url: ''
-    })
-}
-
-function onRemoveProfileLink(index: number) {
-    filterFields.profilesLinks.splice(index, 1)
-}
-
 async function setFilterFromStorage() {
-    const filterFieldsStorage = await apiGetFilter()
+    const filterFieldsStorage = await apiReviewsGetFilter()
 
     if (filterFieldsStorage) {
-        filterFields.profilesLinks = Object.values(filterFieldsStorage['profilesLinks'])
-        filterFields.productName = filterFieldsStorage['productName']
-        filterFields.ratingFrom = filterFieldsStorage['ratingFrom']
-        filterFields.ratingTo = filterFieldsStorage['ratingTo']
-        filterFields.interval = filterFieldsStorage['interval']
-        filterFields.deliveryOnly = filterFieldsStorage['deliveryOnly']
+        reviewsFilterFields.profilesLinks = Object.values(filterFieldsStorage['profilesLinks'])
+        reviewsFilterFields.productName = filterFieldsStorage['productName']
+        reviewsFilterFields.ratingFrom = filterFieldsStorage['ratingFrom']
+        reviewsFilterFields.ratingTo = filterFieldsStorage['ratingTo']
+        reviewsFilterFields.interval = filterFieldsStorage['interval']
+        reviewsFilterFields.deliveryOnly = filterFieldsStorage['deliveryOnly']
 
         datePickers.dateFrom.selectDate(filterFieldsStorage['dateFrom'])
         datePickers.dateTo.selectDate(filterFieldsStorage['dateTo'])
     }
 }
 
-async function saveFilter() {
-    try {
-        const fieldsToStorage = {...filterFields}
-
-        fieldsToStorage.dateFrom = datePickers.dateFrom.selectedDates[0].toString()
-        fieldsToStorage.dateTo = datePickers.dateTo.selectedDates[0].toString()
-
-        await apiCreateFilter(fieldsToStorage)
-        
-        toast?.show('success', MessagesEnum.FilterSaved)
-        
-    } catch(error: any) {
-        toast?.show('error', MessagesEnum.FilterSaveError)
-    }
-}
-
 async function onReset() {
     if (window.confirm('Сбросить фильтр ?')) {
-        filterFields.profilesLinks = [{
+        reviewsFilterFields.profilesLinks = [{
             url: '',
-            status: 'wait'
+            status: 'new'
         }]
-        filterFields.productName = '',
-        filterFields.ratingFrom = 4
-        filterFields.ratingTo = 5
-        filterFields.interval = 2
-        filterFields.deliveryOnly = false
+        reviewsFilterFields.productName = '',
+        reviewsFilterFields.ratingFrom = 4
+        reviewsFilterFields.ratingTo = 5
+        reviewsFilterFields.interval = 2
+        reviewsFilterFields.deliveryOnly = false
 
         datePickers.dateFrom.selectDate(getDateTwoMonthAgo()) 
         datePickers.dateTo.selectDate(new Date())
 
-        await apiRemoveFilter()
+        await apiReviewsRemoveFilter()
         toast?.show('warning', MessagesEnum.FilterCleared)
     }
 }
@@ -249,32 +227,58 @@ async function onReset() {
 //     }
 // }
 
+async function saveFilter() {
+    try {
+        const fieldsToStorage = {...reviewsFilterFields}
+
+        fieldsToStorage.dateFrom = datePickers.dateFrom.selectedDates[0].toString()
+        fieldsToStorage.dateTo = datePickers.dateTo.selectedDates[0].toString()
+        fieldsToStorage.profilesLinks.forEach(item => item.status = 'new')
+
+        await apiReviewsCreateFilter(fieldsToStorage)
+        
+        toast?.show('success', MessagesEnum.FilterSaved)
+        
+    } catch(error: any) {
+        toast?.show('error', MessagesEnum.FilterSaveError)
+    }
+}
+
 async function onSave() {
     await saveFilter()
 }
 
+async function onParsingStart(){
+    await saveFilter()
+    await onSubmit()
+}
+
 async function onSubmit() {
 
-    await saveFilter()
-
     try {
-        const findWaitLink = filterFields.profilesLinks.find(link => link.status === 'wait')
+        const profileNewLink = reviewsFilterFindNewLink()
 
-        if (findWaitLink) {
-            const currentTab = await createTab(findWaitLink?.url)
+        if (profileNewLink) {
+            const currentTab = await createTab(profileNewLink?.url)
             openedTab.value = currentTab
 
             if (currentTab.id) {
                 chrome.tabs.sendMessage(currentTab.id, {
                     action: 'reviews-parsing-start',
-                    filterFields: filterFields
+                    filterFields: reviewsFilterFields,
+                    currentUrl: profileNewLink.url
                 })
             }
         }
+        
     } catch (error: any) {
         toast?.show('error', MessagesEnum.TabOpenError)
     }
 }
+
+defineExpose({
+    onSubmit
+})
 
 onMounted(() => {
     datePickers.dateFrom = new AirDatepicker('#dateFrom', datePickersConfig)
