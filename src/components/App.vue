@@ -14,20 +14,31 @@
 import Header from '@/components/common/Header.vue';
 import ReviewsFilter from '@/components/views/ReviewsFilter.vue';
 import ProfileInfoList from '@/components/views/ProfileInfoList.vue';
+import ProfileSavedList from '@/components/views/ProfileSavedList.vue';
 import Settings from '@/components/views/Settings.vue';
 
 import { onMounted, ref } from 'vue';
 import { activeTab } from '@/reactive/useMainTabs';
 import { useToast } from '@/reactive/useToast';
 import { MainTabsEnum } from '@/types/enums';
-import { profileInfoListPushData } from '@/reactive/useProfileList';
+import { profileInfoList, profileInfoListPushData } from '@/reactive/useProfileList';
 import { reviewsFilterFindLinkByUrl } from '@/reactive/useReviewsFilter';
 import { reviewsFilterFindNewLink } from '@/reactive/useReviewsFilter';
 import { parsedReviewsList } from '@/reactive/useReviewsItems';
+import { apiParsingResultsCreate } from '@/reactive/useParsingResults';
+import { setExtensionTabActive } from '@/helpers/common';
 
 const toast = useToast();
 
 const filterRef = ref<any>()
+
+async function createParsingResult(url: string) {
+    const foundParsingProfile = profileInfoList.value.find(item => item.url ===  url)
+
+    if (foundParsingProfile && foundParsingProfile.existsInDataBase) {
+        await apiParsingResultsCreate(foundParsingProfile)
+    }
+}
 
 onMounted(async () => {
     chrome.runtime.onMessage.addListener(async ({ 
@@ -50,6 +61,7 @@ onMounted(async () => {
         if (action === 'reviews-parsing-ended') {
             if (status === 'success') {
                 parsedReviewsList.push(...data)
+                createParsingResult(currentUrl)
                 const currentProfileLink = reviewsFilterFindLinkByUrl(currentUrl)
                 currentProfileLink && (currentProfileLink.status = 'success')
             }
@@ -65,6 +77,7 @@ onMounted(async () => {
                 filterRef.value?.onSubmit()
             } else {
                 activeTab.value = MainTabsEnum.ProfileInfoList
+                setExtensionTabActive()
             }
         }
 
