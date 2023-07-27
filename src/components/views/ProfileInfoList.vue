@@ -8,28 +8,22 @@
             <!-- profile info -->
             <div>
                 <div class="space-y-2">
-                    <div v-if="profile.id" class="flex items-center">
-                        <div class="mr-3 opacity-80">ID:</div>
-                        <div class="font-bold">{{ profile.id }}</div>
-                    </div>
                     <div class="flex items-center">
-                        <div class="mr-3 opacity-80">Имя:</div>
                         <div class="font-bold">{{ profile.name }}</div>
                     </div>
                     <div class="flex items-center">
-                        <div class="mr-3 opacity-80">Рейтинг:</div>
+                        <a :href="profile.url" target="_blank">{{ profile.url }}</a>
+                    </div>
+                    <div class="flex items-center">
                         <div class="font-bold">{{ profile.rating }}</div>
                     </div>
                     <div class="flex items-center">
-                        <div class="mr-3 opacity-80">Отзывы:</div>
                         <div class="font-bold">{{ profile.reviewsCount }}</div>
                     </div>
                     <div class="flex items-center">
-                        <div class="mr-3 opacity-80">Подписки:</div>
                         <div class="font-bold">{{ profile.subscribers }}</div>
                     </div>
                     <div class="flex items-center">
-                        <div class="mr-3 opacity-80">Продаж с доставкой:</div>
                         <div class="font-bold">{{ profile.deliveryInfo }}</div>
                     </div>
                     <div class="flex items-center">
@@ -39,6 +33,10 @@
                     <div class="flex items-center" v-if="profile.savedDate">
                         <div class="mr-3 opacity-80">Дата сохранения:</div>
                         <div class="font-bold">{{ toLocaleString(profile.savedDate) }}</div>
+                    </div>
+                    <div v-if="profile.id" class="flex items-center">
+                        <div class="mr-3 opacity-80">ID:</div>
+                        <div class="font-bold">{{ profile.id }}</div>
                     </div>
                     <div class="flex items-center">
                         <div class="mr-3 opacity-80">Найден в базе:</div>
@@ -57,7 +55,7 @@
                             theme="success" 
                             icon="content_copy" 
                             @click.prevent="onCopy(profile)"
-                        >Копировать отзывы</Button>
+                        >Копировать результаты</Button>
                         <Button 
                             v-if="!profile.existsInDataBase"
                             type="button" 
@@ -115,16 +113,15 @@ import { copyToBuffer } from '@/helpers/common';
 import { toLocaleString } from '@/helpers/date'
 import { apiParsingResultsCreate } from '@/reactive/useParsingResults';
 import { findProfileInDB } from '@/reactive/useProfileList';
-import { IProfileItemExt, apiProfileCreate, profileInfoList } from '@/reactive/useProfileList'
+import { IProfileItem, apiProfileCreate, profileInfoList } from '@/reactive/useProfileList'
 import { getReviewsListByUrl } from '@/reactive/useReviewsItems'
 import { useToast } from '@/reactive/useToast';
 import { MessagesEnum } from '@/types/enums';
-import { profile } from 'console';
 import { onMounted } from 'vue';
 
 const toast = useToast()
 
-async function onSave(profile: IProfileItemExt) {
+async function onSave(profile: IProfileItem) {
     try {
 
         const newProfile = await apiProfileCreate(profile)
@@ -146,16 +143,16 @@ async function onSave(profile: IProfileItemExt) {
     }
 }
 
-async function onCopy(profile: IProfileItemExt) {
+async function onCopy(profile: IProfileItem) {
     let textValue: string = ''
 
-    textValue+= `Имя: ${profile.name}\n`
-    textValue+= `Дата парсинга: ${toLocaleString(profile.parsingDate)}\n`
-    textValue+= `Ссылка: ${profile.url}\n`
-    textValue+= `Рейтинг: ${profile.rating}\n`
-    textValue+= `Отзывы: ${profile.reviewsCount}\n`
-    textValue+= `Подписки: ${profile.subscribers}\n`
-    textValue+= `Продаж с доставкой: ${profile.deliveryInfo}\n\n\n\n`
+    textValue+= `${profile.name}\n`
+    textValue+= `${profile.url}\n`
+    textValue+= `${profile.rating}\n`
+    textValue+= `${profile.reviewsCount}\n`
+    textValue+= `${profile.subscribers}\n`
+    textValue+= `${profile.deliveryInfo}\n\n\n\n`
+    textValue+= `${toLocaleString(profile.parsingDate)}\n`
 
     profile.reviewsList?.forEach(item => {
         let date = new Date(item.date)

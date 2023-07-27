@@ -13,8 +13,17 @@ export enum MessagesEnum {
     ProfileLinkCopied = 'Ссылка скопирована в буффер',
     ProfileDeleted = 'Профиль успешно удален',
 
+    // common
     InfoCopied = 'Информация скопирована в буффер',
-    ProductNameCopied = 'Имя товара скопировано в буффер'
+    ProductNameCopied = 'Имя товара скопировано в буффер',
+
+    // database
+    DBExportError = 'Не удалось экспортировать базу',
+    DBExportSuccess = 'Экпорт базы успешно завершен',
+    DBImportError = 'Не удалось импортировать базу',
+    DBImportSuccess = 'Импорт базы успешно завершен',
+    DBDropSuccess = 'База данных успешно удалена',
+    DBDropError = 'Не удалось удалить базу данных',
 }
 
 export enum MainTabsEnum {

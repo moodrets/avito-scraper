@@ -60,7 +60,7 @@
         </div>
     </template>
     <template v-else>
-        <div class="text-center text-2xl font-bold">Ничего не найдено</div>
+        <div class="text-center text-xl font-bold">Ничего не найдено</div>
     </template>
 </template>
 
@@ -72,27 +72,27 @@ import { MessagesEnum } from '@/types/enums'
 import { useToast } from '@/reactive/useToast'
 import { copyToBuffer } from '@/helpers/common';
 import { toLocaleString } from '@/helpers/date';
-import { IProfileItem, IProfileItemExt, apiProfileGetList, apiProfileRemove, profileSavedList } from '@/reactive/useProfileList';
+import { IProfileItem, apiProfileGetList, apiProfileRemove, profileSavedList } from '@/reactive/useProfileList';
 import { apiParsingResultsGetListByUrl } from '@/reactive/useParsingResults';
 
 const toast = useToast()
 
 const loadingComponent = ref<boolean>(false)
 
-function onOpenLink(profile: IProfileItemExt) {
+function onOpenLink(profile: IProfileItem) {
     if (profile.url) {
         window.open(profile.url, '_blank');
     }
 }
 
-function onCopyLink(profile: IProfileItemExt) {
+function onCopyLink(profile: IProfileItem) {
     if (profile.url) {
         copyToBuffer(profile.url)
         toast?.show('success', MessagesEnum.ProfileLinkCopied)
     }
 }
 
-async function onOpenProfileDetails(profile: IProfileItemExt) {
+async function onOpenProfileDetails(profile: IProfileItem) {
     profile.opened = !profile.opened
 
     if (!profile.opened) {
@@ -116,7 +116,7 @@ async function onOpenProfileDetails(profile: IProfileItemExt) {
     }
 }
 
-async function onDeleteProfile(profile: IProfileItemExt) {
+async function onDeleteProfile(profile: IProfileItem) {
     if (window.confirm(`Удаляем "${profile.name}" ?`)) {
         if (profile.id) {
             await apiParsingResultsGetListByUrl(profile.url)
@@ -132,7 +132,7 @@ async function getProfileList() {
         loadingComponent.value = true
 
         const result = await apiProfileGetList()
-        const convertedList: IProfileItemExt[] = result.map((item: IProfileItem) => ({
+        const convertedList: IProfileItem[] = result.map((item: IProfileItem) => ({
             ...item, 
             loading: false, 
             opened: false, 

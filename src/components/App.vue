@@ -22,11 +22,11 @@ import { activeTab } from '@/reactive/useMainTabs';
 import { useToast } from '@/reactive/useToast';
 import { MainTabsEnum } from '@/types/enums';
 import { profileInfoList, profileInfoListPushData } from '@/reactive/useProfileList';
-import { reviewsFilterFindLinkByUrl } from '@/reactive/useReviewsFilter';
-import { reviewsFilterFindNewLink } from '@/reactive/useReviewsFilter';
 import { parsedReviewsList } from '@/reactive/useReviewsItems';
 import { apiParsingResultsCreate } from '@/reactive/useParsingResults';
 import { setExtensionTabActive } from '@/helpers/common';
+import { initDBCollections } from '@/db/db';
+import { reviewsFilterFindNewProfileLink, reviewsFilterFindProfileLinkByUrl } from '@/reactive/useReviewsFilter';
 
 const toast = useToast();
 
@@ -41,6 +41,9 @@ async function createParsingResult(url: string) {
 }
 
 onMounted(async () => {
+
+    initDBCollections()
+
     chrome.runtime.onMessage.addListener(async ({ 
         message,
         action,
@@ -54,7 +57,7 @@ onMounted(async () => {
         }
 
         if (action === 'reviews-parsing-started') {
-            const currentProfileLink = reviewsFilterFindLinkByUrl(currentUrl)
+            const currentProfileLink = reviewsFilterFindProfileLinkByUrl(currentUrl)
             currentProfileLink && (currentProfileLink.status = 'wait')
         }
 
@@ -62,16 +65,16 @@ onMounted(async () => {
             if (status === 'success') {
                 parsedReviewsList.push(...data)
                 createParsingResult(currentUrl)
-                const currentProfileLink = reviewsFilterFindLinkByUrl(currentUrl)
+                const currentProfileLink = reviewsFilterFindProfileLinkByUrl(currentUrl)
                 currentProfileLink && (currentProfileLink.status = 'success')
             }
 
             if (status === 'error') {
-                const currentProfileLink = reviewsFilterFindLinkByUrl(currentUrl)
+                const currentProfileLink = reviewsFilterFindProfileLinkByUrl(currentUrl)
                 currentProfileLink && (currentProfileLink.status = 'error')
             }
 
-            const findNewLink = reviewsFilterFindNewLink()
+            const findNewLink = reviewsFilterFindNewProfileLink()
 
             if (findNewLink) {
                 filterRef.value?.onSubmit()

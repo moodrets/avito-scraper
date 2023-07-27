@@ -8,6 +8,7 @@ enum MessagesEnum {
     FilterFieldsNotReceived = 'Страница не получила поля фильтра',
     ParsingReviewsStarted = 'Парсинг отзывов запущен',
     ParsingReviewsEnded = 'Парсинг отзывов завершен',
+    ProfileWithoutDelivery = 'Нет продаж через Авито Доставку',
     ReviewsNotFound = 'Отзывы не найдены',
     ReviewsSelectorsNotFound = 'Не найдены селекторы в отзывах',
     ReviewsModalScrollerNotFound = 'Не найден селектор для скрола в модалке',
@@ -28,13 +29,11 @@ const SELECTORS = {
     reviewsItemDateDelivery: '.desktop-11ffzh3',
     reviewsItemRatingStars: '.RatingStars-root-Edhhx .Attributes-yellow-star-PY9XT',
     reviewsMoreLoadButton: '[data-marker="rating-list/moreReviewsButton"]',
+    reviewsMoreLoadButtonError: '[data-marker="errorMessage/button"]',
     reviewsSummaryButton: '[data-marker="profile/summary"]',
     reviewsModal: '[data-marker="profile-rating-detailed/popup"]',
     reviewsModalScroller: '.desktop-y382as',
     reviewsModalScrollerInner: '.style-root-qXsDs',
-
-    // TODO: иногда выскакивает такая кнопка (нужно проверять ее наличие)
-    reviewsMoreLoadErrorButton: '[data-marker="errorMessage/button"]'
 }
 
 async function sendMessage(data: Record<string, any>){
@@ -75,8 +74,11 @@ async function getProfileInfo(): Promise<void> {
         rating: profileRatingEl?.textContent || MessagesEnum.InfoNotFound,
         reviewsCount: profileReviewsEl?.textContent || MessagesEnum.InfoNotFound,
         subscribers: profileSubscribersInfo || MessagesEnum.InfoNotFound,
-        deliveryInfo: profileDeviveryInfoEl?.textContent || MessagesEnum.InfoNotFound,
-        url: CURRENT_URL
+        deliveryInfo: profileDeviveryInfoEl?.textContent || MessagesEnum.ProfileWithoutDelivery,
+        url: CURRENT_URL,
+        opened: false,
+        loading: false,
+        comment: ''
     }
 
     await sendMessage({
@@ -161,6 +163,9 @@ const ReviewsParser = {
     },
     get loadMoreButton() {
         return document.querySelector(SELECTORS.reviewsMoreLoadButton) as HTMLButtonElement
+    },
+    get loadMoreButtonError(){
+        return document.querySelector(SELECTORS.reviewsMoreLoadButtonError)
     },
     get summaryButton() {
         return document.querySelector(SELECTORS.reviewsSummaryButton) as HTMLButtonElement
@@ -342,6 +347,10 @@ const ReviewsParser = {
         await wait(1000)
         this.summaryButton?.click()
         await wait(3000)
+        if (this.loadMoreButtonError) {
+            this.loadMoreButton.click()
+            await wait(3000)
+        }
         this.parseItems()
     }
 }

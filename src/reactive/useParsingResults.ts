@@ -1,4 +1,4 @@
-import { IProfileItemExt } from "@/reactive/useProfileList"
+import { IProfileItem } from "@/reactive/useProfileList"
 
 export interface IParsingResultItem {
     profileId: number
@@ -10,7 +10,7 @@ export interface IParsingResultItem {
     deliveryInfo: string
 }
 
-export async function apiParsingResultsCreate(profileItem: IProfileItemExt) {
+export async function apiParsingResultsCreate(profileItem: IProfileItem) {
     let listToStorage: IParsingResultItem[] = []
 
     const newParsingResult: IParsingResultItem = {

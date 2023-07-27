@@ -12,6 +12,8 @@
   "dependencies": {
     "air-datepicker": "^3.3.5",
     "axios": "^1.4.0",
+    "dexie": "^3.2.4",
+    "dexie-export-import": "^4.0.7",
     "vue": "^3.3.4"
   },
   "devDependencies": {

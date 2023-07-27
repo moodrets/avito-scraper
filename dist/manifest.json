@@ -27,5 +27,8 @@
     ],
     "host_permissions": [
         "https://www.avito.ru/user/*"
-    ]
+    ],
+    "background": {
+        "service_worker": "assets/background.js"
+    }
 }

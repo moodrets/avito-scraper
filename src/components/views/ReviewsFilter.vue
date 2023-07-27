@@ -91,7 +91,7 @@
             <div class="col-span-2">
                 <div class="mb-2 text-sm font-medium">Интервал прокрутки отзывов (указываем в секундах)</div>
                 <input 
-                    v-model="reviewsFilterFields.interval"
+                    v-model="reviewsFilterFields.scrollInterval"
                     tabindex="10"
                     type="number"
                     min="0"
@@ -126,36 +126,26 @@
                 icon="restore" 
                 @click.stop.prevent="onReset"
             >Сбросить фильтр</Button>
-            <!-- <Button
-                tabindex="12"
-                theme="danger" 
-                type="button" 
-                icon="cancel"
-                @click.stop.prevent="onStop"
-            >Остановить парсинг</Button> -->
         </div>
     </form>
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, toRaw } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 import AirDatepicker from 'air-datepicker';
-import Button from '@/components/common/Button.vue'
-import Switch from '@/components/common/Switch.vue'
+import Button from '@/components/common/Button.vue';
+import Switch from '@/components/common/Switch.vue';
 
 import { useToast } from '@/reactive/useToast';
 import { getDateTwoMonthAgo } from '@/helpers/date';
 import { createTab } from '@/helpers/common';
 import { MessagesEnum } from '@/types/enums';
-import {
-    apiReviewsCreateFilter,
-    apiReviewsGetFilter,
-    apiReviewsRemoveFilter,
-    reviewsFilterFields,
-    reviewsFilterFindNewLink,
-    reviewsFilterAddProfileLink,
-    reviewsFilterRemoveProfileLink
-} from '@/reactive/useReviewsFilter';
+
+import { apiReviewsFilterGet, apiReviewsFilterRemove, apiReviewsFilterSave } from '@/api/ReviewsFilter';
+import { reviewsFilterFields } from '@/reactive/useReviewsFilter';
+import { reviewsFilterAddProfileLink } from '@/reactive/useReviewsFilter';
+import { reviewsFilterRemoveProfileLink } from '@/reactive/useReviewsFilter';
+import { reviewsFilterFindNewProfileLink } from '@/reactive/useReviewsFilter';
 
 const toast = useToast()
 
@@ -180,18 +170,18 @@ const datePickersConfig: Record<string, any> = {
 }
 
 async function setFilterFromStorage() {
-    const filterFieldsStorage = await apiReviewsGetFilter()
+    const result = await apiReviewsFilterGet()
 
-    if (filterFieldsStorage) {
-        reviewsFilterFields.profilesLinks = Object.values(filterFieldsStorage['profilesLinks'])
-        reviewsFilterFields.productName = filterFieldsStorage['productName']
-        reviewsFilterFields.ratingFrom = filterFieldsStorage['ratingFrom']
-        reviewsFilterFields.ratingTo = filterFieldsStorage['ratingTo']
-        reviewsFilterFields.interval = filterFieldsStorage['interval']
-        reviewsFilterFields.deliveryOnly = filterFieldsStorage['deliveryOnly']
+    if (result) {
+        reviewsFilterFields.profilesLinks = result.profilesLinks
+        reviewsFilterFields.ratingFrom = result.ratingFrom
+        reviewsFilterFields.ratingTo = result.ratingTo
+        reviewsFilterFields.deliveryOnly = result.deliveryOnly
+        reviewsFilterFields.productName = result.productName
+        reviewsFilterFields.scrollInterval = result.scrollInterval
 
-        datePickers.dateFrom.selectDate(filterFieldsStorage['dateFrom'])
-        datePickers.dateTo.selectDate(filterFieldsStorage['dateTo'])
+        datePickers.dateFrom.selectDate(result.dateFrom)
+        datePickers.dateTo.selectDate(result.dateTo)
     }
 }
 
@@ -204,43 +194,29 @@ async function onReset() {
         reviewsFilterFields.productName = '',
         reviewsFilterFields.ratingFrom = 4
         reviewsFilterFields.ratingTo = 5
-        reviewsFilterFields.interval = 2
+        reviewsFilterFields.scrollInterval = 2
         reviewsFilterFields.deliveryOnly = false
 
         datePickers.dateFrom.selectDate(getDateTwoMonthAgo()) 
         datePickers.dateTo.selectDate(new Date())
 
-        await apiReviewsRemoveFilter()
+        await apiReviewsFilterRemove()
         toast?.show('warning', MessagesEnum.FilterCleared)
     }
 }
 
-// async function onStop() {
-//     if (window.confirm('Остановить парсинг ?')) {
-//         loading.value = false
-
-//         if (openedTab.value?.id) {
-//             await chrome.tabs.remove(openedTab.value.id)
-//             openedTab.value = {}
-//             toast?.show('warning', MessagesEnum.ParsingCanceled)
-//         }
-//     }
-// }
-
 async function saveFilter() {
     try {
-        const fieldsToStorage = {...reviewsFilterFields}
+        const copyFilter = {...reviewsFilterFields}
 
-        fieldsToStorage.dateFrom = datePickers.dateFrom.selectedDates[0].toString()
-        fieldsToStorage.dateTo = datePickers.dateTo.selectedDates[0].toString()
-        fieldsToStorage.profilesLinks.forEach(item => item.status = 'new')
+        copyFilter.dateFrom = datePickers.dateFrom.selectedDates[0].toString()
+        copyFilter.dateTo = datePickers.dateTo.selectedDates[0].toString()
 
-        await apiReviewsCreateFilter(fieldsToStorage)
-        
+        await apiReviewsFilterSave(copyFilter)
+
         toast?.show('success', MessagesEnum.FilterSaved)
-        
-    } catch(error: any) {
-        toast?.show('error', MessagesEnum.FilterSaveError)
+    } catch(error: any){
+
     }
 }
 
@@ -254,9 +230,8 @@ async function onParsingStart(){
 }
 
 async function onSubmit() {
-
     try {
-        const profileNewLink = reviewsFilterFindNewLink()
+        const profileNewLink = reviewsFilterFindNewProfileLink()
 
         if (profileNewLink) {
             const currentTab = await createTab(profileNewLink?.url)
@@ -285,7 +260,10 @@ onMounted(() => {
     datePickers.dateTo = new AirDatepicker('#dateTo', datePickersConfig)
     datePickers.dateFrom.selectDate(getDateTwoMonthAgo())
     datePickers.dateTo.selectDate(new Date())
-    setFilterFromStorage()
+    
+    setTimeout(()=>{
+        setFilterFromStorage()
+    }, 0)
 })
 
 onBeforeUnmount(()=>{

@@ -8,12 +8,14 @@ const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  mode: 'development',
   plugins: [vue()],
   build: {
     rollupOptions: {
       input: {
         options: 'options.html',
         content: './src/content.ts',
+        background: './src/background.ts',
       },
       output: {
         entryFileNames: `assets/[name].js`,

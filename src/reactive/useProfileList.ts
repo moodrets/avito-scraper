@@ -3,9 +3,6 @@ import { IParsingResultItem } from "@/reactive//useParsingResults";
 import { IReviewsItem } from "@/reactive/useReviewsItems";
 
 export interface IProfileItem {
-    id?: number
-    existsInDataBase?: boolean
-    savedDate?: number
     parsingDate: number
     url: string
     name: string
@@ -13,20 +10,21 @@ export interface IProfileItem {
     reviewsCount: string
     subscribers: string
     deliveryInfo: string
-}
-
-export interface IProfileItemExt extends IProfileItem {
-    paringResults?: IParsingResultItem[]
-    reviewsList?: IReviewsItem[]
-    loading: boolean,
+    loading: boolean
     opened: boolean
+    comment: string,
+    id?: number
+    existsInDataBase?: boolean
+    savedDate?: number
+    paringResults?: IParsingResultItem[]
+    reviewsList?: IReviewsItem[],
 }
 
-export const profileInfoList = ref<IProfileItemExt[]>([])
+export const profileInfoList = ref<IProfileItem[]>([])
 
-export const profileSavedList = ref<IProfileItemExt[]>([])
+export const profileSavedList = ref<IProfileItem[]>([])
 
-export async function findProfileInDB(profileItem: IProfileItem | IProfileItemExt): Promise<IProfileItem | null> {
+export async function findProfileInDB(profileItem: IProfileItem | IProfileItem): Promise<IProfileItem | null> {
     let foundProfile
 
     if (profileItem) {
@@ -36,7 +34,7 @@ export async function findProfileInDB(profileItem: IProfileItem | IProfileItemEx
 }
 
 export function profileInfoListPushData(profile: IProfileItem) {
-    const profileExt: IProfileItemExt = {
+    const profileExt: IProfileItem = {
         ...profile,
         opened: false,
         loading: false

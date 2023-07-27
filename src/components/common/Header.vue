@@ -44,7 +44,7 @@ const tabsList = [
     },
     {
         value: MainTabsEnum.ProfileSavedList,
-        text: 'База профилей',
+        text: 'Список профилей',
         icon: 'people'
     },
 ]
