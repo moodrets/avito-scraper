@@ -5,7 +5,7 @@ export enum MessagesEnum {
     FilterCleared = 'Фильтр сброшен (удален из памяти)',
     // parsing
     ParsingCanceled = 'Парсинг отзывов отменен',
-    ParsingStarted = 'Парсинг отзывов начался',
+    ParsingStarted = 'Парсинг отзывов запущен',
     // tabs
     TabOpenError = 'Не удалось открыть ссылку',
     // profile

@@ -14,7 +14,7 @@
             <Button theme="info" icon="cloud_download" @click="onExportDB">Экспорт</Button>
         </div>
     </div>
-    <div class="p-5 shadow-xl rounded-xl mb-5 bg-gray-600 ring-4 ring-red-400">
+    <div class="p-5 shadow-xl rounded-xl mb-5 bg-gray-600">
         <div class="text-2xl font-bold mb-6 text-red-400">Осторожно!</div>
         <div class="flex flex-wrap items-center gap-5">
             <Button theme="danger" icon="delete_sweep" @click.stop="onClear">Очистить localStorage</Button>
