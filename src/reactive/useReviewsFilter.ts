@@ -1,8 +1,10 @@
 import { reactive } from "vue";
+import { IProfileItem } from "./useProfileList";
 
 export interface IProfileLink {
     status: 'success' | 'error' | 'wait' | 'new',
-    url: string
+    url: string,
+    info?: string
 }
 
 export interface IReviewsFilter {
@@ -13,6 +15,7 @@ export interface IReviewsFilter {
     ratingFrom: number
     ratingTo: number
     scrollInterval: number
+    openTabInterval: number
     deliveryOnly: false
 }
 
@@ -26,6 +29,7 @@ export const reviewsFilterFields = reactive<IReviewsFilter>({
     ratingFrom: 4,
     ratingTo: 5,
     scrollInterval: 2,
+    openTabInterval: 2,
     deliveryOnly: false,
 })
 
@@ -49,4 +53,17 @@ export function reviewsFilterAddProfileLink() {
 
 export function reviewsFilterRemoveProfileLink(index: number) {
     reviewsFilterFields.profilesLinks.splice(index, 1)
+}
+
+export function setCurrentProfileLinkInfo(url: string, profile: IProfileItem) {
+    const currentProfileLink = reviewsFilterFindProfileLinkByUrl(url)
+    if (currentProfileLink) {
+        currentProfileLink.info = `
+            ${profile.name}&nbsp;&nbsp;/&nbsp;&nbsp; 
+            ${profile.rating}&nbsp;&nbsp;/&nbsp;&nbsp; 
+            ${profile.reviewsCount}&nbsp;&nbsp;/&nbsp;&nbsp; 
+            ${profile.subscribers}&nbsp;&nbsp;/&nbsp;&nbsp; 
+            ${profile.deliveryInfo}
+        `
+    }
 }

@@ -6,28 +6,31 @@
                 <div
                     v-for="link, index in reviewsFilterFields.profilesLinks" 
                     :key="index" 
-                    class="flex items-center gap-4"
                     :class="index > 0 ? 'mt-5' : ''"
                 >
-                    <div class="flex-none select-none">
-                        <i v-if="link.status === 'success'" class="font-icon text-3xl block text-green-400">check_circle</i>
-                        <i v-if="link.status === 'error'" class="font-icon text-3xl block text-red-400">cancel</i>
-                        <i v-if="link.status === 'wait'" class="font-icon text-3xl block text-green-400 animate-spin">rotate_right</i>
-                        <i v-if="link.status === 'new'" class="font-icon text-3xl block text-gray-400">watch_later</i>
+                    <div class="flex items-center gap-4">
+                        <div class="flex-none select-none">
+                            <i v-if="link.status === 'success'" class="font-icon text-3xl block text-green-400">check_circle</i>
+                            <i v-if="link.status === 'error'" class="font-icon text-3xl block text-red-400">cancel</i>
+                            <i v-if="link.status === 'wait'" class="font-icon text-3xl block text-green-400 animate-spin">rotate_right</i>
+                            <i v-if="link.status === 'new'" class="font-icon text-3xl block text-gray-400">watch_later</i>
+                        </div>
+                        <input
+                            v-model="link.url"
+                            tabindex="1"
+                            type="search"
+                            required
+                            class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
+                            @input="onInputLink(link)"
+                        >
+                        <div v-if="reviewsFilterFields.profilesLinks.length > 1" class="flex-none cursor-pointer select-none">
+                            <i class="font-icon text-3xl block text-red-400" @click="reviewsFilterRemoveProfileLink(index)">remove_circle_outline</i>
+                        </div>
+                        <div class="flex-none cursor-pointer select-none ml-auto">
+                            <i class="font-icon text-3xl block text-green-400" @click="reviewsFilterAddProfileLink">add_circle_outline</i>
+                        </div>
                     </div>
-                    <input
-                        v-model="link.url"
-                        tabindex="1"
-                        type="search"
-                        required
-                        class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
-                    >
-                    <div v-if="reviewsFilterFields.profilesLinks.length > 1" class="flex-none cursor-pointer select-none">
-                        <i class="font-icon text-3xl block text-red-400" @click="reviewsFilterRemoveProfileLink(index)">remove_circle_outline</i>
-                    </div>
-                    <div class="flex-none cursor-pointer select-none ml-auto">
-                        <i class="font-icon text-3xl block text-green-400" @click="reviewsFilterAddProfileLink">add_circle_outline</i>
-                    </div>
+                    <div v-if="link.info" class="mt-3 ml-12 font-medium" v-html="link.info"></div>
                 </div>
             </div>
             <div>
@@ -88,11 +91,21 @@
                     class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
                 >
             </div>
-            <div class="col-span-2">
-                <div class="mb-2 text-sm font-medium">Интервал прокрутки отзывов (указываем в секундах)</div>
+            <div>
+                <div class="mb-2 text-sm font-medium">Интервал прокрутки отзывов (сек.)</div>
                 <input 
                     v-model="reviewsFilterFields.scrollInterval"
                     tabindex="10"
+                    type="number"
+                    min="0"
+                    class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
+                >
+            </div>
+            <div>
+                <div class="mb-2 text-sm font-medium">Интервал открытия страниц (сек.)</div>
+                <input 
+                    v-model="reviewsFilterFields.openTabInterval"
+                    tabindex="11"
                     type="number"
                     min="0"
                     class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
@@ -142,7 +155,7 @@ import { createTab } from '@/helpers/common';
 import { MessagesEnum } from '@/types/enums';
 
 import { apiReviewsFilterGet, apiReviewsFilterRemove, apiReviewsFilterSave } from '@/api/ReviewsFilter';
-import { reviewsFilterFields } from '@/reactive/useReviewsFilter';
+import { IProfileLink, reviewsFilterFields } from '@/reactive/useReviewsFilter';
 import { reviewsFilterAddProfileLink } from '@/reactive/useReviewsFilter';
 import { reviewsFilterRemoveProfileLink } from '@/reactive/useReviewsFilter';
 import { reviewsFilterFindNewProfileLink } from '@/reactive/useReviewsFilter';
@@ -169,6 +182,10 @@ const datePickersConfig: Record<string, any> = {
     }
 }
 
+function onInputLink(link: IProfileLink) {
+    link.info = ''
+}
+
 async function setFilterFromStorage() {
     const result = await apiReviewsFilterGet()
 
@@ -179,6 +196,7 @@ async function setFilterFromStorage() {
         reviewsFilterFields.deliveryOnly = result.deliveryOnly
         reviewsFilterFields.productName = result.productName
         reviewsFilterFields.scrollInterval = result.scrollInterval
+        reviewsFilterFields.openTabInterval = result.openTabInterval
 
         datePickers.dateFrom.selectDate(result.dateFrom)
         datePickers.dateTo.selectDate(result.dateTo)
@@ -195,6 +213,7 @@ async function onReset() {
         reviewsFilterFields.ratingFrom = 4
         reviewsFilterFields.ratingTo = 5
         reviewsFilterFields.scrollInterval = 2
+        reviewsFilterFields.openTabInterval = 2
         reviewsFilterFields.deliveryOnly = false
 
         datePickers.dateFrom.selectDate(getDateTwoMonthAgo()) 
@@ -240,7 +259,7 @@ async function onSubmit() {
             if (currentTab.id) {
                 chrome.tabs.sendMessage(currentTab.id, {
                     action: 'reviews-parsing-start',
-                    filterFields: reviewsFilterFields,
+                    reviewsFilterFields: reviewsFilterFields,
                     currentUrl: profileNewLink.url
                 })
             }

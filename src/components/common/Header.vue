@@ -38,7 +38,7 @@ const tabsList = [
         icon: 'tune'
     },
     {
-        value: MainTabsEnum.ProfileInfoList,
+        value: MainTabsEnum.ParsingResult,
         text: 'Результаты парсинга',
         icon: 'view_list'
     },

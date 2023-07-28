@@ -49,7 +49,7 @@ async function onDrop(){
         // if (window.confirm('Вы точно в этом уверены ?')) {
             try {
                 await DB.close()
-                DB.delete('avito_scraper')
+                window.indexedDB.deleteDatabase("avito_scraper");
                 toast?.show('error', MessagesEnum.DBDropSuccess)
                 window.location.reload()
             } catch(error: any) {
@@ -72,16 +72,16 @@ async function onClear() {
 }
 
 async function onExportDB() {
-    let date = new Date()
-    let formattedDate = date.toLocaleString()
-        .replace(',', '----')
-        .replace(' ', '')
-        .replace(/\:/g, '-')
-        .replace(/\./g,'-')
-    
     blocksLoading.dbLoading = true
     
     try {
+        let date = new Date()
+        let formattedDate = date.toLocaleString()
+            .replace(',', '----')
+            .replace(' ', '')
+            .replace(/\:/g, '-')
+            .replace(/\./g,'-')
+
         const fileName = `avito-scraper-dump----${formattedDate}.json`
         const dumpDB = await exportDB(DB)
         const file = new Blob([dumpDB], {type: 'text/json'})

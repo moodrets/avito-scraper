@@ -4,7 +4,7 @@
         <keep-alive>
             <ReviewsFilter ref="filterRef" v-if="activeTab === MainTabsEnum.ReviewsFilter"></ReviewsFilter>
         </keep-alive>
-        <ProfileInfoList v-if="activeTab === MainTabsEnum.ProfileInfoList"></ProfileInfoList>
+        <ParsingResult v-if="activeTab === MainTabsEnum.ParsingResult"></ParsingResult>
         <ProfileSavedList v-if="activeTab === MainTabsEnum.ProfileSavedList"></ProfileSavedList>
         <Settings v-if="activeTab === MainTabsEnum.Settings"></Settings>
     </main>
@@ -13,7 +13,7 @@
 <script lang="ts" setup>
 import Header from '@/components/common/Header.vue';
 import ReviewsFilter from '@/components/views/ReviewsFilter.vue';
-import ProfileInfoList from '@/components/views/ProfileInfoList.vue';
+import ParsingResult from '@/components/views/ParsingResult.vue';
 import ProfileSavedList from '@/components/views/ProfileSavedList.vue';
 import Settings from '@/components/views/Settings.vue';
 
@@ -21,22 +21,28 @@ import { onMounted, ref } from 'vue';
 import { activeTab } from '@/reactive/useMainTabs';
 import { useToast } from '@/reactive/useToast';
 import { MainTabsEnum } from '@/types/enums';
-import { profileInfoList, profileInfoListPushData } from '@/reactive/useProfileList';
+import { profileInfoList } from '@/reactive/useProfileList';
 import { parsedReviewsList } from '@/reactive/useReviewsItems';
-import { apiParsingResultsCreate } from '@/reactive/useParsingResults';
-import { setExtensionTabActive } from '@/helpers/common';
+import { setExtensionTabActive, wait } from '@/helpers/common';
 import { initDBCollections } from '@/db/db';
-import { reviewsFilterFindNewProfileLink, reviewsFilterFindProfileLinkByUrl } from '@/reactive/useReviewsFilter';
+import { reviewsFilterFindNewProfileLink, reviewsFilterFindProfileLinkByUrl, setCurrentProfileLinkInfo } from '@/reactive/useReviewsFilter';
+import { reviewsFilterFields } from '@/reactive/useReviewsFilter';
+import { apiProfilePushParsingResult } from '@/api/Profiles';
 
-const toast = useToast();
+const toast = useToast()
 
 const filterRef = ref<any>()
 
-async function createParsingResult(url: string) {
-    const foundParsingProfile = profileInfoList.value.find(item => item.url ===  url)
+async function pushParsingResult(url: string) {
+    const findProfileInfoList = profileInfoList.value.find(item => item.url === url)
+    if (findProfileInfoList) {
+        try {
+            await apiProfilePushParsingResult(findProfileInfoList)
+        } catch(error: any) {
+            console.log(error);
+        } finally {
 
-    if (foundParsingProfile && foundParsingProfile.existsInDataBase) {
-        await apiParsingResultsCreate(foundParsingProfile)
+        }
     }
 }
 
@@ -64,7 +70,7 @@ onMounted(async () => {
         if (action === 'reviews-parsing-ended') {
             if (status === 'success') {
                 parsedReviewsList.push(...data)
-                createParsingResult(currentUrl)
+                pushParsingResult(currentUrl)
                 const currentProfileLink = reviewsFilterFindProfileLinkByUrl(currentUrl)
                 currentProfileLink && (currentProfileLink.status = 'success')
             }
@@ -77,15 +83,17 @@ onMounted(async () => {
             const findNewLink = reviewsFilterFindNewProfileLink()
 
             if (findNewLink) {
+                await wait(reviewsFilterFields.openTabInterval * 1000)
                 filterRef.value?.onSubmit()
             } else {
-                activeTab.value = MainTabsEnum.ProfileInfoList
+                activeTab.value = MainTabsEnum.ParsingResult
                 setExtensionTabActive()
             }
         }
 
         if (action === 'profile-info') {
-            profileInfoListPushData(data)
+            profileInfoList.value.push(data)
+            setCurrentProfileLinkInfo(currentUrl, data)
         }
     })
 })

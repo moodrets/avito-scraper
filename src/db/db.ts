@@ -15,6 +15,14 @@ export function initDBCollections(version: number = 1){
             deliveryOnly, 
             *profilesLinks
         `,
+        savedProfiles: `
+            ++id,
+            &url,
+            name,
+            comment,
+            savedDate,
+            *parsingResults
+        `
     });
 }
 

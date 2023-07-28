@@ -10,12 +10,16 @@ export enum MessagesEnum {
     TabOpenError = 'Не удалось открыть ссылку',
     // profile
     ProfileCreated = 'Профиль добавлен в базу',
-    ProfileLinkCopied = 'Ссылка скопирована в буффер',
+    ProfileCreateError = 'Не удалось сохранить профиль в базу',
+    ProfileEdited = 'Профиль успешно обновлен',
+    ProfileEditeError = 'Не удалось обновить профиль',
     ProfileDeleted = 'Профиль успешно удален',
+    ProfileDeleteError = 'Не удалось удалить профиль',
+    ProfileLinkCopied = 'Ссылка скопирована в буффер',
 
     // common
     InfoCopied = 'Информация скопирована в буффер',
-    ProductNameCopied = 'Имя товара скопировано в буффер',
+    ProductNameCopied = 'Название товара скопировано в буффер',
 
     // database
     DBExportError = 'Не удалось экспортировать базу',
@@ -28,7 +32,7 @@ export enum MessagesEnum {
 
 export enum MainTabsEnum {
     ReviewsFilter = 'reviews_filter',
-    ProfileInfoList = 'profile_info_list',
+    ParsingResult = 'parsing_result',
     ProfileSavedList = 'profile_saved_list',
     Settings = 'settings'
 }

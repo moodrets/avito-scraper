@@ -8,6 +8,9 @@ export default {
     extend: {
       fontFamily: {
         system: 'system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";'
+      },
+      zIndex: {
+        100: 100
       }
     },
   },

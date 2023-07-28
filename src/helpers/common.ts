@@ -20,6 +20,14 @@ export async function setExtensionTabActive(): Promise<void> {
     }
 }
 
+export async function wait(timeout: number) {
+    return new Promise(resolve => {
+        setTimeout(()=>{
+            resolve(true)
+        }, timeout)
+    })
+}
+
 export function copyToBuffer(text: string) {
     const textareaElement: HTMLTextAreaElement = document.createElement('textarea')
     textareaElement.style.cssText = 'position: absolute; left: -9999px; top: -9999px;'

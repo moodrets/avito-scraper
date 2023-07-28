@@ -8,13 +8,13 @@ enum MessagesEnum {
     FilterFieldsNotReceived = 'Страница не получила поля фильтра',
     ParsingReviewsStarted = 'Парсинг отзывов запущен',
     ParsingReviewsEnded = 'Парсинг отзывов завершен',
-    ProfileWithoutDelivery = 'Нет продаж через Авито Доставку',
+    ProfileWithoutDelivery = 'Нет продаж с Авито Доставкой',
     ReviewsNotFound = 'Отзывы не найдены',
     ReviewsSelectorsNotFound = 'Не найдены селекторы в отзывах',
     ReviewsModalScrollerNotFound = 'Не найден селектор для скрола в модалке',
 }
 
-let FILTER_FIELDS: IReviewsFilter | null = null
+let REVIEWS_FILTER_FIELDS: IReviewsFilter | null = null
 let CURRENT_URL: string = ''
 
 const SELECTORS = {
@@ -75,10 +75,11 @@ async function getProfileInfo(): Promise<void> {
         reviewsCount: profileReviewsEl?.textContent || MessagesEnum.InfoNotFound,
         subscribers: profileSubscribersInfo || MessagesEnum.InfoNotFound,
         deliveryInfo: profileDeviveryInfoEl?.textContent || MessagesEnum.ProfileWithoutDelivery,
+        reviewsSortedBy: 'productName',
         url: CURRENT_URL,
         opened: false,
         loading: false,
-        comment: ''
+        comment: '',
     }
 
     await sendMessage({
@@ -177,13 +178,13 @@ const ReviewsParser = {
         let resultList = [...reviewsDataList]
 
         // фильтруем по дате
-        if (FILTER_FIELDS?.dateFrom && FILTER_FIELDS?.dateTo) {
+        if (REVIEWS_FILTER_FIELDS?.dateFrom && REVIEWS_FILTER_FIELDS?.dateTo) {
             resultList = resultList.filter((item) => {
                 if (
-                    FILTER_FIELDS?.dateFrom && 
-                    FILTER_FIELDS?.dateTo &&
-                    item.date >= this.makeDateFromFilterString(FILTER_FIELDS.dateFrom) &&
-                    item.date <= this.makeDateFromFilterString(FILTER_FIELDS.dateTo)
+                    REVIEWS_FILTER_FIELDS?.dateFrom && 
+                    REVIEWS_FILTER_FIELDS?.dateTo &&
+                    item.date >= this.makeDateFromFilterString(REVIEWS_FILTER_FIELDS.dateFrom) &&
+                    item.date <= this.makeDateFromFilterString(REVIEWS_FILTER_FIELDS.dateTo)
                 ) {
                     return item
                 }
@@ -191,13 +192,13 @@ const ReviewsParser = {
         }
 
         // фильтруем по рейтингу
-        if (FILTER_FIELDS?.ratingFrom && FILTER_FIELDS?.ratingTo) {
+        if (REVIEWS_FILTER_FIELDS?.ratingFrom && REVIEWS_FILTER_FIELDS?.ratingTo) {
             resultList = resultList.filter((item) => {
                 if (
-                    FILTER_FIELDS?.ratingFrom &&
-                    FILTER_FIELDS?.ratingTo &&
-                    item.rating >= FILTER_FIELDS?.ratingFrom &&
-                    item.rating <= FILTER_FIELDS?.ratingTo
+                    REVIEWS_FILTER_FIELDS?.ratingFrom &&
+                    REVIEWS_FILTER_FIELDS?.ratingTo &&
+                    item.rating >= REVIEWS_FILTER_FIELDS?.ratingFrom &&
+                    item.rating <= REVIEWS_FILTER_FIELDS?.ratingTo
                 ) {
                     return item
                 }
@@ -205,11 +206,11 @@ const ReviewsParser = {
         }
 
         // фильтруем по названию
-        if (FILTER_FIELDS?.productName) {
+        if (REVIEWS_FILTER_FIELDS?.productName) {
             resultList = resultList.filter((item) => {
 
                 let lowercaseProductName = item.productName.toLowerCase()
-                let lowercaseFilterProductName = (FILTER_FIELDS as IReviewsFilter).productName.toLowerCase()
+                let lowercaseFilterProductName = (REVIEWS_FILTER_FIELDS as IReviewsFilter).productName.toLowerCase()
 
                 if (lowercaseProductName.includes(lowercaseFilterProductName)) {
                     return item
@@ -218,13 +219,20 @@ const ReviewsParser = {
         }
 
         // ищем только с доставкой
-        if (FILTER_FIELDS?.deliveryOnly) {
+        if (REVIEWS_FILTER_FIELDS?.deliveryOnly) {
             resultList = resultList.filter((item) => item.delivery)
         }
 
         return resultList
     },
     async parseItems() {
+        if (this.loadMoreButtonError) {
+            this.loadMoreButton.click()
+            await wait(3000)
+            this.parseItems()
+            return
+        }
+
         let reviewsDataList: IReviewsItem[] = []
         let reviewsItemsEls = [...document.querySelectorAll(SELECTORS.reviewsItem)]
 
@@ -277,7 +285,7 @@ const ReviewsParser = {
 
             reviewsDataList.push(parsedReviewItem)
 
-            if (FILTER_FIELDS?.dateFrom && parsedReviewItem.date <= this.makeDateFromFilterString(FILTER_FIELDS?.dateFrom)) {
+            if (REVIEWS_FILTER_FIELDS?.dateFrom && parsedReviewItem.date <= this.makeDateFromFilterString(REVIEWS_FILTER_FIELDS?.dateFrom)) {
                 this.parsingEnded = true
                 break
             }
@@ -295,7 +303,7 @@ const ReviewsParser = {
                 data: reviewsFilteredList,
             });
 
-            window.close()
+            // window.close()
 
         } else {
             
@@ -347,16 +355,12 @@ const ReviewsParser = {
         await wait(1000)
         this.summaryButton?.click()
         await wait(3000)
-        if (this.loadMoreButtonError) {
-            this.loadMoreButton.click()
-            await wait(3000)
-        }
         this.parseItems()
     }
 }
 
-chrome.runtime.onMessage.addListener(async ({action, filterFields, currentUrl}) => {
-    if (!filterFields) {
+chrome.runtime.onMessage.addListener(async ({action, reviewsFilterFields, currentUrl}) => {
+    if (!reviewsFilterFields) {
         await sendMessage({
             action: 'reviews-parsing-ended',
             status: 'error',
@@ -366,10 +370,10 @@ chrome.runtime.onMessage.addListener(async ({action, filterFields, currentUrl}) 
         return
     }
 
-    if (action === 'reviews-parsing-start' && filterFields) {
+    if (action === 'reviews-parsing-start' && reviewsFilterFields) {
         CURRENT_URL = currentUrl
-        FILTER_FIELDS = filterFields
-        FILTER_FIELDS && getProfileInfo()
+        REVIEWS_FILTER_FIELDS = reviewsFilterFields
+        REVIEWS_FILTER_FIELDS && getProfileInfo()
         ReviewsParser.parsingStart()
     }
 })
