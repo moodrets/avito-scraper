@@ -73,7 +73,7 @@
     <Modal v-if="editModalVisible" @close="onCloseModal">
         <div v-if="editableItem">
             <form @submit.prevent="onEditProfile(editableItem)">
-                <div class="text-2xl font-bold mb-5">{{ editableItem.name }}</div>
+                <div class="text-2xl font-bold mb-5 pr-10">{{ editableItem.name }}</div>
                 <div class="mb-6">
                     <div class="mb-2 text-sm font-medium">Комментарий</div>
                     <input
@@ -96,7 +96,7 @@ import Spinner from '@/components/common/Spinner.vue'
 import Modal from '@/components/common/Modal.vue'
 import Button from '@/components/common/Button.vue'
 
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, onBeforeMount } from 'vue'
 import { MessagesEnum } from '@/types/enums'
 import { copyToBuffer } from '@/helpers/common'
 import { toLocaleString } from '@/helpers/date'
@@ -155,5 +155,9 @@ onMounted(async () => {
     setTimeout(()=>{
         profileSavedList.apiGetList()
     }, 0)
+})
+
+onBeforeMount(()=>{
+    profileSavedList.list.value.forEach(item => item.opened = false)
 })
 </script>
