@@ -27,13 +27,11 @@
 import Button from '@/components/common/Button.vue'
 import Spinner from '@/components/common/Spinner.vue'
 import DB from '@/db/db';
+import { toast } from '@/helpers/toast';
 
 import { MessagesEnum } from '@/types/enums';
-import { useToast } from '@/reactive/useToast';
 import { exportDB } from 'dexie-export-import';
 import { computed, reactive } from 'vue';
-
-const toast = useToast()
 
 const blocksLoading = reactive({
     dbLoading: false
@@ -50,10 +48,10 @@ async function onDrop(){
             try {
                 await DB.close()
                 window.indexedDB.deleteDatabase("avito_scraper");
-                toast?.show('error', MessagesEnum.DBDropSuccess)
+                toast.show('error', MessagesEnum.DBDropSuccess)
                 window.location.reload()
             } catch(error: any) {
-                toast?.show('error', MessagesEnum.DBDropError)
+                toast.show('error', MessagesEnum.DBDropError)
             }
         // }
     }
@@ -91,10 +89,10 @@ async function onExportDB() {
         link.download = fileName
         link.click();
         link.remove()
-        toast?.show('success', MessagesEnum.DBExportSuccess)
+        toast.show('success', MessagesEnum.DBExportSuccess)
 
     } catch(error) {
-        toast?.show('error', MessagesEnum.DBExportError)
+        toast.show('error', MessagesEnum.DBExportError)
     } finally {
         blocksLoading.dbLoading = false
     }

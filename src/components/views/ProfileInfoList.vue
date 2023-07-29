@@ -1,10 +1,11 @@
 <template>
-    <template v-if="profileInfoList.length">
-        <div 
-            v-for="profile in profileInfoList" 
-            :key="profile.url" 
-            class="rounded-xl shadow-xl bg-gray-600 p-5 mb-5 text-[16px]"
+    <template v-if="profileInfoList.list.value.length">
+        <div
+            v-for="profile in profileInfoList.list.value"
+            :key="profile.url"
+            class="relative rounded-xl shadow-xl bg-gray-600 p-5 mb-5 text-[16px]"
         >
+            <div class="absolute right-5 top-5 w-12 h-8 rounded-md" :style="{'background-color': profile.color, 'box-shadow': '0 0 10px rgba(0,0,0,.5)'}"></div>
             <!-- profile info -->
             <div>
                 <div class="space-y-2">
@@ -96,7 +97,7 @@
                         <div>Найдено отзывов - <strong>{{ profile.reviewsList.length }}</strong></div>
                     </div>
                     <table class="w-full relative">
-                        <tr class="text-[16px] sticky top-[70px] bg-gray-600">
+                        <tr class="text-[16px] sticky top-[64px] bg-gray-600">
                             <th class="text-left px-4 py-2 border border-white border-opacity-50">
                                 <div class="flex items-center cursor-pointer" @click="onSort(profile, 'date')">
                                     <div class="font-icon flex-none mr-2" :class="{'text-cyan-400': profile.reviewsSortedBy === 'date'}">sort</div>
@@ -119,7 +120,7 @@
                                 Доставка
                             </th>
                         </tr>
-                        <tr v-for="item, index in profile.reviewsList" :key="index" class="text-[14px] hover:bg-gray-600">
+                        <tr v-for="item, index in profile.reviewsList" :key="profile.reviewsSortedBy + index" class="text-[14px] hover:bg-gray-600">
                             <td class="px-4 py-2 border border-white border-opacity-50 font-medium">{{ toLocaleString(item.date)?.slice(0, 10) }}</td>
                             <td class="px-4 py-2 border border-white border-opacity-50">
                                 <div class="flex-none flex items-center">
@@ -154,22 +155,17 @@ import Button from '@/components/common/Button.vue'
 import { onMounted } from 'vue';
 import { copyToBuffer } from '@/helpers/common';
 import { toLocaleString } from '@/helpers/date'
-import { IProfileItem, profileInfoList } from '@/reactive/useProfileList'
-import { ReviewsSortBy, getReviewsListByUrl } from '@/reactive/useReviewsItems';
-import { useToast } from '@/reactive/useToast';
 import { MessagesEnum } from '@/types/enums';
-import { apiProfileCreate, apiProfileGetByUrl } from '@/api/Profiles';
-
-const toast = useToast()
+import { toast } from '@/helpers/toast';
+import { IProfileItem, ReviewsSortBy, profileInfoList } from '@/reactive/useProfileInfoList';
 
 function onCopyProductName(productName: string) {
     copyToBuffer(productName)
-    toast?.show('success', MessagesEnum.ProductNameCopied)
+    toast.show('success', MessagesEnum.ProductNameCopied)
 }
 
-function onSort(profile: IProfileItem, sortBy: ReviewsSortBy){
-    profile.reviewsSortedBy = sortBy
-    profile.reviewsList = getReviewsListByUrl(profile.url, sortBy)
+function onSort(profile: IProfileItem, sortBy: ReviewsSortBy) {
+    profileInfoList.sortResults(profile, sortBy)
 }
 
 function onOpenResults(profile: IProfileItem) {
@@ -178,66 +174,20 @@ function onOpenResults(profile: IProfileItem) {
 }
 
 async function onSave(profile: IProfileItem) {
-    try {
-        profile.loading = true
-        const newProfile = await apiProfileCreate(profile)
-
-        if (newProfile) {
-            profile.id = newProfile.id
-            profile.savedDate = newProfile.savedDate
-            profile.existsInDataBase = true
-        } else {
-            throw new Error()
-        }
-
-        toast?.show('success', MessagesEnum.ProfileCreated)
-
-    } catch(error: any) {
-        console.log(error);
-        toast?.show('error', MessagesEnum.ProfileCreateError)
-    } finally {
-        profile.loading = false
-    }
+    profileInfoList.apiProfileCreate(profile)
 }
 
 async function onCopy(profile: IProfileItem) {
-    let textValue: string = ''
-
-    textValue+= `${profile.name}\n`
-    textValue+= `${profile.url}\n`
-    textValue+= `${profile.rating}\n`
-    textValue+= `${profile.reviewsCount}\n`
-    textValue+= `${profile.subscribers}\n`
-    textValue+= `${profile.deliveryInfo}\n\n\n\n`
-    textValue+= `${toLocaleString(profile.parsingDate)}\n`
-
-    profile.reviewsList?.forEach(item => {
-        let date = new Date(item.date)
-        // let day = new Intl.DateTimeFormat('ru', { day: '2-digit' }).format(date)
-        let month = new Intl.DateTimeFormat('ru', { month: '2-digit' }).format(date)
-        let year = new Intl.DateTimeFormat('ru', { year: 'numeric' }).format(date)
-        textValue += `${item.productName}~${month}.${year}${item.delivery ? '~Delivery' : ''}\n`
-    })
-
-    if (textValue) {
-        copyToBuffer(textValue)
-        toast?.show('success', MessagesEnum.InfoCopied)
-    }
+    profileInfoList.copyItemInfo(profile)
 }
 
 onMounted(() => {
-    profileInfoList.value.forEach(async profile => {
-
-        profile.reviewsList = getReviewsListByUrl(profile.url)
-
-        const savedProfile = await apiProfileGetByUrl(profile.url)
-
-        if (savedProfile) {
-            profile.existsInDataBase = true
-            profile.id = savedProfile.id
-            profile.savedDate = savedProfile.savedDate
-            profile.comment = savedProfile.comment
-        }
+    profileInfoList.list.value.forEach(async profile => {
+        await profileInfoList.apiCheckInDB(profile)
     })
+
+    if (profileInfoList.list.value.length > 0 && profileInfoList.list.value.length < 2) {
+        profileInfoList.list.value[0].opened = true
+    }
 })
 </script>

@@ -1,6 +1,5 @@
-import { IReviewsFilter } from "@/reactive/useReviewsFilter";
-import { IProfileItem } from "@/reactive/useProfileList";
-import { IReviewsItem } from "@/reactive/useReviewsItems";
+import { IReviewsFilterFields } from "@/reactive/useReviewsFilter";
+import { IProfileItem, IReviewsItem } from "@/reactive/useProfileInfoList";
 
 enum MessagesEnum {
     InfoNotFound = 'Информация не найдена',
@@ -14,7 +13,7 @@ enum MessagesEnum {
     ReviewsModalScrollerNotFound = 'Не найден селектор для скрола в модалке',
 }
 
-let REVIEWS_FILTER_FIELDS: IReviewsFilter | null = null
+let REVIEWS_FILTER_FIELDS: IReviewsFilterFields | null = null
 let CURRENT_URL: string = ''
 
 const SELECTORS = {
@@ -59,12 +58,24 @@ function scrollElement(element: HTMLElement | Element, top: number){
     })
 }
 
+function generateColor(): string {
+    const color = Math.floor(Math.random()*16777215).toString(16);
+    return `#${color}`
+}
+
+function generateLightColor() {
+    let color = "#";
+    for (let i = 0; i < 3; i++)
+        color += ("0" + Math.floor(((1 + Math.random()) * Math.pow(16, 2)) / 2).toString(16)).slice(-2);
+    return color;
+}
+
 async function getProfileInfo(): Promise<void> {
     let profileNameEl = document.querySelector(SELECTORS.profileName)
     let profileReviewsEl = document.querySelector(SELECTORS.profileReviewsCount)
     let profileRatingEl = document.querySelector(SELECTORS.profileRating)
     let profileSubscribersEl = document.querySelector(SELECTORS.profileSubscribers)
-    let profileDeviveryInfoEl = [...document.querySelectorAll(SELECTORS.profileAsideInfoItems)]?.find(item => item.textContent?.includes('продаж'))
+    let profileDeviveryInfoEl = [...document.querySelectorAll(SELECTORS.profileAsideInfoItems)]?.find(item => item.textContent?.includes('прода'))
 
     let profileSubscribersInfo = profileSubscribersEl?.textContent ? profileSubscribersEl.textContent.split(',')[0] : null
 
@@ -80,6 +91,7 @@ async function getProfileInfo(): Promise<void> {
         opened: false,
         loading: false,
         comment: '',
+        color: generateLightColor()
     }
 
     await sendMessage({
@@ -166,7 +178,7 @@ const ReviewsParser = {
         return document.querySelector(SELECTORS.reviewsMoreLoadButton) as HTMLButtonElement
     },
     get loadMoreButtonError(){
-        return document.querySelector(SELECTORS.reviewsMoreLoadButtonError)
+        return document.querySelector(SELECTORS.reviewsMoreLoadButtonError) as HTMLButtonElement
     },
     get summaryButton() {
         return document.querySelector(SELECTORS.reviewsSummaryButton) as HTMLButtonElement
@@ -210,7 +222,7 @@ const ReviewsParser = {
             resultList = resultList.filter((item) => {
 
                 let lowercaseProductName = item.productName.toLowerCase()
-                let lowercaseFilterProductName = (REVIEWS_FILTER_FIELDS as IReviewsFilter).productName.toLowerCase()
+                let lowercaseFilterProductName = (REVIEWS_FILTER_FIELDS as IReviewsFilterFields).productName.toLowerCase()
 
                 if (lowercaseProductName.includes(lowercaseFilterProductName)) {
                     return item

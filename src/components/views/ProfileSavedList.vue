@@ -4,9 +4,9 @@
             <Spinner class="w-10 h-10 flex-none"></Spinner>
         </div>
     </template>
-    <template v-else-if="profileSavedList.length">
+    <template v-else-if="profileSavedList.list.value.length">
         <div
-            v-for="profile in profileSavedList"
+            v-for="profile in profileSavedList.list.value"
             :key="profile.id"
             :class="profile.opened ? 'ring ring-blue-400' : ''"
             class="rounded-lg bg-gray-600 shadow-xl mb-3"
@@ -21,10 +21,10 @@
                         <div v-if="profile.comment" class="text-[16px] text-sky-300 font-medium">{{ profile.comment }}</div>
                     </div>
                     <div class="flex items-center gap-4">
-                        <div class="text-[16px] text-orange-300 font-medium">{{ getLastParsingInfo(profile)?.rating }}</div>
-                        <div class="text-[16px] text-yellow-300 font-medium">{{ getLastParsingInfo(profile)?.reviewsCount }}</div>
-                        <div class="text-[16px] text-teal-300 font-medium">{{ getLastParsingInfo(profile)?.subscribers }}</div>
-                        <div class="text-[16px] text-gray-300 font-medium">{{ getLastParsingInfo(profile)?.parsingDate ? toLocaleString(getLastParsingInfo(profile)?.parsingDate) : '' }}</div>
+                        <div class="text-[16px] text-orange-300 font-medium">{{ profileSavedList.getLastParsingInfo(profile)?.rating }}</div>
+                        <div class="text-[16px] text-yellow-300 font-medium">{{ profileSavedList.getLastParsingInfo(profile)?.reviewsCount }}</div>
+                        <div class="text-[16px] text-teal-300 font-medium">{{ profileSavedList.getLastParsingInfo(profile)?.subscribers }}</div>
+                        <div class="text-[16px] text-gray-300 font-medium">{{ profileSavedList.getLastParsingInfo(profile)?.parsingDate ? toLocaleString(profileSavedList.getLastParsingInfo(profile)?.parsingDate) : '' }}</div>
                     </div>
                 </div>
                 <div class="flex-none flex items-center gap-4">
@@ -72,67 +72,57 @@
     </template>
     <Modal v-if="editModalVisible" @close="onCloseModal">
         <div v-if="editableItem">
-            <div class="text-2xl font-bold mb-5">{{ editableItem.name }}</div>
-            <div class="mb-6">
-                <div class="mb-2 text-sm font-medium">Комментарий</div>
-                <input
-                    v-model="editableItem.comment"
-                    type="search"
-                    required
-                    class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
-                >
-            </div>
-            <div>
-                <Button 
-                    type="submit" 
-                    theme="success" 
-                    @click.stop.prevent="onEditProfile(editableItem.id, editableItem)"
-                >Сохранить</Button>
-            </div>
+            <form @submit.prevent="onEditProfile(editableItem)">
+                <div class="text-2xl font-bold mb-5">{{ editableItem.name }}</div>
+                <div class="mb-6">
+                    <div class="mb-2 text-sm font-medium">Комментарий</div>
+                    <input
+                        v-model="editableItem.comment"
+                        type="search"
+                        required
+                        class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
+                    >
+                </div>
+                <div>
+                    <Button type="submit" theme="success">Сохранить</Button>
+                </div>
+            </form>
         </div>
     </Modal>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
 import Spinner from '@/components/common/Spinner.vue'
 import Modal from '@/components/common/Modal.vue'
 import Button from '@/components/common/Button.vue'
+
+import { onMounted, ref } from 'vue'
 import { MessagesEnum } from '@/types/enums'
-import { useToast } from '@/reactive/useToast'
 import { copyToBuffer } from '@/helpers/common'
 import { toLocaleString } from '@/helpers/date'
-import { IProfileItemDBExt, profileSavedList } from '@/reactive/useProfileList'
-import { apiProfileDelete, apiProfileGetList, apiProfileUpdate } from '@/api/Profiles'
-import { IParsingResultItem } from '@/reactive/useParsingResults'
-
-const toast = useToast()
+import { toast } from '@/helpers/toast'
+import { IProfileItemDB, profileSavedList } from '@/reactive/useProfileSavedList'
 
 const editModalVisible = ref<boolean>(false)
 
-const editableItem = ref<IProfileItemDBExt | null>(null)
+const editableItem = ref<IProfileItemDB | null>(null)
 
 const loadingComponent = ref<boolean>(false)
 
-function getLastParsingInfo(profile: IProfileItemDBExt): IParsingResultItem | null {
-    const result = profile.parsingResults[0]
-    return result || null
-}
-
-function onOpenLink(profile: IProfileItemDBExt) {
+function onOpenLink(profile: IProfileItemDB) {
     if (profile.url) {
         window.open(profile.url, '_blank');
     }
 }
 
-function onCopyLink(profile: IProfileItemDBExt) {
+function onCopyLink(profile: IProfileItemDB) {
     if (profile.url) {
         copyToBuffer(profile.url)
-        toast?.show('success', MessagesEnum.ProfileLinkCopied)
+        toast.show('success', MessagesEnum.ProfileLinkCopied)
     }
 }
 
-function onOpenProfileDetails(profile: IProfileItemDBExt) {
+function onOpenProfileDetails(profile: IProfileItemDB) {
     profile.opened = !profile.opened
 }
 
@@ -141,68 +131,29 @@ function onCloseModal() {
     editableItem.value = null
 }
 
-function onShowEditModal(profile: IProfileItemDBExt) {
+function onShowEditModal(profile: IProfileItemDB) {
     editModalVisible.value = true
     editableItem.value = profile
 }
 
-async function onEditProfile(id: number | undefined, profile: IProfileItemDBExt) {
-    if (!id) return
-
-    try {
-        const result = await apiProfileUpdate(id, profile)
-        if (result) {
-            toast?.show('success', MessagesEnum.ProfileEdited)
-            editableItem.value = null
-            editModalVisible.value = false
-        } else {
-            throw new Error()
-        }
-
-    } catch(error: any) {
-        toast?.show('error', MessagesEnum.ProfileEditeError)
-    } finally {
-
-    }
+async function onEditProfile(profile: IProfileItemDB) {
+    profileSavedList.apiProfileUpdate(profile)
+    editModalVisible.value = false
+    editableItem.value = null
 }
 
-async function onDeleteProfile(profile: IProfileItemDBExt) {
+async function onDeleteProfile(profile: IProfileItemDB) {
     if (window.confirm(`Удаляем "${profile.name}" ?`) && profile.id) {
-        try {
-            await apiProfileDelete(profile.id)
-            toast?.show('success', MessagesEnum.ProfileDeleted)
-            getProfileList()
-        } catch(error: any) {
-            console.log(error);
-            toast?.show('error', MessagesEnum.ProfileDeleteError)
-        } finally {
-
-        }
-    }
-}
-
-async function getProfileList() {
-    try {
-        loadingComponent.value = true
-
-        const resultList = await apiProfileGetList(0, 0)
-
-        profileSavedList.value = resultList.map(item => ({
-            ...item,
-            opened: false,
-            loading: false
-        }))
-
-    } catch(error: any) {
-
-    } finally {
-        loadingComponent.value = false
+        await profileSavedList.apiProfileDelete(profile)
+        setTimeout(()=>{
+            profileSavedList.apiGetList()
+        }, 0)
     }
 }
 
 onMounted(async () => {
     setTimeout(()=>{
-        getProfileList()
+        profileSavedList.apiGetList()
     }, 0)
 })
 </script>

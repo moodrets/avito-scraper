@@ -2,11 +2,11 @@
     <Header></Header>
     <main class="centered">
         <keep-alive>
-            <ReviewsFilter ref="filterRef" v-if="activeTab === MainTabsEnum.ReviewsFilter"></ReviewsFilter>
+            <ReviewsFilter ref="filterRef" v-if="appTabs.active.value === AppTabsEnum.ReviewsFilter"></ReviewsFilter>
         </keep-alive>
-        <ParsingResult v-if="activeTab === MainTabsEnum.ParsingResult"></ParsingResult>
-        <ProfileSavedList v-if="activeTab === MainTabsEnum.ProfileSavedList"></ProfileSavedList>
-        <Settings v-if="activeTab === MainTabsEnum.Settings"></Settings>
+        <ParsingResult v-if="appTabs.active.value === AppTabsEnum.ParsingResult"></ParsingResult>
+        <ProfileSavedList v-if="appTabs.active.value === AppTabsEnum.ProfileSavedList"></ProfileSavedList>
+        <Settings v-if="appTabs.active.value === AppTabsEnum.Settings"></Settings>
     </main>
 </template>
 
@@ -17,83 +17,70 @@ import ParsingResult from '@/components/views/ParsingResult.vue';
 import ProfileSavedList from '@/components/views/ProfileSavedList.vue';
 import Settings from '@/components/views/Settings.vue';
 
-import { onMounted, ref } from 'vue';
-import { activeTab } from '@/reactive/useMainTabs';
-import { useToast } from '@/reactive/useToast';
-import { MainTabsEnum } from '@/types/enums';
-import { profileInfoList } from '@/reactive/useProfileList';
-import { parsedReviewsList } from '@/reactive/useReviewsItems';
-import { setExtensionTabActive, wait } from '@/helpers/common';
+import { onMounted } from 'vue';
+import { setExtensionTabActive } from '@/helpers/common';
+import { toast } from '@/helpers/toast';
 import { initDBCollections } from '@/db/db';
-import { reviewsFilterFindNewProfileLink, reviewsFilterFindProfileLinkByUrl, setCurrentProfileLinkInfo } from '@/reactive/useReviewsFilter';
-import { reviewsFilterFields } from '@/reactive/useReviewsFilter';
-import { apiProfilePushParsingResult } from '@/api/Profiles';
-
-const toast = useToast()
-
-const filterRef = ref<any>()
-
-async function pushParsingResult(url: string) {
-    const findProfileInfoList = profileInfoList.value.find(item => item.url === url)
-    if (findProfileInfoList) {
-        try {
-            await apiProfilePushParsingResult(findProfileInfoList)
-        } catch(error: any) {
-            console.log(error);
-        } finally {
-
-        }
-    }
-}
+import { AppTabsEnum, appTabs } from '@/reactive/useAppTabs';
+import { reviewsFilter } from '@/reactive/useReviewsFilter';
+import { profileInfoList } from '@/reactive/useProfileInfoList';
+import { profileSavedList } from '@/reactive/useProfileSavedList';
 
 onMounted(async () => {
 
     initDBCollections()
 
-    chrome.runtime.onMessage.addListener(async ({ 
+    chrome.runtime.onMessage.addListener(async ({
         message,
         action,
         status,
         currentUrl,
-        data,
+        data
     }) => {
 
         if (status && message) {
-            toast?.show(status, message)
+            toast.show(status, message)
         }
 
         if (action === 'reviews-parsing-started') {
-            const currentProfileLink = reviewsFilterFindProfileLinkByUrl(currentUrl)
+            const currentProfileLink = reviewsFilter.getProfileLinkByUrl(currentUrl)
             currentProfileLink && (currentProfileLink.status = 'wait')
         }
 
         if (action === 'reviews-parsing-ended') {
             if (status === 'success') {
-                parsedReviewsList.push(...data)
-                pushParsingResult(currentUrl)
-                const currentProfileLink = reviewsFilterFindProfileLinkByUrl(currentUrl)
+                profileInfoList.pushProductsByUrl(currentUrl, data)
+                profileSavedList.pushParsingResult(currentUrl)
+
+                const currentProfileLink = reviewsFilter.getProfileLinkByUrl(currentUrl)
                 currentProfileLink && (currentProfileLink.status = 'success')
             }
 
             if (status === 'error') {
-                const currentProfileLink = reviewsFilterFindProfileLinkByUrl(currentUrl)
+                const currentProfileLink = reviewsFilter.getProfileLinkByUrl(currentUrl)
                 currentProfileLink && (currentProfileLink.status = 'error')
             }
 
-            const findNewLink = reviewsFilterFindNewProfileLink()
-
-            if (findNewLink) {
-                await wait(reviewsFilterFields.openTabInterval * 1000)
-                filterRef.value?.onSubmit()
+            if (reviewsFilter.newProfileLink) {
+                // TODO: нужно прикрутить рандомайзер
+                reviewsFilter.parsingStart()
             } else {
-                activeTab.value = MainTabsEnum.ParsingResult
+                appTabs.changeTab(AppTabsEnum.ParsingResult)
                 setExtensionTabActive()
             }
         }
 
         if (action === 'profile-info') {
-            profileInfoList.value.push(data)
-            setCurrentProfileLinkInfo(currentUrl, data)
+            profileInfoList.list.value.push(data)
+
+            let linkInfo = `
+                ${data.name}&nbsp;&nbsp;/&nbsp;&nbsp; 
+                ${data.rating}&nbsp;&nbsp;/&nbsp;&nbsp; 
+                ${data.reviewsCount}&nbsp;&nbsp;/&nbsp;&nbsp; 
+                ${data.subscribers}&nbsp;&nbsp;/&nbsp;&nbsp; 
+                ${data.deliveryInfo}
+            `
+            reviewsFilter.setProfileLinkInfo(currentUrl, linkInfo)
         }
     })
 })
