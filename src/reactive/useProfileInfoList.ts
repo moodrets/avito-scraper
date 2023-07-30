@@ -120,7 +120,7 @@ class ProfileInfoList {
             let month = new Intl.DateTimeFormat('ru', { month: '2-digit' }).format(date)
             let year = new Intl.DateTimeFormat('ru', { year: 'numeric' }).format(date)
             textValue+=`
-                <div class="py-1 px-2 text-[14px] leading-[14px] font-medium mb-1 mr-2 text-black" style="background-color: ${resultItem.color}" title='${resultItem.info}'>
+                <div class="py-1 px-2 text-[14px] leading-[14px] font-medium border-b border-gray-600 mr-2 text-black" style="background-color: ${resultItem.color}" title='${resultItem.info}'>
                     ${resultItem.productName}~${month}.${year}${resultItem.delivery ? '~Delivery' : ''}
                 </div>
             `

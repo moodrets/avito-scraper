@@ -267,40 +267,35 @@ const ReviewsParser = {
         return parsedReviewItem
     },
     async parseItems() {
-        if (this.loadMoreButtonError) {
-            this.loadMoreButton.click()
-            await wait(3000)
-            this.parseItems()
-            return
-        }
-
-        let reviewsItemsEls = [...document.querySelectorAll(SELECTORS.reviewsItem)]
         let reviewsDataList: IReviewsItem[] = []
-        let lastReviewEl = reviewsItemsEls[reviewsItemsEls.length - 1]
-        let lastReviewData = this.makeReviewItemData(lastReviewEl)
-
-        if (!reviewsItemsEls.length || !lastReviewEl) {
-            await sendMessage({
-                action: 'reviews-parsing-ended',
-                status: 'error',
-                currentUrl: CURRENT_URL,
-                message: MessagesEnum.ReviewsNotFound,
-            });
-            return
-        }
+        let reviewsItemsEls = [...document.querySelectorAll(SELECTORS.reviewsItem)]
         
-        if (lastReviewData.date === 0) {
+        try {
+            let lastReviewEl = reviewsItemsEls[reviewsItemsEls.length - 1]
+            let lastReviewData = this.makeReviewItemData(lastReviewEl)
+
+            if (!reviewsItemsEls.length || !lastReviewEl) {
+                throw new Error()
+            }
+            
+            if (lastReviewData.date === 0) {
+                throw new Error()
+            }
+    
+            if (REVIEWS_FILTER_FIELDS?.dateFrom && lastReviewData.date < this.makeDateFromFilterString(REVIEWS_FILTER_FIELDS?.dateFrom)) {
+                this.parsingEnded = true
+            }
+
+        } catch(error: any) {
+
             await sendMessage({
                 action: 'reviews-parsing-ended',
                 status: 'error',
                 currentUrl: CURRENT_URL,
                 message: MessagesEnum.ReviewsSelectorsNotFound,
-            });
-            return
-        }
+            })
 
-        if (REVIEWS_FILTER_FIELDS?.dateFrom && lastReviewData.date < this.makeDateFromFilterString(REVIEWS_FILTER_FIELDS?.dateFrom)) {
-            this.parsingEnded = true
+            return
         }
 
         if (this.parsingEnded) {
@@ -329,6 +324,13 @@ const ReviewsParser = {
         }
     },
     async loadMoreInModal() {
+        if (this.loadMoreButtonError) {
+            this.loadMoreButtonError.click()
+            await wait(3000)
+            this.loadMoreInModal()
+            return
+        }
+        
         const reviewsModalScrollerEl = this.modal?.querySelector(SELECTORS.reviewsModalScroller)
         const reviewsModalScrollerInnerEl = this.modal?.querySelector(SELECTORS.reviewsModalScrollerInner)
 
@@ -342,6 +344,8 @@ const ReviewsParser = {
             return
         }
 
+        
+
         if (reviewsModalScrollerEl && reviewsModalScrollerInnerEl) {
             scrollElement(reviewsModalScrollerEl, reviewsModalScrollerInnerEl.clientHeight)
             await wait(2000)
@@ -349,11 +353,20 @@ const ReviewsParser = {
         }
     },
     async loadMoreOnPage() {
+        if (this.loadMoreButtonError) {
+            this.loadMoreButtonError.click()
+            await wait(3000)
+            this.loadMoreOnPage()
+            return
+        }
+
         scrollPageToBottom()
         await wait(2000)
+
         if (this.loadMoreButton) {
             this.loadMoreButton.click()
         }
+
         await wait(3000)
         this.parseItems()
     },
