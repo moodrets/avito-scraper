@@ -237,6 +237,35 @@ const ReviewsParser = {
 
         return resultList
     },
+    makeReviewItemData(reviewElement: Element): IReviewsItem {
+        let ratingStarsEls = reviewElement.querySelectorAll(SELECTORS.reviewsItemRatingStars)
+        let productNameEl = reviewElement.querySelector(SELECTORS.reviewsItemProductName)
+        let dateDeliveryEl = reviewElement.querySelector(SELECTORS.reviewsItemDateDelivery)
+
+        let deliveryText = null
+        let dateText = null
+        let date = null
+
+        if (dateDeliveryEl?.textContent) {
+            dateText = dateDeliveryEl?.textContent.split(',')[0] || null
+            deliveryText = dateDeliveryEl?.textContent.split(',')[1] || null
+        }
+
+        if (dateText) {
+            date = this.makeDateFromReviewString(dateText)
+        }
+
+        let parsedReviewItem: IReviewsItem = {
+            date: date || 0,
+            dateText: dateText || MessagesEnum.InfoNotFound,
+            delivery: deliveryText ? true : false,
+            productName: productNameEl?.textContent || MessagesEnum.InfoNotFound,
+            rating: ratingStarsEls?.length || 0,
+            profileUrl: CURRENT_URL
+        }
+
+        return parsedReviewItem
+    },
     async parseItems() {
         if (this.loadMoreButtonError) {
             this.loadMoreButton.click()
@@ -245,10 +274,12 @@ const ReviewsParser = {
             return
         }
 
-        let reviewsDataList: IReviewsItem[] = []
         let reviewsItemsEls = [...document.querySelectorAll(SELECTORS.reviewsItem)]
+        let reviewsDataList: IReviewsItem[] = []
+        let lastReviewEl = reviewsItemsEls[reviewsItemsEls.length - 1]
+        let lastReviewData = this.makeReviewItemData(lastReviewEl)
 
-        if (!reviewsItemsEls.length) {
+        if (!reviewsItemsEls.length || !lastReviewEl) {
             await sendMessage({
                 action: 'reviews-parsing-ended',
                 status: 'error',
@@ -257,55 +288,29 @@ const ReviewsParser = {
             });
             return
         }
+        
+        if (lastReviewData.date === 0) {
+            await sendMessage({
+                action: 'reviews-parsing-ended',
+                status: 'error',
+                currentUrl: CURRENT_URL,
+                message: MessagesEnum.ReviewsSelectorsNotFound,
+            });
+            return
+        }
 
-        for (const item of reviewsItemsEls) {
-            let ratingStarsEls = item.querySelectorAll(SELECTORS.reviewsItemRatingStars)
-            let productNameEl = item.querySelector(SELECTORS.reviewsItemProductName)
-            let dateDeliveryEl = item.querySelector(SELECTORS.reviewsItemDateDelivery)
-
-            let deliveryText = null
-            let dateText = null
-            let date = null
-
-            if (dateDeliveryEl?.textContent) {
-                dateText = dateDeliveryEl?.textContent.split(',')[0] || null
-                deliveryText = dateDeliveryEl?.textContent.split(',')[1] || null
-            }
-
-            if (dateText) {
-                date = this.makeDateFromReviewString(dateText)
-            }
-
-            if (!dateText || !date) {
-                await sendMessage({
-                    action: 'reviews-parsing-ended',
-                    status: 'error',
-                    currentUrl: CURRENT_URL,
-                    message: MessagesEnum.ReviewsSelectorsNotFound,
-                });
-                break 
-            }
-
-            let parsedReviewItem: IReviewsItem = {
-                date: date || 0,
-                dateText: dateText || MessagesEnum.InfoNotFound,
-                delivery: deliveryText ? true : false,
-                productName: productNameEl?.textContent || MessagesEnum.InfoNotFound,
-                rating: ratingStarsEls?.length || 0,
-                profileUrl: CURRENT_URL
-            }
-
-            reviewsDataList.push(parsedReviewItem)
-
-            if (REVIEWS_FILTER_FIELDS?.dateFrom && parsedReviewItem.date <= this.makeDateFromFilterString(REVIEWS_FILTER_FIELDS?.dateFrom)) {
-                this.parsingEnded = true
-                break
-            }
+        if (REVIEWS_FILTER_FIELDS?.dateFrom && lastReviewData.date < this.makeDateFromFilterString(REVIEWS_FILTER_FIELDS?.dateFrom)) {
+            this.parsingEnded = true
         }
 
         if (this.parsingEnded) {
 
-            const reviewsFilteredList = this.getFilteredList(reviewsDataList)
+            for (let item of reviewsItemsEls) {
+                let reviewItemData = this.makeReviewItemData(item)
+                reviewsDataList.push(reviewItemData)
+            }
+
+            let reviewsFilteredList = this.getFilteredList(reviewsDataList)
         
             await sendMessage({
                 action: 'reviews-parsing-ended',
@@ -315,12 +320,7 @@ const ReviewsParser = {
                 data: reviewsFilteredList,
             });
 
-            // window.close()
-
         } else {
-            
-            reviewsDataList = []
-
             if (this.modal) {
                 this.loadMoreInModal()
             } else {
@@ -339,6 +339,7 @@ const ReviewsParser = {
                 currentUrl: CURRENT_URL,
                 message: MessagesEnum.ReviewsModalScrollerNotFound,
             });
+            return
         }
 
         if (reviewsModalScrollerEl && reviewsModalScrollerInnerEl) {
