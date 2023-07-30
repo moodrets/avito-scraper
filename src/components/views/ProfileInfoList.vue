@@ -1,11 +1,24 @@
 <template>
     <template v-if="profileInfoList.list.value.length">
+        <div class="fixed left-6 bottom-6 z-100">
+            <Button 
+                v-if="profileInfoList.list.value.length > 1" 
+                icon="remove_red_eye" 
+                theme="success" 
+                class=""
+                @click="onViewAll"
+            >Посмотреть все результаты</Button>
+        </div>
         <div
             v-for="profile in profileInfoList.list.value"
             :key="profile.url"
             class="relative rounded-xl shadow-xl bg-gray-600 p-5 mb-5 text-[16px]"
         >
-            <div class="absolute right-5 top-5 w-12 h-8 rounded-md" :style="{'background-color': profile.color, 'box-shadow': '0 0 10px rgba(0,0,0,.5)'}"></div>
+            <!-- profile color -->
+            <div 
+                class="absolute right-5 top-5 w-12 h-8 rounded-md" 
+                :style="{'background-color': profile.color, 'box-shadow': '0 0 10px rgba(0,0,0,.35)'}
+            "></div>
             <!-- profile info -->
             <div>
                 <div class="space-y-2">
@@ -49,7 +62,7 @@
                     </div>
                     <div v-if="profile.existsInDataBase" class="flex items-center">
                         <div class="mr-3 opacity-80">Комментарий:</div>
-                        <em class="font-bold">{{ profile.comment }}</em>
+                        <em class="text-[16px] text-sky-300 font-medium">{{ profile.comment }}</em>
                     </div>
                     <div v-else>
                         <div class="mb-3 opacity-80">Комментарий:</div>
@@ -90,9 +103,9 @@
                 </div>
             </div>
             
-            <!-- reviews list -->
-            <template v-if="profile.opened">
-                <div v-if="profile.reviewsList?.length" class="mt-10">
+            <!-- profile results list -->
+            <template v-if="profile.reviewsList?.length">
+                <div v-if="profile.opened" class="mt-10">
                     <div class="mb-8 font-bold text-xl">
                         <div>Найдено отзывов - <strong>{{ profile.reviewsList.length }}</strong></div>
                     </div>
@@ -140,24 +153,46 @@
                         </tr>
                     </table>
                 </div>
-                <template v-else>
-                    <div class="text-center text-xl font-bold mt-10">Отзывов не найдено</div>
-                </template>
             </template>
-            
+            <template v-else>
+                <div class="text-xl font-bold mt-5 text-red-400">Результатов не найдено</div>
+            </template>
         </div>
+        
+        <Modal 
+            v-if="pageData.viewAllModalVisible" 
+            width="800px"
+            @close="onCloseModal"
+        >
+            <div v-html="pageData.viewAllContent"></div>
+        </Modal>
+
     </template>
     <div v-else class="text-center text-xl font-bold">Ничего не найдено</div>
 </template>
 
 <script lang="ts" setup>
 import Button from '@/components/common/Button.vue'
-import { onMounted } from 'vue';
+import Modal from '@/components/common/Modal.vue'
+import { onMounted, reactive } from 'vue';
 import { copyToBuffer } from '@/helpers/common';
 import { toLocaleString } from '@/helpers/date'
 import { MessagesEnum } from '@/types/enums';
 import { toast } from '@/helpers/toast';
 import { IProfileItem, ReviewsSortBy, profileInfoList } from '@/reactive/useProfileInfoList';
+
+const pageData = reactive<{
+    viewAllModalVisible: boolean,
+    viewAllContent: string
+}>({
+    viewAllModalVisible: false,
+    viewAllContent: ''
+})
+
+function onCloseModal(){
+    pageData.viewAllModalVisible = false
+    pageData.viewAllContent = ''
+}
 
 function onCopyProductName(productName: string) {
     copyToBuffer(productName)
@@ -179,6 +214,11 @@ async function onSave(profile: IProfileItem) {
 
 async function onCopy(profile: IProfileItem) {
     profileInfoList.copyItemInfo(profile)
+}
+
+async function onViewAll() {
+    pageData.viewAllModalVisible = true
+    pageData.viewAllContent = profileInfoList.getViewAllContent()
 }
 
 onMounted(() => {

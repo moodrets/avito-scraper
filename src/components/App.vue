@@ -18,13 +18,14 @@ import ProfileSavedList from '@/components/views/ProfileSavedList.vue';
 import Settings from '@/components/views/Settings.vue';
 
 import { onMounted } from 'vue';
-import { setExtensionTabActive } from '@/helpers/common';
+import { randomNumberBetween, setExtensionTabActive, wait } from '@/helpers/common';
 import { toast } from '@/helpers/toast';
 import { initDBCollections } from '@/db/db';
 import { AppTabsEnum, appTabs } from '@/reactive/useAppTabs';
 import { reviewsFilter } from '@/reactive/useReviewsFilter';
 import { profileInfoList } from '@/reactive/useProfileInfoList';
 import { profileSavedList } from '@/reactive/useProfileSavedList';
+import { MessagesEnum } from '@/types/enums';
 
 onMounted(async () => {
 
@@ -49,7 +50,7 @@ onMounted(async () => {
 
         if (action === 'reviews-parsing-ended') {
             if (status === 'success') {
-                profileInfoList.pushProductsByUrl(currentUrl, data)
+                profileInfoList.pushResultsByUrl(currentUrl, data)
                 profileSavedList.pushParsingResult(currentUrl)
 
                 const currentProfileLink = reviewsFilter.getProfileLinkByUrl(currentUrl)
@@ -62,7 +63,9 @@ onMounted(async () => {
             }
 
             if (reviewsFilter.newProfileLink) {
-                // TODO: нужно прикрутить рандомайзер
+                const waitOpenPageToast = toast.show('success', MessagesEnum.WaitOpenPage, {duration: 10000000000})
+                await wait(randomNumberBetween(1, 10) * 1000)
+                toast.drop(waitOpenPageToast)
                 reviewsFilter.parsingStart()
             } else {
                 appTabs.changeTab(AppTabsEnum.ParsingResult)

@@ -43,7 +43,7 @@ class ProfileInfoList {
         this.list.value.push(profile)
     }
 
-    public pushProductsByUrl(url: string, items: IReviewsItem[]) {
+    public pushResultsByUrl(url: string, items: IReviewsItem[]) {
         const profileByUrl = this.list.value.find(item => item.url === url)
 
         if (profileByUrl) {
@@ -98,8 +98,35 @@ class ProfileInfoList {
         }
     }
 
-    public copyAllInfo() {
+    public getViewAllContent(): string {
+        let textValue: string = ''
+        let resultsList: (IReviewsItem & {color: string, info: string})[] = []
 
+        this.list.value.forEach(profile => {
+            profile.reviewsList?.forEach((resultItem) => {
+                resultsList.push({
+                    ...resultItem,
+                    color: profile.color,
+                    info: `${profile.name} / ${profile.rating} / ${profile.reviewsCount} / ${profile.subscribers} / ${profile.deliveryInfo}`
+                })
+            })
+        })
+
+        resultsList.sort((a, b) => a.productName.localeCompare(b.productName))
+
+        resultsList.forEach(resultItem => {
+            let date = new Date(resultItem.date)
+            // let day = new Intl.DateTimeFormat('ru', { day: '2-digit' }).format(date)
+            let month = new Intl.DateTimeFormat('ru', { month: '2-digit' }).format(date)
+            let year = new Intl.DateTimeFormat('ru', { year: 'numeric' }).format(date)
+            textValue+=`
+                <div class="py-1 px-2 text-[14px] leading-[14px] font-medium mb-1 mr-2 text-black" style="background-color: ${resultItem.color}" title='${resultItem.info}'>
+                    ${resultItem.productName}~${month}.${year}${resultItem.delivery ? '~Delivery' : ''}
+                </div>
+            `
+        })
+
+        return textValue
     }
 
     public async apiCheckInDB(profile: IProfileItem) {

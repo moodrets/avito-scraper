@@ -383,6 +383,7 @@ chrome.runtime.onMessage.addListener(async ({action, reviewsFilterFields, curren
     }
 
     if (action === 'reviews-parsing-start' && reviewsFilterFields) {
+        await wait(1000)
         CURRENT_URL = currentUrl
         REVIEWS_FILTER_FIELDS = reviewsFilterFields
         REVIEWS_FILTER_FIELDS && getProfileInfo()

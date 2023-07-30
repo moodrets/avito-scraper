@@ -19,7 +19,6 @@ export interface IReviewsFilterFields {
     ratingFrom: number
     ratingTo: number
     scrollInterval: number
-    openTabInterval: number
     deliveryOnly: false
 }
 
@@ -85,7 +84,6 @@ class ReviewsFilter {
                 this.fields.deliveryOnly = result.deliveryOnly
                 this.fields.productName = result.productName
                 this.fields.scrollInterval = result.scrollInterval
-                this.fields.openTabInterval = result.openTabInterval
 
                 return result
             }
@@ -108,7 +106,6 @@ class ReviewsFilter {
         this.fields.ratingFrom = 4
         this.fields.ratingTo = 5
         this.fields.scrollInterval = 2
-        this.fields.openTabInterval = 2
         this.fields.deliveryOnly = false
         
         await this.apiRemoveFilter()

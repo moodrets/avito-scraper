@@ -21,6 +21,7 @@ export enum MessagesEnum {
     // common
     InfoCopied = 'Информация скопирована в буффер',
     ProductNameCopied = 'Название товара скопировано в буффер',
+    WaitOpenPage = 'Ожидаем открытия страницы ...',
     // database
     DBExportSuccess = 'Экпорт базы успешно завершен',
     DBExportError = 'Не удалось экспортировать базу',

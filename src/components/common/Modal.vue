@@ -2,11 +2,14 @@
     <div 
         ref="modalRef"
         tabindex="0"
-        class="app-modal fixed inset-0 bg-black bg-opacity-40 z-100 overflow-y-auto p-10 flex" 
+        class="app-modal fixed inset-0 bg-black bg-opacity-60 z-100 overflow-y-auto p-10 flex" 
         @click="onClickHandler"
         @keydown.esc="onClose"
     >
-        <div class="app-modal__body relative bg-gray-600 shadow-xl rounded-xl p-5 m-auto w-[580px] max-w-full break-all">
+        <div 
+            class="app-modal__body relative bg-gray-600 shadow-xl rounded-xl p-10 m-auto max-w-full min-h-[200px] break-all" 
+            :style="{'width': props.width}"
+        >
             <div class="font-icon absolute right-4 top-4 z-10 cursor-pointer text-3xl" @click="onClose">close</div>
             <slot></slot>
         </div>
@@ -17,6 +20,15 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 
 const modalRef = ref()
+
+const props = withDefaults(
+    defineProps<{
+        width?: string
+    }>(),
+    {
+        width: '580px'
+    }
+)
 
 const emits = defineEmits(['close'])
 

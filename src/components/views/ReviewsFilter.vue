@@ -91,21 +91,11 @@
                     class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
                 >
             </div>
-            <div>
+            <div class="col-span-2">
                 <div class="mb-2 text-sm font-medium">Интервал прокрутки отзывов (сек.)</div>
                 <input 
                     v-model="reviewsFilter.fields.scrollInterval"
                     tabindex="10"
-                    type="number"
-                    min="0"
-                    class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
-                >
-            </div>
-            <div>
-                <div class="mb-2 text-sm font-medium">Интервал открытия страниц (сек.)</div>
-                <input 
-                    v-model="reviewsFilter.fields.openTabInterval"
-                    tabindex="11"
                     type="number"
                     min="0"
                     class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
