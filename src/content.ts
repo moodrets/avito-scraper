@@ -267,6 +267,11 @@ const ReviewsParser = {
         return parsedReviewItem
     },
     async parseItems() {
+        if (this.loadMoreButtonError) {
+            this.loadMoreButtonError.click()
+            await wait(3000)
+        }
+
         let reviewsDataList: IReviewsItem[] = []
         let reviewsItemsEls = [...document.querySelectorAll(SELECTORS.reviewsItem)]
         
