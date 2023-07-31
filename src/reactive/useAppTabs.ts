@@ -10,7 +10,7 @@ export enum AppTabsEnum {
 interface IAppTab {
     value: AppTabsEnum,
     text: string,
-    icon: string
+    icon: string,
 }
 
 class AppTabs {
@@ -20,17 +20,17 @@ class AppTabs {
         {
             value: AppTabsEnum.ReviewsFilter,
             text: 'Фильтр отзывов',
-            icon: 'tune'
+            icon: 'tune',
         },
         {
             value: AppTabsEnum.ParsingResult,
             text: 'Результаты парсинга',
-            icon: 'view_list'
+            icon: 'view_list',
         },
         {
             value: AppTabsEnum.ProfileSavedList,
             text: 'Список профилей',
-            icon: 'people'
+            icon: 'people',
         },
     ]
 

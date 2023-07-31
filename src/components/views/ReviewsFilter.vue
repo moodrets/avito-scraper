@@ -4,9 +4,9 @@
             <div class="col-span-4">
                 <div class="text-sm font-medium mb-2">Ссылки на профили</div>
                 <div
-                    v-for="link, index in reviewsFilter.fields.profilesLinks"
-                    :key="index" 
-                    :class="index > 0 ? 'mt-5' : ''"
+                    v-for="link, linkIndex in reviewsFilter.fields.profilesLinks"
+                    :key="linkIndex" 
+                    :class="linkIndex > 0 ? 'mt-5' : ''"
                 >
                     <div class="flex items-center gap-4">
                         <div class="flex-none select-none">
@@ -21,10 +21,11 @@
                             type="search"
                             required
                             class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
+                            :class="{'ring-4 ring-green-500': link.highlight}"
                             @input="onInputLink(link)"
                         >
                         <div v-if="reviewsFilter.fields.profilesLinks.length > 1" class="flex-none cursor-pointer select-none">
-                            <i class="font-icon text-3xl block text-red-400" @click="reviewsFilter.removeProfileLink(index)">remove_circle_outline</i>
+                            <i class="font-icon text-3xl block text-red-400" @click="reviewsFilter.removeProfileLink(linkIndex)">remove_circle_outline</i>
                         </div>
                         <div class="flex-none cursor-pointer select-none ml-auto">
                             <i class="font-icon text-3xl block text-green-400" @click="reviewsFilter.pushNewProfileLink()">add_circle_outline</i>
@@ -91,16 +92,6 @@
                     class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
                 >
             </div>
-            <div class="col-span-2">
-                <div class="mb-2 text-sm font-medium">Интервал прокрутки отзывов (сек.)</div>
-                <input 
-                    v-model="reviewsFilter.fields.scrollInterval"
-                    tabindex="10"
-                    type="number"
-                    min="0"
-                    class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
-                >
-            </div>
             <div class="col-span-4 select-none">
                 <label class="inline-block">
                     <div class="mb-3 text-sm font-medium">Только с доставкой</div>
@@ -137,12 +128,11 @@
 import Button from '@/components/common/Button.vue';
 import Switch from '@/components/common/Switch.vue';
 
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { onBeforeUnmount, onMounted } from 'vue';
 import AirDatepicker from 'air-datepicker';
 import { getDateTwoMonthAgo } from '@/helpers/date';
 import { reviewsFilter } from '@/reactive/useReviewsFilter';
 import { IProfileLink } from '@/reactive/useReviewsFilter';
-import { profileInfoList } from '@/reactive/useProfileInfoList';
 
 const datePickers: Record<string, any> = {
     dateFrom: null,
@@ -163,6 +153,14 @@ const datePickersConfig: Record<string, any> = {
 }
 
 function onInputLink(link: IProfileLink) {
+    reviewsFilter.fields.profilesLinks.forEach(itemLink => itemLink.highlight = false)
+    const similarUrlsLink = reviewsFilter.fields.profilesLinks.filter(itemLink => itemLink.url === link.url)
+
+    if (similarUrlsLink.length > 1) {
+        similarUrlsLink[0].highlight = true
+        link.url = ''
+    }
+
     link.status = 'new'
     link.info = ''
 }
@@ -179,10 +177,7 @@ async function onSave() {
     reviewsFilter.apiCreateFilter()
 }
 
-async function onSubmit(){
-    reviewsFilter.setProfileLinksStatusNew()
-    reviewsFilter.apiCreateFilter()
-    profileInfoList.list.value = []
+async function onSubmit() {
     reviewsFilter.parsingStart()
 }
 

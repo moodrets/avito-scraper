@@ -1,14 +1,5 @@
 <template>
     <template v-if="profileInfoList.list.value.length">
-        <div class="fixed left-6 bottom-6 z-100">
-            <Button 
-                v-if="profileInfoList.list.value.length > 1" 
-                icon="remove_red_eye" 
-                theme="success" 
-                class=""
-                @click="onViewAll"
-            >Посмотреть все результаты</Button>
-        </div>
         <div
             v-for="profile in profileInfoList.list.value"
             :key="profile.url"
@@ -19,6 +10,7 @@
                 class="absolute right-5 top-5 w-12 h-8 rounded-md" 
                 :style="{'background-color': profile.color, 'box-shadow': '0 0 10px rgba(0,0,0,.35)'}
             "></div>
+
             <!-- profile info -->
             <div>
                 <div class="space-y-2">
@@ -159,12 +151,12 @@
             </template>
         </div>
         
-        <Modal 
-            v-if="pageData.viewAllModalVisible" 
+        <Modal
+            v-if="profileInfoList.state.contentModalVisible"
             width="800px"
             @close="onCloseModal"
         >
-            <div v-html="pageData.viewAllContent"></div>
+            <div v-html="profileInfoList.state.contentModalText"></div>
         </Modal>
 
     </template>
@@ -174,24 +166,16 @@
 <script lang="ts" setup>
 import Button from '@/components/common/Button.vue'
 import Modal from '@/components/common/Modal.vue'
-import { onMounted, reactive } from 'vue';
+import { onMounted, onBeforeUnmount } from 'vue';
 import { copyToBuffer } from '@/helpers/common';
 import { toLocaleString } from '@/helpers/date'
 import { MessagesEnum } from '@/types/enums';
 import { toast } from '@/helpers/toast';
 import { IProfileItem, ReviewsSortBy, profileInfoList } from '@/reactive/useProfileInfoList';
 
-const pageData = reactive<{
-    viewAllModalVisible: boolean,
-    viewAllContent: string
-}>({
-    viewAllModalVisible: false,
-    viewAllContent: ''
-})
-
-function onCloseModal(){
-    pageData.viewAllModalVisible = false
-    pageData.viewAllContent = ''
+function onCloseModal() {
+    profileInfoList.state.contentModalVisible = false
+    profileInfoList.state.contentModalText = ''
 }
 
 function onCopyProductName(productName: string) {
@@ -216,12 +200,15 @@ async function onCopy(profile: IProfileItem) {
     profileInfoList.copyItemInfo(profile)
 }
 
-async function onViewAll() {
-    pageData.viewAllModalVisible = true
-    pageData.viewAllContent = profileInfoList.getViewAllContent()
-}
+onBeforeUnmount(() => {
+    profileInfoList.state.viewAllButtonVisible = false
+    profileInfoList.state.viewMoreThanFiveButtonVisible = false
+})
 
 onMounted(() => {
+    profileInfoList.state.viewAllButtonVisible = true
+    profileInfoList.state.viewMoreThanFiveButtonVisible = true
+
     profileInfoList.list.value.forEach(async profile => {
         await profileInfoList.apiCheckInDB(profile)
     })

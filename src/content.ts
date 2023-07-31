@@ -70,6 +70,10 @@ function generateLightColor() {
     return color;
 }
 
+function randomNumberBetween(min: number, max: number) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 async function getProfileInfo(): Promise<void> {
     let profileNameEl = document.querySelector(SELECTORS.profileName)
     let profileReviewsEl = document.querySelector(SELECTORS.profileReviewsCount)
@@ -268,6 +272,7 @@ const ReviewsParser = {
     },
     async parseItems() {
         if (this.loadMoreButtonError) {
+            await wait(5000)
             this.loadMoreButtonError.click()
             await wait(3000)
         }
@@ -330,6 +335,7 @@ const ReviewsParser = {
     },
     async loadMoreInModal() {
         if (this.loadMoreButtonError) {
+            await wait(5000)
             this.loadMoreButtonError.click()
             await wait(3000)
             this.loadMoreInModal()
@@ -349,16 +355,15 @@ const ReviewsParser = {
             return
         }
 
-        
-
         if (reviewsModalScrollerEl && reviewsModalScrollerInnerEl) {
             scrollElement(reviewsModalScrollerEl, reviewsModalScrollerInnerEl.clientHeight)
-            await wait(2000)
+            await wait(randomNumberBetween(3, 10) * 1000)
             this.parseItems()
         }
     },
     async loadMoreOnPage() {
         if (this.loadMoreButtonError) {
+            await wait(5000)
             this.loadMoreButtonError.click()
             await wait(3000)
             this.loadMoreOnPage()
@@ -366,13 +371,13 @@ const ReviewsParser = {
         }
 
         scrollPageToBottom()
-        await wait(2000)
+        await wait(randomNumberBetween(3, 10) * 1000)
 
         if (this.loadMoreButton) {
             this.loadMoreButton.click()
         }
 
-        await wait(3000)
+        await wait(randomNumberBetween(3, 10) * 1000)
         this.parseItems()
     },
     async parsingStart() {

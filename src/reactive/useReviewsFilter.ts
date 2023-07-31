@@ -1,14 +1,16 @@
-import { reactive, ref } from "vue"
 import DB from "@/db/db"
+import { reactive, ref } from "vue"
 import { toast } from "@/helpers/toast"
 import { MessagesEnum } from "@/types/enums"
 import { dateFromDatepickerString } from "@/helpers/date"
 import { createTab } from "@/helpers/common"
+import { profileInfoList } from "./useProfileInfoList"
 
 export interface IProfileLink {
     status: 'success' | 'error' | 'wait' | 'new',
     url: string,
-    info?: string
+    highlight: boolean,
+    info?: string,
 }
 
 export interface IReviewsFilterFields {
@@ -18,22 +20,19 @@ export interface IReviewsFilterFields {
     dateTo: string
     ratingFrom: number
     ratingTo: number
-    scrollInterval: number
     deliveryOnly: false
 }
 
 class ReviewsFilter {
-    public fields = reactive({
+    public fields = reactive<IReviewsFilterFields>({
         profilesLinks: [
-            {url: '', status: 'new'},
+            {url: '', status: 'new', highlight: false},
         ],
         productName: '',
         dateFrom: '',
         dateTo: '',
         ratingFrom: 4,
         ratingTo: 5,
-        scrollInterval: 2,
-        openTabInterval: 2,
         deliveryOnly: false,
     }) as IReviewsFilterFields
 
@@ -50,7 +49,8 @@ class ReviewsFilter {
     public pushNewProfileLink(): void {
         this.fields.profilesLinks.push({
             url: '', 
-            status: 'new'
+            status: 'new',
+            highlight: false
         })
     }
 
@@ -83,7 +83,6 @@ class ReviewsFilter {
                 this.fields.ratingTo = result.ratingTo
                 this.fields.deliveryOnly = result.deliveryOnly
                 this.fields.productName = result.productName
-                this.fields.scrollInterval = result.scrollInterval
 
                 return result
             }
@@ -98,14 +97,13 @@ class ReviewsFilter {
 
     public async resetFields() {
         this.fields.profilesLinks = [
-            {url: '', status: 'new'},
+            {url: '', status: 'new', highlight: false},
         ]
         this.fields.productName = ''
         this.fields.dateFrom = ''
         this.fields.dateTo = ''
         this.fields.ratingFrom = 4
         this.fields.ratingTo = 5
-        this.fields.scrollInterval = 2
         this.fields.deliveryOnly = false
         
         await this.apiRemoveFilter()
@@ -115,6 +113,12 @@ class ReviewsFilter {
         try {
 
             if (this.newProfileLink) {
+                this.apiCreateFilter()
+
+                // чистим результаты парсинга в соответствии с урлами фильтра
+                const profileUrlsFromFilter = this.fields.profilesLinks.map(item => item.url)
+                profileInfoList.list.value = profileInfoList.list.value.filter(profile => profileUrlsFromFilter.includes(profile.url))
+
                 const currentTab = await createTab(this.newProfileLink.url)
                 this.openedTab.value = currentTab
     
@@ -125,6 +129,8 @@ class ReviewsFilter {
                         currentUrl: this.newProfileLink.url
                     })
                 }
+            } else {
+                toast.show('warning', MessagesEnum.ReviewsFilterAllLinksParser)
             }
             
         } catch (error: any) {

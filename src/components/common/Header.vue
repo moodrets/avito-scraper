@@ -10,6 +10,22 @@
                 ]"
                 @click="appTabs.changeTab(tab.value)"
             >{{ tab.text }}</Button>
+            <Button
+                v-if="profileInfoList.state.viewAllButtonVisible && profileInfoList.list.value.length > 1"
+                theme="success" 
+                type="button"
+                icon="remove_red_eye"
+                class="ml-auto"
+                @click.stop.prevent="onViewAll"
+            >Все результаты</Button>
+            <Button
+                v-if="profileInfoList.state.viewMoreThanFiveButtonVisible && profileInfoList.list.value.length > 1"
+                theme="success" 
+                type="button"
+                icon="remove_red_eye"
+                class="mr-auto"
+                @click.stop.prevent="onViewMoreThanFive"
+            > >= 5</Button>
             <Button 
                 theme="info" 
                 type="button"
@@ -27,4 +43,15 @@
 <script lang="ts" setup>
 import Button from '@/components/common/Button.vue'
 import { AppTabsEnum, appTabs } from '@/reactive/useAppTabs';
+import { profileInfoList } from '@/reactive/useProfileInfoList';
+
+async function onViewAll() {
+    profileInfoList.state.contentModalVisible = true
+    profileInfoList.state.contentModalText = profileInfoList.getViewAllContent()
+}
+
+async function onViewMoreThanFive() {
+    profileInfoList.state.contentModalVisible = true
+    profileInfoList.state.contentModalText = profileInfoList.getViewAllContent()
+}
 </script>

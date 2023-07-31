@@ -5,6 +5,7 @@ export enum MessagesEnum {
     ReviewsFilterCleared = 'Фильтр сброшен (удален из базы)',
     ReviewsFilterClearError = 'Не удалось удалить фильтр из базы',
     ReviewsFilterGetError = 'Не удалось достать фильтр из базы',
+    ReviewsFilterAllLinksParser = 'Все ссылки уже прошли парсинг',
     // parsing
     ParsingCanceled = 'Парсинг отзывов отменен',
     ParsingStarted = 'Парсинг отзывов запущен',

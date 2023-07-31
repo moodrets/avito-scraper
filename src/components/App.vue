@@ -64,7 +64,7 @@ onMounted(async () => {
 
             if (reviewsFilter.newProfileLink) {
                 const waitOpenPageToast = toast.show('success', MessagesEnum.WaitOpenPage, {duration: 10000000000})
-                await wait(randomNumberBetween(1, 10) * 1000)
+                await wait(randomNumberBetween(2, 10) * 1000)
                 toast.drop(waitOpenPageToast)
                 reviewsFilter.parsingStart()
             } else {

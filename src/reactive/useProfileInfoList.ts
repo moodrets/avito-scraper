@@ -1,5 +1,5 @@
 import DB from '@/db/db'
-import { ref } from 'vue'
+import { reactive, ref } from 'vue'
 import { IProfileItemDB } from './useProfileSavedList'
 import { toast } from '@/helpers/toast'
 import { MessagesEnum } from '@/types/enums'
@@ -38,6 +38,18 @@ export interface IProfileItem {
 
 class ProfileInfoList {
     public list = ref<IProfileItem[]>([])
+
+    public state = reactive<{
+        contentModalText: string
+        contentModalVisible: boolean
+        viewAllButtonVisible: boolean
+        viewMoreThanFiveButtonVisible: boolean
+    }>({
+        contentModalText: '',
+        contentModalVisible: false,
+        viewAllButtonVisible: false,
+        viewMoreThanFiveButtonVisible: false
+    })
 
     public pushProfileInfo(profile: IProfileItem) {
         this.list.value.push(profile)
@@ -79,17 +91,15 @@ class ProfileInfoList {
         textValue+= `${profile.rating}\n`
         textValue+= `${profile.reviewsCount}\n`
         textValue+= `${profile.subscribers}\n`
-        textValue+= `${profile.deliveryInfo}\n\n\n\n`
-        textValue+= `${toLocaleString(profile.parsingDate)}\n`
+        textValue+= `${profile.deliveryInfo}\n`
+        textValue+= `${toLocaleString(profile.parsingDate)}\n\n\n\n`
 
         this.sortResults(profile, 'productName')
 
-        profile.reviewsList?.forEach(item => {
-            let date = new Date(item.date)
-            // let day = new Intl.DateTimeFormat('ru', { day: '2-digit' }).format(date)
-            let month = new Intl.DateTimeFormat('ru', { month: '2-digit' }).format(date)
-            let year = new Intl.DateTimeFormat('ru', { year: 'numeric' }).format(date)
-            textValue += `${item.productName}~${month}.${year}${item.delivery ? '~Delivery' : ''}\n`
+        profile.reviewsList?.forEach(resultItem => {
+            let date = new Date(resultItem.date)
+            let formatDate = new Intl.DateTimeFormat('ru', {month: '2-digit', year: 'numeric' }).format(date)
+            textValue += `${resultItem.productName}~${formatDate}${resultItem.delivery ? '~Delivery' : ''}\n`
         })
 
         if (textValue) {
@@ -98,7 +108,7 @@ class ProfileInfoList {
         }
     }
 
-    public getViewAllContent(): string {
+    public getViewAllContent(withTag: boolean = true): string {
         let textValue: string = ''
         let resultsList: (IReviewsItem & {color: string, info: string})[] = []
 
@@ -116,14 +126,17 @@ class ProfileInfoList {
 
         resultsList.forEach(resultItem => {
             let date = new Date(resultItem.date)
-            // let day = new Intl.DateTimeFormat('ru', { day: '2-digit' }).format(date)
-            let month = new Intl.DateTimeFormat('ru', { month: '2-digit' }).format(date)
-            let year = new Intl.DateTimeFormat('ru', { year: 'numeric' }).format(date)
-            textValue+=`
-                <div class="py-1 px-2 text-[14px] leading-[14px] font-medium border-b border-gray-600 mr-2 text-black" style="background-color: ${resultItem.color}" title='${resultItem.info}'>
-                    ${resultItem.productName}~${month}.${year}${resultItem.delivery ? '~Delivery' : ''}
-                </div>
-            `
+            let formatDate = new Intl.DateTimeFormat('ru', {month: '2-digit', year: 'numeric' }).format(date)
+
+            if (withTag) {
+                textValue+=`
+                    <div class="py-1 px-2 text-[14px] leading-[14px] font-medium border-b border-gray-600 mr-2 text-black" style="background-color: ${resultItem.color}" title='${resultItem.info}'>
+                        ${resultItem.productName}~${formatDate}${resultItem.delivery ? '~Delivery' : ''}
+                    </div>
+                `
+            } else {
+                textValue+=`${resultItem.productName}~${formatDate}${resultItem.delivery ? '~Delivery' : ''}`
+            }
         })
 
         return textValue
@@ -173,7 +186,7 @@ class ProfileInfoList {
             profile.savedDate = newProfile.savedDate
             profile.comment = newProfile.comment
 
-            toast.show('success', MessagesEnum.ProfileCreateError)
+            toast.show('success', MessagesEnum.ProfileCreated)
 
         } catch(error: any) {
             console.log(error);

@@ -24,6 +24,7 @@
                         <div class="text-[16px] text-orange-300 font-medium">{{ profileSavedList.getLastParsingInfo(profile)?.rating }}</div>
                         <div class="text-[16px] text-yellow-300 font-medium">{{ profileSavedList.getLastParsingInfo(profile)?.reviewsCount }}</div>
                         <div class="text-[16px] text-teal-300 font-medium">{{ profileSavedList.getLastParsingInfo(profile)?.subscribers }}</div>
+                        <div class="text-[16px] text-rose-300 font-medium">{{ profileSavedList.getLastParsingInfo(profile)?.deliveryInfo }}</div>
                         <div class="text-[16px] text-gray-300 font-medium">{{ profileSavedList.getLastParsingInfo(profile)?.parsingDate ? toLocaleString(profileSavedList.getLastParsingInfo(profile)?.parsingDate) : '' }}</div>
                     </div>
                 </div>
