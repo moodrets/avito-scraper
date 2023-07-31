@@ -43,12 +43,12 @@ class ProfileInfoList {
         contentModalText: string
         contentModalVisible: boolean
         viewAllButtonVisible: boolean
-        viewMoreThanFiveButtonVisible: boolean
+        viewMoreThanButtonVisible: boolean
     }>({
         contentModalText: '',
         contentModalVisible: false,
         viewAllButtonVisible: false,
-        viewMoreThanFiveButtonVisible: false
+        viewMoreThanButtonVisible: false
     })
 
     public pushProfileInfo(profile: IProfileItem) {
@@ -108,7 +108,7 @@ class ProfileInfoList {
         }
     }
 
-    public getViewAllContent(withTag: boolean = true): string {
+    public getViewAllContent(withTag: boolean = true, moreThan: number = 0): string {
         let textValue: string = ''
         let resultsList: (IReviewsItem & {color: string, info: string})[] = []
 

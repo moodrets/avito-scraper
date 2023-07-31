@@ -202,12 +202,12 @@ async function onCopy(profile: IProfileItem) {
 
 onBeforeUnmount(() => {
     profileInfoList.state.viewAllButtonVisible = false
-    profileInfoList.state.viewMoreThanFiveButtonVisible = false
+    profileInfoList.state.viewMoreThanButtonVisible = false
 })
 
 onMounted(() => {
     profileInfoList.state.viewAllButtonVisible = true
-    profileInfoList.state.viewMoreThanFiveButtonVisible = true
+    profileInfoList.state.viewMoreThanButtonVisible = true
 
     profileInfoList.list.value.forEach(async profile => {
         await profileInfoList.apiCheckInDB(profile)

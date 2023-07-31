@@ -19,12 +19,12 @@
                 @click.stop.prevent="onViewAll"
             >Все результаты</Button>
             <Button
-                v-if="profileInfoList.state.viewMoreThanFiveButtonVisible && profileInfoList.list.value.length > 1"
+                v-if="profileInfoList.state.viewMoreThanButtonVisible && profileInfoList.list.value.length > 1"
                 theme="success" 
                 type="button"
                 icon="remove_red_eye"
                 class="mr-auto"
-                @click.stop.prevent="onViewMoreThanFive"
+                @click.stop.prevent="onViewMoreThan"
             > >= 5</Button>
             <Button 
                 theme="info" 
@@ -50,7 +50,7 @@ async function onViewAll() {
     profileInfoList.state.contentModalText = profileInfoList.getViewAllContent()
 }
 
-async function onViewMoreThanFive() {
+async function onViewMoreThan() {
     profileInfoList.state.contentModalVisible = true
     profileInfoList.state.contentModalText = profileInfoList.getViewAllContent()
 }
