@@ -159,7 +159,7 @@ class ProfileInfoList {
             });
         })
 
-        resultMap.forEach(mapItem => {
+        resultMap.forEach((mapItem, key) => {
             if (mapItem.length >= moreThan) {
                 resultsList.push(mapItem[0])
             }
@@ -170,7 +170,7 @@ class ProfileInfoList {
         resultMap.clear()
         resultsList = []
 
-        return resultText
+        return resultText || `<div class="text-xl text-center font-bold">${MessagesEnum.ResultsNotFound}</div>`
     }
 
     public getViewAllContent(): string {
@@ -192,7 +192,7 @@ class ProfileInfoList {
 
         resultsList = []
 
-        return resultText
+        return resultText || `<div class="text-xl text-center font-bold">${MessagesEnum.ResultsNotFound}</div>`
     }
 
     public async apiCheckInDB(profile: IProfileItem) {

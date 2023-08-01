@@ -22,6 +22,7 @@ export enum MessagesEnum {
     ProfileLinkCopied = 'Ссылка скопирована в буффер',
     // common
     InfoCopied = 'Информация скопирована в буффер',
+    ResultsNotFound = 'Результаты не найдены',
     ProductNameCopied = 'Название товара скопировано в буффер',
     WaitOpenPage = 'Ожидаем открытия страницы ...',
     // database

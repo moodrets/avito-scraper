@@ -7,7 +7,7 @@
         @keydown.esc="onClose"
     >
         <div 
-            class="app-modal__body relative bg-gray-600 shadow-xl rounded-xl p-10 m-auto max-w-full min-h-[200px] break-all" 
+            class="app-modal__body relative bg-gray-600 shadow-xl rounded-xl p-10 m-auto max-w-full min-h-[100px] break-all" 
             :style="{'width': props.width}"
         >
             <div class="font-icon absolute right-4 top-4 z-10 cursor-pointer text-3xl" @click="onClose">close</div>
