@@ -21,8 +21,8 @@
                             type="search"
                             required
                             class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
-                            :class="{'ring-4 ring-green-500': link.highlight}"
-                            @input="onInputLink(link)"
+                            :class="{'ring-4 ring-red-400': link.highlight}"
+                            @input="onInputLink(link, linkIndex)"
                         >
                         <div v-if="reviewsFilter.fields.profilesLinks.length > 1" class="flex-none cursor-pointer select-none">
                             <i class="font-icon text-3xl block text-red-400" @click="reviewsFilter.removeProfileLink(linkIndex)">remove_circle_outline</i>
@@ -133,6 +133,8 @@ import AirDatepicker from 'air-datepicker';
 import { getDateTwoMonthAgo } from '@/helpers/date';
 import { reviewsFilter } from '@/reactive/useReviewsFilter';
 import { IProfileLink } from '@/reactive/useReviewsFilter';
+import { toast } from '@/helpers/toast';
+import { MessagesEnum } from '@/types/enums';
 
 const datePickers: Record<string, any> = {
     dateFrom: null,
@@ -152,13 +154,12 @@ const datePickersConfig: Record<string, any> = {
     }
 }
 
-function onInputLink(link: IProfileLink) {
+function onInputLink(link: IProfileLink, index: number) {
     reviewsFilter.fields.profilesLinks.forEach(itemLink => itemLink.highlight = false)
-    const similarUrlsLink = reviewsFilter.fields.profilesLinks.filter(itemLink => itemLink.url === link.url)
+    let similarUrlsLink = reviewsFilter.fields.profilesLinks.filter(itemLink => itemLink.url === link.url && itemLink.url !== '')
 
     if (similarUrlsLink.length > 1) {
-        similarUrlsLink[0].highlight = true
-        link.url = ''
+        similarUrlsLink.forEach(itemLink => itemLink.highlight = true)
     }
 
     link.status = 'new'
@@ -174,10 +175,20 @@ async function onReset() {
 }
 
 async function onSave() {
+    if (reviewsFilter.fields.profilesLinks.find(item => item.highlight)) {
+        toast.show('error', MessagesEnum.ReviewsFilterSimilarLinks)
+        return
+    }
+
     reviewsFilter.apiCreateFilter()
 }
 
 async function onSubmit() {
+    if (reviewsFilter.fields.profilesLinks.find(item => item.highlight)) {
+        toast.show('error', MessagesEnum.ReviewsFilterSimilarLinks)
+        return
+    }
+
     reviewsFilter.parsingStart()
 }
 
