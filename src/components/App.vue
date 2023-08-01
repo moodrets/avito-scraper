@@ -1,13 +1,15 @@
 <template>
-    <Header></Header>
-    <main class="centered">
-        <keep-alive>
-            <ReviewsFilter ref="filterRef" v-if="appTabs.active.value === AppTabsEnum.ReviewsFilter"></ReviewsFilter>
-        </keep-alive>
-        <ParsingResult v-if="appTabs.active.value === AppTabsEnum.ParsingResult"></ParsingResult>
-        <ProfileSavedList v-if="appTabs.active.value === AppTabsEnum.ProfileSavedList"></ProfileSavedList>
-        <Settings v-if="appTabs.active.value === AppTabsEnum.Settings"></Settings>
-    </main>
+    <div class="app-wrapper" ref="appWrapperRef">
+        <Header></Header>
+        <main class="centered">
+            <keep-alive>
+                <ReviewsFilter ref="filterRef" v-if="appTabs.active.value === AppTabsEnum.ReviewsFilter"></ReviewsFilter>
+            </keep-alive>
+            <ParsingResult v-if="appTabs.active.value === AppTabsEnum.ParsingResult"></ParsingResult>
+            <ProfileSavedList v-if="appTabs.active.value === AppTabsEnum.ProfileSavedList"></ProfileSavedList>
+            <Settings v-if="appTabs.active.value === AppTabsEnum.Settings"></Settings>
+        </main>
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -17,7 +19,7 @@ import ParsingResult from '@/components/views/ParsingResult.vue';
 import ProfileSavedList from '@/components/views/ProfileSavedList.vue';
 import Settings from '@/components/views/Settings.vue';
 
-import { onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
 import { randomNumberBetween, setExtensionTabActive, wait } from '@/helpers/common';
 import { toast } from '@/helpers/toast';
 import { initDBCollections } from '@/db/db';
@@ -26,6 +28,8 @@ import { reviewsFilter } from '@/reactive/useReviewsFilter';
 import { profileInfoList } from '@/reactive/useProfileInfoList';
 import { profileSavedList } from '@/reactive/useProfileSavedList';
 import { MessagesEnum } from '@/types/enums';
+
+const appWrapperRef = ref<HTMLElement>()
 
 onMounted(async () => {
 
@@ -86,5 +90,20 @@ onMounted(async () => {
             reviewsFilter.setProfileLinkInfo(currentUrl, linkInfo)
         }
     })
+
+    document.fonts.onloading = () => {
+        appWrapperRef.value?.classList.add('is-loaded')
+    }
 })
 </script>
+
+<style lang="scss">
+.app-wrapper {
+    opacity: 0;
+    transition: opacity .3s .1s;
+
+    &.is-loaded {
+        opacity: 1;
+    }
+}
+</style>

@@ -24,7 +24,7 @@ export enum MessagesEnum {
     InfoCopied = 'Информация скопирована в буффер',
     ResultsNotFound = 'Результаты не найдены',
     ProductNameCopied = 'Название товара скопировано в буффер',
-    WaitOpenPage = 'Ожидаем открытия страницы ...',
+    WaitOpenPage = 'Ожидаем открытия следующей страницы ...',
     // database
     DBExportSuccess = 'Экпорт базы успешно завершен',
     DBExportError = 'Не удалось экспортировать базу',
