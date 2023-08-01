@@ -8,6 +8,8 @@ import { copyToBuffer } from '@/helpers/common'
 
 export type ReviewsSortBy = 'rating' | 'productName' | 'date'
 
+type TypeResultExtended = IReviewsItem & {color: string, info: string}
+
 export interface IReviewsItem {
     date: number
     dateText: string
@@ -107,22 +109,9 @@ class ProfileInfoList {
             toast.show('success', MessagesEnum.InfoCopied)
         }
     }
-
-    public getViewAllContent(withTag: boolean = true, moreThan: number = 0): string {
+    
+    private makeStringFromResults(resultsList: TypeResultExtended[], withTag: boolean = true) {
         let textValue: string = ''
-        let resultsList: (IReviewsItem & {color: string, info: string})[] = []
-
-        this.list.value.forEach(profile => {
-            profile.reviewsList?.forEach((resultItem) => {
-                resultsList.push({
-                    ...resultItem,
-                    color: profile.color,
-                    info: `${profile.name} / ${profile.rating} / ${profile.reviewsCount} / ${profile.subscribers} / ${profile.deliveryInfo}`
-                })
-            })
-        })
-
-        resultsList.sort((a, b) => a.productName.localeCompare(b.productName))
 
         resultsList.forEach(resultItem => {
             let date = new Date(resultItem.date)
@@ -140,6 +129,70 @@ class ProfileInfoList {
         })
 
         return textValue
+    }
+
+    public getMoreThanContent(moreThan: number = 5): string {
+        let resultsList: TypeResultExtended[] = []
+        let resultMap : Map<string, TypeResultExtended[]> = new Map()
+        
+        this.list.value.forEach(profile => {
+            profile.reviewsList?.forEach(resultItem => {
+                if (resultMap.has(resultItem.productName)) {
+                    let mapValue = resultMap.get(resultItem.productName)
+                    if (mapValue) {
+                        let newMapValue: TypeResultExtended[] = [...mapValue, {
+                            ...resultItem,
+                            color: profile.color,
+                            info: `${profile.name} / ${profile.rating} / ${profile.reviewsCount} / ${profile.subscribers} / ${profile.deliveryInfo}`
+                        }]
+                        resultMap.set(resultItem.productName, newMapValue)
+                    }
+                } else {
+                    resultMap.set(resultItem.productName, [
+                        {
+                            ...resultItem,
+                            color: profile.color,
+                            info: `${profile.name} / ${profile.rating} / ${profile.reviewsCount} / ${profile.subscribers} / ${profile.deliveryInfo}`
+                        }
+                    ])
+                }
+            });
+        })
+
+        resultMap.forEach(mapItem => {
+            if (mapItem.length >= moreThan) {
+                resultsList.push(mapItem[0])
+            }
+        })
+
+        let resultText = this.makeStringFromResults(resultsList)
+
+        resultMap.clear()
+        resultsList = []
+
+        return resultText
+    }
+
+    public getViewAllContent(): string {
+        let resultsList: TypeResultExtended[] = []
+
+        this.list.value.forEach(profile => {
+            profile.reviewsList?.forEach((resultItem) => {
+                resultsList.push({
+                    ...resultItem,
+                    color: profile.color,
+                    info: `${profile.name} / ${profile.rating} / ${profile.reviewsCount} / ${profile.subscribers} / ${profile.deliveryInfo}`
+                })
+            })
+        })
+
+        resultsList.sort((a, b) => a.productName.localeCompare(b.productName))
+
+        let resultText = this.makeStringFromResults(resultsList)
+
+        resultsList = []
+
+        return resultText
     }
 
     public async apiCheckInDB(profile: IProfileItem) {
