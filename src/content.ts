@@ -41,7 +41,7 @@ async function sendMessage(data: Record<string, any>){
 
 async function wait(timeout: number) {
     return new Promise(resolve => {
-        setTimeout(()=>{
+        setTimeout(() => {
             resolve(true)
         }, timeout)
     })

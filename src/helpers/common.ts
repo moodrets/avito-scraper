@@ -22,7 +22,7 @@ export async function setExtensionTabActive(): Promise<void> {
 
 export async function wait(timeout: number) {
     return new Promise(resolve => {
-        setTimeout(()=>{
+        setTimeout(() => {
             resolve(true)
         }, timeout)
     })

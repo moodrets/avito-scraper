@@ -43,7 +43,7 @@ function onClose() {
     emits('close')
 }
 
-onBeforeUnmount(()=>{
+onBeforeUnmount(() => {
     document.body.classList.remove('overflow-hidden')
 })
 

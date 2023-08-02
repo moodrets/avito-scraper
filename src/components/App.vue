@@ -1,5 +1,8 @@
 <template>
-    <div class="app-wrapper" ref="appWrapperRef">
+    <div 
+        class="app-wrapper transition-opacity duration-200 delay-100" 
+        :class="appLoaded ? 'opacity-100' : 'opacity-0'"
+    >
         <Header></Header>
         <main class="centered">
             <keep-alive>
@@ -29,7 +32,7 @@ import { profileInfoList } from '@/reactive/useProfileInfoList';
 import { profileSavedList } from '@/reactive/useProfileSavedList';
 import { MessagesEnum } from '@/types/enums';
 
-const appWrapperRef = ref<HTMLElement>()
+const appLoaded = ref<boolean>(false)
 
 onMounted(async () => {
 
@@ -92,18 +95,7 @@ onMounted(async () => {
     })
 
     document.fonts.onloading = () => {
-        appWrapperRef.value?.classList.add('is-loaded')
+        appLoaded.value = true
     }
 })
 </script>
-
-<style lang="scss">
-.app-wrapper {
-    opacity: 0;
-    transition: opacity .3s .1s;
-
-    &.is-loaded {
-        opacity: 1;
-    }
-}
-</style>

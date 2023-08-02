@@ -208,7 +208,7 @@ onMounted(() => {
     }, 0)
 })
 
-onBeforeUnmount(()=>{
+onBeforeUnmount(() => {
     datePickers.dateFrom.destroy()
     datePickers.dateTo.destroy()
 })
