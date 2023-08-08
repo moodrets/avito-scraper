@@ -15,6 +15,10 @@ export function initDBCollections(version: number = 1){
             deliveryOnly, 
             *profilesLinks
         `,
+        profileInfoList: `
+            key,
+            *reviewsList
+        `,
         savedProfiles: `
             ++id,
             &url,

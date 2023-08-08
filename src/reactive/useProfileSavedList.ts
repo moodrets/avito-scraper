@@ -2,7 +2,7 @@ import DB from "@/db/db"
 import { ref } from "vue"
 import { toast } from "@/helpers/toast"
 import { MessagesEnum } from "@/types/enums"
-import { profileInfoList } from "./useProfileInfoList"
+import { profileInfoList } from "@/reactive/useProfileInfoList"
 
 export interface IParsingResultItem {
     parsingDate: number

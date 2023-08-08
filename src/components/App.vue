@@ -5,12 +5,13 @@
     >
         <Header></Header>
         <main class="centered">
-            <keep-alive>
-                <ReviewsFilter ref="filterRef" v-if="appTabs.active.value === AppTabsEnum.ReviewsFilter"></ReviewsFilter>
-            </keep-alive>
+            <ProfilesFilter v-if="appTabs.active.value === AppTabsEnum.ProfilesFilter"></ProfilesFilter>
             <ParsingResult v-if="appTabs.active.value === AppTabsEnum.ParsingResult"></ParsingResult>
             <ProfileSavedList v-if="appTabs.active.value === AppTabsEnum.ProfileSavedList"></ProfileSavedList>
             <Settings v-if="appTabs.active.value === AppTabsEnum.Settings"></Settings>
+            <KeepAlive>
+                <ReviewsFilter v-if="appTabs.active.value === AppTabsEnum.ReviewsFilter"></ReviewsFilter>
+            </KeepAlive>
         </main>
     </div>
 </template>
@@ -20,6 +21,7 @@ import Header from '@/components/common/Header.vue';
 import ReviewsFilter from '@/components/views/ReviewsFilter.vue';
 import ParsingResult from '@/components/views/ParsingResult.vue';
 import ProfileSavedList from '@/components/views/ProfileSavedList.vue';
+import ProfilesFilter from '@/components/views/ProfilesFilter.vue';
 import Settings from '@/components/views/Settings.vue';
 
 import { onMounted, ref } from 'vue';
@@ -51,7 +53,7 @@ onMounted(async () => {
         }
 
         if (action === 'reviews-parsing-started') {
-            const currentProfileLink = reviewsFilter.getProfileLinkByUrl(currentUrl)
+            const currentProfileLink = reviewsFilter.profileLinkGetByUrl(currentUrl)
             currentProfileLink && (currentProfileLink.status = 'wait')
         }
 
@@ -60,21 +62,22 @@ onMounted(async () => {
                 profileInfoList.pushResultsByUrl(currentUrl, data)
                 profileSavedList.pushParsingResult(currentUrl)
 
-                const currentProfileLink = reviewsFilter.getProfileLinkByUrl(currentUrl)
+                const currentProfileLink = reviewsFilter.profileLinkGetByUrl(currentUrl)
                 currentProfileLink && (currentProfileLink.status = 'success')
             }
 
             if (status === 'error') {
-                const currentProfileLink = reviewsFilter.getProfileLinkByUrl(currentUrl)
+                const currentProfileLink = reviewsFilter.profileLinkGetByUrl(currentUrl)
                 currentProfileLink && (currentProfileLink.status = 'error')
             }
 
-            if (reviewsFilter.newProfileLink) {
-                const waitOpenPageToast = toast.show('success', MessagesEnum.WaitOpenPage, {duration: 10000000000})
+            if (reviewsFilter.profileLinkNew) {
+                const waitOpenPageToast = toast.show('success', MessagesEnum.WaitOpenPage, {duration: 172800})
                 await wait(randomNumberBetween(2, 10) * 1000)
                 toast.drop(waitOpenPageToast)
                 reviewsFilter.parsingStart()
             } else {
+                toast.show('success', MessagesEnum.ParsingReviewsFinished, {duration: 172800})
                 appTabs.changeTab(AppTabsEnum.ParsingResult)
                 setExtensionTabActive()
             }
@@ -90,11 +93,11 @@ onMounted(async () => {
                 ${data.subscribers}&nbsp;&nbsp;/&nbsp;&nbsp; 
                 ${data.deliveryInfo}
             `
-            reviewsFilter.setProfileLinkInfo(currentUrl, linkInfo)
+            reviewsFilter.profileLinkSetInfo(currentUrl, linkInfo)
         }
     })
 
-    document.fonts.onloading = () => {
+    document.fonts.onloadingdone = () => {
         appLoaded.value = true
     }
 })

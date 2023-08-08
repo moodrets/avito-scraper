@@ -1,5 +1,9 @@
 <template>
-    <form class="pb-20" @submit.prevent="onSubmit">
+    <form 
+        class="pb-20 transition-opacity duration-300 delay-100"
+        :class="componentLoaded ? 'opacity-100' : 'opacity-0'"
+        @submit.prevent="onSubmit"
+    >
         <div class="grid grid-cols-4 gap-5">
             <div class="col-span-4">
                 <div class="text-sm font-medium mb-2">Ссылки на профили</div>
@@ -25,10 +29,10 @@
                             @input="onInputLink(link, linkIndex)"
                         >
                         <div v-if="reviewsFilter.fields.profilesLinks.length > 1" class="flex-none cursor-pointer select-none">
-                            <i class="font-icon text-3xl block text-red-400" @click="reviewsFilter.removeProfileLink(linkIndex)">remove_circle_outline</i>
+                            <i class="font-icon text-3xl block text-red-400" @click="reviewsFilter.profileLinkRemove(linkIndex)">remove_circle_outline</i>
                         </div>
                         <div class="flex-none cursor-pointer select-none ml-auto">
-                            <i class="font-icon text-3xl block text-green-400" @click="reviewsFilter.pushNewProfileLink()">add_circle_outline</i>
+                            <i class="font-icon text-3xl block text-green-400" @click="reviewsFilter.profileLinkPushNew()">add_circle_outline</i>
                         </div>
                     </div>
                     <div v-if="link.info" class="mt-3 ml-12 font-medium" v-html="link.info"></div>
@@ -128,13 +132,15 @@
 import Button from '@/components/common/Button.vue';
 import Switch from '@/components/common/Switch.vue';
 
-import { onBeforeUnmount, onMounted } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 import AirDatepicker from 'air-datepicker';
 import { getDateTwoMonthAgo } from '@/helpers/date';
 import { reviewsFilter } from '@/reactive/useReviewsFilter';
 import { IProfileLink } from '@/reactive/useReviewsFilter';
 import { toast } from '@/helpers/toast';
 import { MessagesEnum } from '@/types/enums';
+
+const componentLoaded = ref<boolean>(false)
 
 const datePickers: Record<string, any> = {
     dateFrom: null,
@@ -155,13 +161,8 @@ const datePickersConfig: Record<string, any> = {
 }
 
 function onInputLink(link: IProfileLink, index: number) {
-    reviewsFilter.fields.profilesLinks.forEach(itemLink => itemLink.highlight = false)
-    let similarUrlsLink = reviewsFilter.fields.profilesLinks.filter(itemLink => itemLink.url === link.url && itemLink.url !== '')
-
-    if (similarUrlsLink.length > 1) {
-        similarUrlsLink.forEach(itemLink => itemLink.highlight = true)
-    }
-
+    reviewsFilter.profileLinksClearHightlight()
+    reviewsFilter.profileLinksCheckSimilar()
     link.status = 'new'
     link.info = ''
 }
@@ -175,7 +176,7 @@ async function onReset() {
 }
 
 async function onSave() {
-    if (reviewsFilter.fields.profilesLinks.find(item => item.highlight)) {
+    if (reviewsFilter.profileLinkHighlighted) {
         toast.show('error', MessagesEnum.ReviewsFilterSimilarLinks)
         return
     }
@@ -184,7 +185,7 @@ async function onSave() {
 }
 
 async function onSubmit() {
-    if (reviewsFilter.fields.profilesLinks.find(item => item.highlight)) {
+    if (reviewsFilter.profileLinkHighlighted) {
         toast.show('error', MessagesEnum.ReviewsFilterSimilarLinks)
         return
     }
@@ -205,6 +206,9 @@ onMounted(() => {
             datePickers.dateFrom.selectDate(storageResult.dateFrom)
             datePickers.dateTo.selectDate(storageResult.dateTo)
         }
+
+        componentLoaded.value = true
+
     }, 0)
 })
 

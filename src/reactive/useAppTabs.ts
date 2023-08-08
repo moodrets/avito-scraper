@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 
 export enum AppTabsEnum {
+    ProfilesFilter = 'profile_parsing',
     ReviewsFilter = 'reviews_filter',
     ParsingResult = 'parsing_result',
     ProfileSavedList = 'profile_saved_list',
@@ -17,6 +18,11 @@ class AppTabs {
     public active = ref<AppTabsEnum>(AppTabsEnum.ReviewsFilter)
 
     public list: IAppTab[] = [
+        // {
+        //     value: AppTabsEnum.ProfilesFilter,
+        //     text: 'Фильтр профилей',
+        //     icon: 'group_add',
+        // },
         {
             value: AppTabsEnum.ReviewsFilter,
             text: 'Фильтр отзывов',
@@ -29,7 +35,7 @@ class AppTabs {
         },
         {
             value: AppTabsEnum.ProfileSavedList,
-            text: 'Список профилей',
+            text: 'База профилей',
             icon: 'people',
         },
     ]

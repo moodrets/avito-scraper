@@ -9,7 +9,7 @@
             v-for="profile in profileSavedList.list.value"
             :key="profile.id"
             :class="profile.opened ? 'ring ring-blue-400' : ''"
-            class="rounded-lg bg-gray-600 shadow-xl mb-3"
+            class="rounded-xl bg-gray-600 shadow-xl mb-3"
         >
             <div
                 class="flex items-start p-4 select-none cursor-pointer" 
@@ -17,8 +17,11 @@
             >
                 <div class="min-w-0 flex-1">
                     <div class="flex items-center gap-4 mb-4">
-                        <div class="text-xl font-medium">{{ profile.name }}</div>
-                        <div v-if="profile.comment" class="text-[16px] text-sky-300 font-medium">{{ profile.comment }}</div>
+                        <a
+                            class="text-white hover:text-white text-xl font-medium border-b border-dashed border-white"
+                            @click.stop="onOpenLink(profile)"
+                        >{{ profile.name }}</a>
+                        <div v-if="profile.comment" class="text-[16px] text-sky-300 font-medium italic">{{ profile.comment }}</div>
                     </div>
                     <div class="flex items-center gap-4">
                         <div class="text-[16px] text-orange-300 font-medium">{{ profileSavedList.getLastParsingInfo(profile)?.rating }}</div>
@@ -29,9 +32,6 @@
                     </div>
                 </div>
                 <div class="flex-none flex items-center gap-4">
-                    <!-- <div class="flex-none ml-auto" @click.stop="onOpenLink(profile)">
-                        <i class="font-icon text-3xl text-green-500">open_in_new</i>
-                    </div> -->
                     <div class="flex-none ml-auto" @click.stop="onShowEditModal(profile)">
                         <i class="font-icon text-3xl text-green-500">edit</i>
                     </div>

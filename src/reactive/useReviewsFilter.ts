@@ -4,7 +4,7 @@ import { toast } from "@/helpers/toast"
 import { MessagesEnum } from "@/types/enums"
 import { dateFromDatepickerString } from "@/helpers/date"
 import { createTab } from "@/helpers/common"
-import { profileInfoList } from "./useProfileInfoList"
+import { profileInfoList } from "@/reactive/useProfileInfoList"
 
 export interface IProfileLink {
     status: 'success' | 'error' | 'wait' | 'new',
@@ -38,15 +38,19 @@ class ReviewsFilter {
 
     public openedTab = ref<Record<string, any>>({})
 
-    get newProfileLink(): IProfileLink | undefined {
+    public get profileLinkNew(): IProfileLink | undefined {
         return this.fields.profilesLinks.find((item) => item.status === 'new')
     }
 
-    public getProfileLinkByUrl(url: string): IProfileLink | undefined {
+    public get profileLinkHighlighted() {
+        return this.fields.profilesLinks.find(item => item.highlight)
+    }
+
+    public profileLinkGetByUrl(url: string): IProfileLink | undefined {
         return this.fields.profilesLinks.find((item) => item.url === url)
     }
 
-    public pushNewProfileLink(): void {
+    public profileLinkPushNew(): void {
         this.fields.profilesLinks.push({
             url: '', 
             status: 'new',
@@ -54,19 +58,29 @@ class ReviewsFilter {
         })
     }
 
-    public removeProfileLink(index: number) {
+    public profileLinkRemove(index: number) {
         this.fields.profilesLinks.splice(index, 1)
+        this.profileLinksClearHightlight()
+        this.profileLinksCheckSimilar()
     }
 
-    public setProfileLinksStatusNew(): void {
-        this.fields.profilesLinks.forEach(link => {
-            link.info = ''
-            link.status = 'new'
-        })
+    public profileLinksClearHightlight() {
+        this.fields.profilesLinks.forEach(itemLink => itemLink.highlight = false)
     }
 
-    public setProfileLinkInfo(url: string, data: string) {
-        const linkByUrl = this.getProfileLinkByUrl(url)
+    public profileLinksCheckSimilar() {
+        let profileLinkUrls = this.fields.profilesLinks.map(linkItem => linkItem.url).filter(url => url !== '')
+        let profileLinkUrlsSet = new Set(profileLinkUrls)
+
+        if (profileLinkUrls.length > profileLinkUrlsSet.size) {
+            this.fields.profilesLinks.forEach(linkItem => {
+                linkItem.highlight = !![...profileLinkUrlsSet].includes(linkItem.url)
+            })
+        }
+    }
+
+    public profileLinkSetInfo(url: string, data: string) {
+        const linkByUrl = this.profileLinkGetByUrl(url)
 
         if (linkByUrl) {
             linkByUrl.info = data
@@ -112,25 +126,24 @@ class ReviewsFilter {
     public async parsingStart() {
         try {
 
-            if (this.newProfileLink) {
-                this.apiCreateFilter()
+            if (this.profileLinkNew) {
 
                 // чистим результаты парсинга в соответствии с урлами фильтра
                 const profileUrlsFromFilter = this.fields.profilesLinks.map(item => item.url)
                 profileInfoList.list.value = profileInfoList.list.value.filter(profile => profileUrlsFromFilter.includes(profile.url))
 
-                const currentTab = await createTab(this.newProfileLink.url)
+                const currentTab = await createTab(this.profileLinkNew.url)
                 this.openedTab.value = currentTab
     
                 if (currentTab.id) {
                     chrome.tabs.sendMessage(currentTab.id, {
                         action: 'reviews-parsing-start',
                         reviewsFilterFields: this.fields,
-                        currentUrl: this.newProfileLink.url
+                        currentUrl: this.profileLinkNew.url
                     })
                 }
             } else {
-                toast.show('warning', MessagesEnum.ReviewsFilterAllLinksParser)
+                toast.show('warning', MessagesEnum.ReviewsFilterAllLinksParsed)
             }
             
         } catch (error: any) {
@@ -167,7 +180,6 @@ class ReviewsFilter {
 
             copyFilter.dateFrom = dateFromDatepickerString(copyFilter.dateFrom)
             copyFilter.dateTo = dateFromDatepickerString(copyFilter.dateTo)
-            copyFilter.profilesLinks.forEach((link: IProfileLink) => link.status = 'new')
 
             const rows = await DB.reviewsFilter.where("key").equals('reviewsFilter').toArray()
 

@@ -47,11 +47,11 @@ import { profileInfoList } from '@/reactive/useProfileInfoList';
 
 async function onViewAll() {
     profileInfoList.state.contentModalVisible = true
-    profileInfoList.state.contentModalText = profileInfoList.getViewAllContent()
+    profileInfoList.state.contentModalData = profileInfoList.getAllResults()
 }
 
 async function onViewMoreThan() {
     profileInfoList.state.contentModalVisible = true
-    profileInfoList.state.contentModalText = profileInfoList.getMoreThanContent()
+    profileInfoList.state.contentModalData = profileInfoList.getMoreThanResults()
 }
 </script>

@@ -1,5 +1,5 @@
-import { IReviewsFilterFields } from "@/reactive/useReviewsFilter";
-import { IProfileItem, IReviewsItem } from "@/reactive/useProfileInfoList";
+import { IReviewsFilterFields } from "@/reactive/useReviewsFilter"
+import { IProfileItem, IReviewsItem } from "@/reactive/useProfileInfoList"
 
 enum MessagesEnum {
     InfoNotFound = 'Информация не найдена',
@@ -33,6 +33,8 @@ const SELECTORS = {
     reviewsModal: '[data-marker="profile-rating-detailed/popup"]',
     reviewsModalScroller: '.desktop-y382as',
     reviewsModalScrollerInner: '.style-root-qXsDs',
+
+    categoriesShowButton: '[data-marker="top-rubricator/all-categories"]'
 }
 
 async function sendMessage(data: Record<string, any>){
@@ -58,16 +60,29 @@ function scrollElement(element: HTMLElement | Element, top: number){
     })
 }
 
-function generateColor(): string {
-    const color = Math.floor(Math.random()*16777215).toString(16);
-    return `#${color}`
-}
-
 function generateLightColor() {
     let color = "#";
-    for (let i = 0; i < 3; i++)
-        color += ("0" + Math.floor(((1 + Math.random()) * Math.pow(16, 2)) / 2).toString(16)).slice(-2);
+    for (let i = 0; i < 3; i++) {
+        color += ("0" + Math.floor(((1 + Math.random()) * Math.pow(16, 2)) / 2).toString(16)).slice(-2)
+    }
     return color;
+}
+
+function generateContrastColors() {
+    let r = Math.floor((Math.random() * 256) - 1)
+    let g = Math.floor((Math.random() * 256) - 1)
+    let b = Math.floor((Math.random() * 256) - 1)
+
+    let brightness = ((r * 299) + (g * 587) + (b * 114)) / 1000
+    let lightText = ((255 * 299) + (255 * 587) + (255 * 114)) / 1000
+    let darkText = ((0 * 299) + (0 * 587) + (0 * 114)) / 1000
+
+    let text = Math.abs(brightness - lightText) > Math.abs(brightness - darkText) ? "rgb(255, 255, 255)" : "rgb(0, 0, 0)"
+
+    return {
+        text,
+        bg: "rgb("+ r +","+ g +","+ b +")"
+    }
 }
 
 function randomNumberBetween(min: number, max: number) {
@@ -94,8 +109,9 @@ async function getProfileInfo(): Promise<void> {
         url: CURRENT_URL,
         opened: false,
         loading: false,
+        marked: false,
         comment: '',
-        color: generateLightColor()
+        color: generateContrastColors()
     }
 
     await sendMessage({
@@ -105,6 +121,10 @@ async function getProfileInfo(): Promise<void> {
         messsage: MessagesEnum.ProfileInfoSuccess,
         data: profileInform,
     })
+}
+
+async function getCategories() {
+    const categoriesShowButtonEl = document.querySelector(SELECTORS.categoriesShowButton)
 }
 
 const ReviewsParser = {
@@ -321,7 +341,6 @@ const ReviewsParser = {
                 action: 'reviews-parsing-ended',
                 status: 'success',
                 currentUrl: CURRENT_URL,
-                message: MessagesEnum.ParsingReviewsEnded,
                 data: reviewsFilteredList,
             });
 
@@ -385,7 +404,6 @@ const ReviewsParser = {
             action: 'reviews-parsing-started',
             status: 'success',
             currentUrl: CURRENT_URL,
-            message: MessagesEnum.ParsingReviewsStarted,
         });
 
         await wait(1000)
@@ -412,5 +430,10 @@ chrome.runtime.onMessage.addListener(async ({action, reviewsFilterFields, curren
         REVIEWS_FILTER_FIELDS = reviewsFilterFields
         REVIEWS_FILTER_FIELDS && getProfileInfo()
         ReviewsParser.parsingStart()
+    }
+
+    if (action === 'get-categories') {
+        await wait(1000)
+        getCategories()
     }
 })

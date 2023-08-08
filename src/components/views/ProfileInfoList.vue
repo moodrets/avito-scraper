@@ -3,152 +3,113 @@
         <div
             v-for="profile in profileInfoList.list.value"
             :key="profile.url"
-            class="relative rounded-xl shadow-xl bg-gray-600 p-5 mb-5 text-[16px]"
+            class="relative rounded-xl shadow-xl bg-gray-600 text-[16px] mb-3"
         >
-            <!-- profile color -->
-            <div 
-                class="absolute right-5 top-5 w-12 h-8 rounded-md" 
-                :style="{'background-color': profile.color, 'box-shadow': '0 0 10px rgba(0,0,0,.35)'}
-            "></div>
-
-            <!-- profile info -->
-            <div>
-                <div class="space-y-2">
-                    <div class="flex items-center">
-                        <div class="font-bold">{{ profile.name }}</div>
+            <div
+                class="relative flex items-start p-4 select-none cursor-pointer rounded-xl"
+                :style="{'background-image': `linear-gradient(45deg, rgb(75 85 99) 0%, rgb(75 85 99) 70%, ${profile.color.bg} 100%)`}"
+                @click="onOpenResults(profile)"
+            >
+                <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-4 mb-4">
+                        <a
+                            class="text-white hover:text-white text-xl font-medium border-b border-dashed border-white"
+                            @click.stop="onOpenLink(profile)"
+                        >{{ profile.name }}</a>
+                        <div
+                            v-if="profile.comment" 
+                            class="text-[16px] text-sky-300 font-medium italic"
+                        >{{ profile.comment }}</div>
                     </div>
-                    <div class="flex items-center">
-                        <a :href="profile.url" target="_blank">{{ profile.url }}</a>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="font-bold">{{ profile.rating }}</div>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="font-bold">{{ profile.reviewsCount }}</div>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="font-bold">{{ profile.subscribers }}</div>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="font-bold">{{ profile.deliveryInfo }}</div>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="mr-3 opacity-80">Дата парсинга:</div>
-                        <div class="font-bold">{{ toLocaleString(profile.parsingDate) }}</div>
-                    </div>
-                    <div class="flex items-center" v-if="profile.savedDate">
-                        <div class="mr-3 opacity-80">Дата сохранения:</div>
-                        <div class="font-bold">{{ toLocaleString(profile.savedDate) }}</div>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="mr-3 opacity-80">Найден в базе:</div>
-                        <div class="font-bold">
-                            <strong 
-                                :class="[profile.existsInDataBase ? 'text-green-400' : 'text-red-400']"
-                            >{{ profile.existsInDataBase ? 'Да' : 'Нет' }}</strong>
-                        </div>
-                    </div>
-                    <div v-if="profile.id" class="flex items-center">
-                        <div class="mr-3 opacity-80">ID:</div>
-                        <div class="font-bold">{{ profile.id }}</div>
-                    </div>
-                    <div v-if="profile.existsInDataBase" class="flex items-center">
-                        <div class="mr-3 opacity-80">Комментарий:</div>
-                        <em class="text-[16px] text-sky-300 font-medium">{{ profile.comment }}</em>
-                    </div>
-                    <div v-else>
-                        <div class="mb-3 opacity-80">Комментарий:</div>
-                        <input
-                            v-model="profile.comment"
-                            type="search"
-                            required
-                            class="text-base w-[640px] max-w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
-                        >
+                    <div class="flex items-center gap-4">
+                        <div class="text-[16px] text-orange-300 font-medium">{{ profile.rating }}</div>
+                        <div class="text-[16px] text-yellow-300 font-medium">{{ profile.reviewsCount }}</div>
+                        <div class="text-[16px] text-teal-300 font-medium">{{ profile.subscribers }}</div>
+                        <div class="text-[16px] text-rose-300 font-medium">{{ profile.deliveryInfo }}</div>
+                        <div v-if="profile.existsInDataBase" class="text-[16px] text-green-300 font-medium">Найден в базе</div>
+                        <div v-if="profile.savedDate" class="text-[16px] text-gray-300 font-medium">{{ profile.savedDate ? toLocaleString(profile.savedDate) : '' }}</div>
                     </div>
                 </div>
-                <div>
-                    <div class="flex items-center gap-4 mt-8 empty:hidden">
-                        <Button 
-                            v-if="profile.reviewsList?.length" 
-                            type="button" 
-                            theme="success" 
-                            icon="content_copy" 
-                            @click.prevent="onCopy(profile)"
-                        >Копировать результаты</Button>
-                        <Button 
-                            v-if="!profile.existsInDataBase"
-                            type="button" 
-                            icon="cloud_upload" 
-                            @click.prevent="onSave(profile)"
-                        >Сохранить в базу</Button>
-                        <Button
-                            theme="warning"
-                            v-if="profile.reviewsList?.length" 
-                            type="button" 
-                            :icon="profile.opened ? 'keyboard_arrow_up' : 'keyboard_arrow_down'" 
-                            @click.prevent="onOpenResults(profile)"
-                        >
-                            {{ profile.opened ? 'Скрыть результаты' : 'Раскрыть результаты' }}
-                            <strong> ({{ profile.reviewsList.length }})</strong>
-                        </Button>
+                <div class="flex-none flex items-center gap-4">
+                    <div v-if="!profile.existsInDataBase" class="flex-none ml-auto" @click.stop="onSave(profile)">
+                        <i class="font-icon text-3xl text-white drop-shadow-xl">cloud_upload</i>
+                    </div>
+                    <div class="flex-none" @click.stop="onCopy(profile)">
+                        <i class="font-icon text-3xl text-white drop-shadow-xl">content_copy</i>
+                    </div>
+                    <div class="flex-none" @click.stop="onMark(profile)">
+                        <i 
+                            class="font-icon text-3xl drop-shadow-xl" 
+                            :class="[profile.marked ? 'text-gray-500' : 'text-white']"
+                        >bookmark</i>
                     </div>
                 </div>
             </div>
             
-            <!-- profile results list -->
-            <template v-if="profile.reviewsList?.length">
-                <div v-if="profile.opened" class="mt-10">
-                    <div class="mb-8 font-bold text-xl">
-                        <div>Найдено отзывов - <strong>{{ profile.reviewsList.length }}</strong></div>
-                    </div>
-                    <table class="w-full relative">
-                        <tr class="text-[16px] sticky top-[64px] bg-gray-600">
-                            <th class="text-left px-4 py-2 border border-white border-opacity-50">
-                                <div class="flex items-center cursor-pointer" @click="onSort(profile, 'date')">
-                                    <div class="font-icon flex-none mr-2" :class="{'text-cyan-400': profile.reviewsSortedBy === 'date'}">sort</div>
-                                    <div>Дата</div>
-                                </div>
-                            </th>
-                            <th class="text-left px-4 py-2 border border-white border-opacity-50">
-                                <div class="flex items-center cursor-pointer" @click="onSort(profile, 'rating')">
-                                    <div class="font-icon flex-none mr-2" :class="{'text-cyan-400': profile.reviewsSortedBy === 'rating'}">sort</div>
-                                    <div>Оценка</div>
-                                </div>
-                            </th>
-                            <th class="text-left px-4 py-2 border border-white border-opacity-50">
-                                <div class="flex items-center cursor-pointer" @click="onSort(profile, 'productName')">
-                                    <div class="font-icon flex-none mr-2" :class="{'text-cyan-400': profile.reviewsSortedBy === 'productName'}">sort</div>
-                                    <div>Название товара</div>
-                                </div>
-                            </th>
-                            <th class="text-left px-4 py-2 border border-white border-opacity-50">
-                                Доставка
-                            </th>
-                        </tr>
-                        <tr v-for="item, index in profile.reviewsList" :key="profile.reviewsSortedBy + index" class="text-[14px] hover:bg-gray-600">
-                            <td class="px-4 py-2 border border-white border-opacity-50 font-medium">{{ toLocaleString(item.date)?.slice(0, 10) }}</td>
-                            <td class="px-4 py-2 border border-white border-opacity-50">
-                                <div class="flex-none flex items-center">
-                                    <div class="text-base font-medium mr-1">({{ item.rating }}) - </div>
-                                    <div v-for="star in item.rating" class="text-[18px] font-icon text-yellow-400">star</div>
-                                </div>
-                            </td>
-                            <td class="px-4 py-2 border border-white border-opacity-50">
-                                <div class="flex items-center gap-4">
-                                    <div class="font-icon text-green-400 cursor-pointer" @click.stop="onCopyProductName(item.productName)">content_copy</div>
-                                    <div>{{ item.productName }}</div>
-                                </div>
-                            </td>
-                            <td class="px-4 py-2 border border-white border-opacity-50">
-                                <strong :class="item.delivery ? 'text-green-400' : 'text-red-400'">{{ item.delivery ? 'Да' : 'Нет' }}</strong>
-                            </td>
-                        </tr>
-                    </table>
+            <div v-if="profile.opened" class="text-[14px] px-4 p-5">
+                <div v-if="!profile.existsInDataBase" class="mb-8">
+                    <div class="mb-3 opacity-80">Комментарий:</div>
+                    <input
+                        v-model="profile.comment"
+                        type="search"
+                        required
+                        class="text-base w-1/4 max-w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
+                    >
                 </div>
-            </template>
-            <template v-else>
-                <div class="text-xl font-bold mt-5 text-red-400">Результатов не найдено</div>
-            </template>
+                <template v-if="profile.reviewsList?.length">
+                    <div v-if="profile.opened">
+                        <div class="mb-8 font-bold text-xl">
+                            <div>Найдено отзывов - <strong>{{ profile.reviewsList.length }}</strong></div>
+                        </div>
+                        <table class="w-full relative">
+                            <tr class="text-[16px] sticky top-[64px] bg-gray-600">
+                                <th class="text-left px-4 py-2 border border-white border-opacity-50">
+                                    <div class="flex items-center cursor-pointer" @click="onSort(profile, 'date')">
+                                        <div class="font-icon flex-none mr-2" :class="{'text-cyan-400': profile.reviewsSortedBy === 'date'}">sort</div>
+                                        <div>Дата</div>
+                                    </div>
+                                </th>
+                                <th class="text-left px-4 py-2 border border-white border-opacity-50">
+                                    <div class="flex items-center cursor-pointer" @click="onSort(profile, 'rating')">
+                                        <div class="font-icon flex-none mr-2" :class="{'text-cyan-400': profile.reviewsSortedBy === 'rating'}">sort</div>
+                                        <div>Оценка</div>
+                                    </div>
+                                </th>
+                                <th class="text-left px-4 py-2 border border-white border-opacity-50">
+                                    <div class="flex items-center cursor-pointer" @click="onSort(profile, 'productName')">
+                                        <div class="font-icon flex-none mr-2" :class="{'text-cyan-400': profile.reviewsSortedBy === 'productName'}">sort</div>
+                                        <div>Название товара</div>
+                                    </div>
+                                </th>
+                                <th class="text-left px-4 py-2 border border-white border-opacity-50">
+                                    Доставка
+                                </th>
+                            </tr>
+                            <tr v-for="item, index in profile.reviewsList" :key="profile.reviewsSortedBy + index" class="text-[14px] hover:bg-gray-600">
+                                <td class="px-4 py-2 border border-white border-opacity-50 font-medium">{{ toLocaleString(item.date)?.slice(0, 10) }}</td>
+                                <td class="px-4 py-2 border border-white border-opacity-50">
+                                    <div class="flex-none flex items-center">
+                                        <div class="text-base font-medium mr-1">({{ item.rating }}) - </div>
+                                        <div v-for="star in item.rating" class="text-[18px] font-icon text-yellow-400">star</div>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-2 border border-white border-opacity-50">
+                                    <div class="flex items-center gap-4">
+                                        <div class="font-icon text-green-400 cursor-pointer" @click.stop="onCopyProductName(item.productName)">content_copy</div>
+                                        <div>{{ item.productName }}</div>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-2 border border-white border-opacity-50">
+                                    <strong :class="item.delivery ? 'text-green-400' : 'text-red-400'">{{ item.delivery ? 'Да' : 'Нет' }}</strong>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </template>
+                <template v-else>
+                    <div class="text-xl font-bold text-red-300">Результатов не найдено</div>
+                </template>
+            </div>
         </div>
         
         <Modal
@@ -156,15 +117,27 @@
             width="800px"
             @close="onCloseModal"
         >
-            <div v-html="profileInfoList.state.contentModalText"></div>
+            <template v-if="profileInfoList.state.contentModalData.length">
+                <div
+                    v-for="result in profileInfoList.state.contentModalData" 
+                    class="flex items-center gap-2 py-0.5 px-1 mb-[2px] mr-5 font-medium"
+                    :style="{'background-color': result.color.bg, 'color': result.color.text}"
+                    :title="result.info"
+                >
+                    <div>{{ result.productName }}</div>
+                    <div v-if="!result.count">{{ toLocaleString(result.date)?.slice(0, 10) }}</div>
+                    <strong v-if="result.count">({{ result.count }})</strong>
+                </div>
+            </template>
+            <template v-else>
+                <div class="text-center text-xl font-bold">Результаты не найдены</div>
+            </template>
         </Modal>
-
     </template>
     <div v-else class="text-center text-xl font-bold">Ничего не найдено</div>
 </template>
 
 <script lang="ts" setup>
-import Button from '@/components/common/Button.vue'
 import Modal from '@/components/common/Modal.vue'
 import { onMounted, onBeforeUnmount } from 'vue';
 import { copyToBuffer } from '@/helpers/common';
@@ -175,7 +148,7 @@ import { IProfileItem, ReviewsSortBy, profileInfoList } from '@/reactive/useProf
 
 function onCloseModal() {
     profileInfoList.state.contentModalVisible = false
-    profileInfoList.state.contentModalText = ''
+    profileInfoList.state.contentModalData = []
 }
 
 function onCopyProductName(productName: string) {
@@ -190,6 +163,16 @@ function onSort(profile: IProfileItem, sortBy: ReviewsSortBy) {
 function onOpenResults(profile: IProfileItem) {
     if (profile.opened === undefined) profile.opened = true
     profile.opened = !profile.opened
+}
+
+function onOpenLink(profile: IProfileItem) {
+    if (profile.url) {
+        window.open(profile.url, '_blank')
+    }
+}
+
+function onMark(profile: IProfileItem) {
+    profile.marked = !profile.marked
 }
 
 async function onSave(profile: IProfileItem) {
@@ -213,7 +196,7 @@ onMounted(() => {
         await profileInfoList.apiCheckInDB(profile)
     })
 
-    if (profileInfoList.list.value.length > 0 && profileInfoList.list.value.length < 2) {
+    if (profileInfoList.list.value.length === 1) {
         profileInfoList.list.value[0].opened = true
     }
 })

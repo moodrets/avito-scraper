@@ -1,6 +1,6 @@
 import DB from '@/db/db'
 import { reactive, ref } from 'vue'
-import { IProfileItemDB } from './useProfileSavedList'
+import { IProfileItemDB } from '@/reactive/useProfileSavedList'
 import { toast } from '@/helpers/toast'
 import { MessagesEnum } from '@/types/enums'
 import { toLocaleString } from '@/helpers/date'
@@ -8,7 +8,14 @@ import { copyToBuffer } from '@/helpers/common'
 
 export type ReviewsSortBy = 'rating' | 'productName' | 'date'
 
-type TypeResultExtended = IReviewsItem & {color: string, info: string}
+type TypeResultExtended = IReviewsItem & {
+    color: {
+        text: string,
+        bg: string
+    }, 
+    info: string,
+    count?: number
+}
 
 export interface IReviewsItem {
     date: number
@@ -29,9 +36,13 @@ export interface IProfileItem {
     deliveryInfo: string
     loading: boolean
     opened: boolean
+    marked: boolean
     comment: string
     reviewsSortedBy: ReviewsSortBy
-    color: string
+    color: {
+        text: string,
+        bg: string
+    },
     id?: number
     existsInDataBase?: boolean
     savedDate?: number
@@ -42,12 +53,12 @@ class ProfileInfoList {
     public list = ref<IProfileItem[]>([])
 
     public state = reactive<{
-        contentModalText: string
+        contentModalData: TypeResultExtended[],
         contentModalVisible: boolean
         viewAllButtonVisible: boolean
         viewMoreThanButtonVisible: boolean
     }>({
-        contentModalText: '',
+        contentModalData: [],
         contentModalVisible: false,
         viewAllButtonVisible: false,
         viewMoreThanButtonVisible: false
@@ -109,29 +120,8 @@ class ProfileInfoList {
             toast.show('success', MessagesEnum.InfoCopied)
         }
     }
-    
-    private makeStringFromResults(resultsList: TypeResultExtended[], withTag: boolean = true) {
-        let textValue: string = ''
 
-        resultsList.forEach(resultItem => {
-            let date = new Date(resultItem.date)
-            let formatDate = new Intl.DateTimeFormat('ru', {month: '2-digit', year: 'numeric' }).format(date)
-
-            if (withTag) {
-                textValue+=`
-                    <div class="py-1 px-2 text-[14px] leading-[14px] font-medium border-b border-gray-600 mr-2 text-black" style="background-color: ${resultItem.color}" title='${resultItem.info}'>
-                        ${resultItem.productName}~${formatDate}${resultItem.delivery ? '~Delivery' : ''}
-                    </div>
-                `
-            } else {
-                textValue+=`${resultItem.productName}~${formatDate}${resultItem.delivery ? '~Delivery' : ''}`
-            }
-        })
-
-        return textValue
-    }
-
-    public getMoreThanContent(moreThan: number = 5): string {
+    public getMoreThanResults(moreThan: number = 5): TypeResultExtended[] {
         let resultsList: TypeResultExtended[] = []
         let resultMap : Map<string, TypeResultExtended[]> = new Map()
         
@@ -161,19 +151,19 @@ class ProfileInfoList {
 
         resultMap.forEach((mapItem, key) => {
             if (mapItem.length >= moreThan) {
+                if (mapItem[0]) {
+                    mapItem[0].count = mapItem.length
+                } 
                 resultsList.push(mapItem[0])
             }
         })
 
-        let resultText = this.makeStringFromResults(resultsList)
-
         resultMap.clear()
-        resultsList = []
 
-        return resultText || `<div class="text-xl text-center font-bold">${MessagesEnum.ResultsNotFound}</div>`
+        return resultsList
     }
 
-    public getViewAllContent(): string {
+    public getAllResults(): TypeResultExtended[] {
         let resultsList: TypeResultExtended[] = []
 
         this.list.value.forEach(profile => {
@@ -188,11 +178,7 @@ class ProfileInfoList {
 
         resultsList.sort((a, b) => a.productName.localeCompare(b.productName))
 
-        let resultText = this.makeStringFromResults(resultsList)
-
-        resultsList = []
-
-        return resultText || `<div class="text-xl text-center font-bold">${MessagesEnum.ResultsNotFound}</div>`
+        return resultsList
     }
 
     public async apiCheckInDB(profile: IProfileItem) {

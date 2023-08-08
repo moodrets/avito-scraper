@@ -5,11 +5,12 @@ export enum MessagesEnum {
     ReviewsFilterCleared = 'Фильтр сброшен (удален из базы)',
     ReviewsFilterClearError = 'Не удалось удалить фильтр из базы',
     ReviewsFilterGetError = 'Не удалось достать фильтр из базы',
-    ReviewsFilterAllLinksParser = 'Все ссылки уже прошли парсинг',
+    ReviewsFilterAllLinksParsed = 'Все ссылки уже прошли парсинг',
     ReviewsFilterSimilarLinks = 'В фильтре присутствуют одинаковые ссылки',
     // parsing
-    ParsingCanceled = 'Парсинг отзывов отменен',
-    ParsingStarted = 'Парсинг отзывов запущен',
+    ParsingReviewsCanceled = 'Парсинг отзывов отменен',
+    ParsingReviewsStarted = 'Парсинг отзывов запущен',
+    ParsingReviewsFinished = 'Парсинг отзывов завершен',
     // tabs
     TabOpenError = 'Не удалось открыть ссылку',
     // profile
