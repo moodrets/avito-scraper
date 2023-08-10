@@ -88,12 +88,10 @@ class ReviewsFilter {
 
     public profileLinksPasteMultiple(link: IProfileLink, target: HTMLInputElement) {
         let splitValue = target.value.split(' ')
+        splitValue = splitValue.filter(url => url !== '')
 
         if (splitValue.length > 1) {
             splitValue.forEach((urlString, index) => {
-                if (urlString === '') {
-                    return
-                }
                 if (index === 0) {
                     link.url = urlString.trim()
                 } else {
