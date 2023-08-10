@@ -12,7 +12,7 @@
             class="rounded-xl bg-gray-600 shadow-xl mb-3"
         >
             <div
-                class="flex items-start p-4 select-none cursor-pointer" 
+                class="flex items-start p-4 select-none cursor-pointer"
                 @click="onOpenProfileDetails(profile)"
             >
                 <div class="min-w-0 flex-1">
@@ -23,20 +23,25 @@
                         >{{ profile.name }}</a>
                         <div v-if="profile.comment" class="text-[16px] text-sky-300 font-medium italic">{{ profile.comment }}</div>
                     </div>
-                    <div class="flex items-center gap-4">
-                        <div class="text-[16px] text-orange-300 font-medium">{{ profileSavedList.getLastParsingInfo(profile)?.rating }}</div>
-                        <div class="text-[16px] text-yellow-300 font-medium">{{ profileSavedList.getLastParsingInfo(profile)?.reviewsCount }}</div>
-                        <div class="text-[16px] text-teal-300 font-medium">{{ profileSavedList.getLastParsingInfo(profile)?.subscribers }}</div>
-                        <div class="text-[16px] text-rose-300 font-medium">{{ profileSavedList.getLastParsingInfo(profile)?.deliveryInfo }}</div>
-                        <div class="text-[16px] text-gray-300 font-medium">{{ profileSavedList.getLastParsingInfo(profile)?.parsingDate ? toLocaleString(profileSavedList.getLastParsingInfo(profile)?.parsingDate) : '' }}</div>
+                    <div class="flex flex-wrap items-center gap-4 text-[16px] font-medium">
+                        <div class="text-orange-300">{{ profileSavedList.getLastParsingInfo(profile)?.rating }}</div>
+                        <div class="text-yellow-300">{{ profileSavedList.getLastParsingInfo(profile)?.reviewsCount }}</div>
+                        <div class="text-teal-300">{{ profileSavedList.getLastParsingInfo(profile)?.subscribers }}</div>
+                        <div class="text-rose-300">{{ profileSavedList.getLastParsingInfo(profile)?.deliveryInfo }}</div>
+                        <div class="text-amber-300">Активные - {{ profileSavedList.getLastParsingInfo(profile)?.activeAdds }}</div>
+                        <div v-if="profileSavedList.getLastParsingInfo(profile)?.completedAdds" class="text-lime-300">Завершенные - {{ profileSavedList.getLastParsingInfo(profile)?.completedAdds }}</div>
+                        <div class="text-gray-300">{{ profileSavedList.getLastParsingInfo(profile)?.parsingDate ? toLocaleString(profileSavedList.getLastParsingInfo(profile)?.parsingDate) : '' }}</div>
                     </div>
                 </div>
                 <div class="flex-none flex items-center gap-4">
+                    <div class="flex-none ml-auto" @click.stop="onPushLinkToFilter(profile)">
+                        <i class="font-icon text-3xl text-amber-400">add_to_photos</i>
+                    </div>
                     <div class="flex-none ml-auto" @click.stop="onShowEditModal(profile)">
-                        <i class="font-icon text-3xl text-green-500">edit</i>
+                        <i class="font-icon text-3xl text-green-400">edit</i>
                     </div>
                     <div class="flex-none" @click.stop="onCopyLink(profile)">
-                        <i class="font-icon text-3xl text-sky-500">content_copy</i>
+                        <i class="font-icon text-3xl text-sky-400">content_copy</i>
                     </div>
                     <div class="flex-none" @click.stop="onDeleteProfile(profile)">
                         <i class="font-icon text-3xl text-red-400">delete_forever</i>
@@ -52,6 +57,8 @@
                             <th class="text-left px-4 py-2 border border-white border-opacity-50">Отзывы</th>
                             <th class="text-left px-4 py-2 border border-white border-opacity-50">Подписки</th>
                             <th class="text-left px-4 py-2 border border-white border-opacity-50">Продаж с доставкой</th>
+                            <th class="text-left px-4 py-2 border border-white border-opacity-50">Активные</th>
+                            <th class="text-left px-4 py-2 border border-white border-opacity-50">Завершенные</th>
                         </tr>
                         <tr v-for="parsingItem in profile.parsingResults">
                             <td class="text-left px-4 py-2 border border-white border-opacity-50">{{ toLocaleString(parsingItem.parsingDate) }}</td>
@@ -59,6 +66,8 @@
                             <td class="text-left px-4 py-2 border border-white border-opacity-50">{{ parsingItem.reviewsCount }}</td>
                             <td class="text-left px-4 py-2 border border-white border-opacity-50">{{ parsingItem.subscribers }}</td>
                             <td class="text-left px-4 py-2 border border-white border-opacity-50">{{ parsingItem.deliveryInfo }}</td>
+                            <td class="text-left px-4 py-2 border border-white border-opacity-50">{{ parsingItem.activeAdds }}</td>
+                            <td class="text-left px-4 py-2 border border-white border-opacity-50">{{ parsingItem.completedAdds || MessagesEnum.InfoNotFound }}</td>
                         </tr>
                     </table>
                 </template>
@@ -103,6 +112,7 @@ import { copyToBuffer } from '@/helpers/common'
 import { toLocaleString } from '@/helpers/date'
 import { toast } from '@/helpers/toast'
 import { IProfileItemDB, profileSavedList } from '@/reactive/useProfileSavedList'
+import { reviewsFilter } from '@/reactive/useReviewsFilter'
 
 const editModalVisible = ref<boolean>(false)
 
@@ -135,6 +145,13 @@ function onCloseModal() {
 function onShowEditModal(profile: IProfileItemDB) {
     editModalVisible.value = true
     editableItem.value = profile
+}
+
+function onPushLinkToFilter(profile: IProfileItemDB) {
+    reviewsFilter.profileLinkPushNew(profile.url)
+    reviewsFilter.profileLinksHighlightDuplicates()
+    reviewsFilter.profileLinksRemoveEmpty()
+    toast.show('success', MessagesEnum.ProfileLinkAddedInReviewsFilter)
 }
 
 async function onEditProfile(profile: IProfileItemDB) {

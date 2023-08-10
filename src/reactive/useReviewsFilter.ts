@@ -50,33 +50,32 @@ class ReviewsFilter {
         return this.fields.profilesLinks.find((item) => item.url === url)
     }
 
-    public profileLinkPushNew(): void {
+    public profileLinkPushNew(url: string = ''): void {
         this.fields.profilesLinks.push({
-            url: '', 
+            url: url,
             status: 'new',
             highlight: false
         })
     }
 
+    public profileLinksRemoveEmpty(): void {
+        this.fields.profilesLinks.forEach((link, index, array) => {
+            if (link.url === '') {
+                array.splice(index, 1)
+            }
+        });
+    }
+
     public profileLinkRemove(index: number) {
         this.fields.profilesLinks.splice(index, 1)
-        this.profileLinksClearHightlight()
-        this.profileLinksCheckSimilar()
+        this.profileLinksHighlightDuplicates()
     }
 
-    public profileLinksClearHightlight() {
-        this.fields.profilesLinks.forEach(itemLink => itemLink.highlight = false)
-    }
-
-    public profileLinksCheckSimilar() {
-        let profileLinkUrls = this.fields.profilesLinks.map(linkItem => linkItem.url).filter(url => url !== '')
-        let profileLinkUrlsSet = new Set(profileLinkUrls)
-
-        if (profileLinkUrls.length > profileLinkUrlsSet.size) {
-            this.fields.profilesLinks.forEach(linkItem => {
-                linkItem.highlight = !![...profileLinkUrlsSet].includes(linkItem.url)
-            })
-        }
+    public profileLinksHighlightDuplicates() {
+        this.fields.profilesLinks.forEach((link, index, array) => {
+            let duplicates = array.filter(filterLink => filterLink.url === link.url && link.url !== '')
+            link.highlight = duplicates.length > 1
+        })
     }
 
     public profileLinkSetInfo(url: string, data: string) {
@@ -130,7 +129,7 @@ class ReviewsFilter {
 
                 // чистим результаты парсинга в соответствии с урлами фильтра
                 const profileUrlsFromFilter = this.fields.profilesLinks.map(item => item.url)
-                profileInfoList.list.value = profileInfoList.list.value.filter(profile => profileUrlsFromFilter.includes(profile.url))
+                profileInfoList.list.value = profileInfoList.list.value.filter(profile => profileUrlsFromFilter.includes(profile.url) || profile.marked)
 
                 const currentTab = await createTab(this.profileLinkNew.url)
                 this.openedTab.value = currentTab
@@ -193,7 +192,7 @@ class ReviewsFilter {
     
         } catch(error: any){
             console.log(error)
-            toast.show('success', MessagesEnum.ReviewsFilterSaveError)
+            toast.show('error', MessagesEnum.ReviewsFilterSaveError)
         }
     }
 }

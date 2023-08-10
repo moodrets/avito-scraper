@@ -25,17 +25,17 @@ class AppTabs {
         // },
         {
             value: AppTabsEnum.ReviewsFilter,
-            text: 'Фильтр отзывов',
+            text: 'Парсинг',
             icon: 'tune',
         },
         {
             value: AppTabsEnum.ParsingResult,
-            text: 'Результаты парсинга',
+            text: 'Результаты',
             icon: 'view_list',
         },
         {
             value: AppTabsEnum.ProfileSavedList,
-            text: 'База профилей',
+            text: 'БД',
             icon: 'people',
         },
     ]

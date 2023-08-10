@@ -2,7 +2,7 @@ export enum MessagesEnum {
     // filter
     ReviewsFilterSaved = 'Фильтр сохранен',
     ReviewsFilterSaveError = 'Не удалось сохранить фильтр',
-    ReviewsFilterCleared = 'Фильтр сброшен (удален из базы)',
+    ReviewsFilterCleared = 'Фильтр сброшен',
     ReviewsFilterClearError = 'Не удалось удалить фильтр из базы',
     ReviewsFilterGetError = 'Не удалось достать фильтр из базы',
     ReviewsFilterAllLinksParsed = 'Все ссылки уже прошли парсинг',
@@ -21,8 +21,12 @@ export enum MessagesEnum {
     ProfileDeleted = 'Профиль успешно удален',
     ProfileDeleteError = 'Не удалось удалить профиль',
     ProfileLinkCopied = 'Ссылка скопирована в буффер',
+    ProfileLinkAddedInReviewsFilter = 'Ссылка профиля вставлена в форму фильтра',
+    ProfileInfoListAddedInDB = 'Список профилей сохранен',
+    ProfileInfoListRemovedFromDB = 'Список профилей очищен',
     // common
     InfoCopied = 'Информация скопирована в буффер',
+    InfoNotFound = 'Информация не найдена',
     ResultsNotFound = 'Результаты не найдены',
     ProductNameCopied = 'Название товара скопировано в буффер',
     WaitOpenPage = 'Ожидаем открытия следующей страницы ...',

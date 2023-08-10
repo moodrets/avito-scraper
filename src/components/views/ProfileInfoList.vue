@@ -4,6 +4,7 @@
             v-for="profile in profileInfoList.list.value"
             :key="profile.url"
             class="relative rounded-xl shadow-xl bg-gray-600 text-[16px] mb-3"
+            :class="profile.opened ? 'ring ring-blue-400' : ''"
         >
             <div
                 class="relative flex items-start p-4 select-none cursor-pointer rounded-xl"
@@ -21,27 +22,28 @@
                             class="text-[16px] text-sky-300 font-medium italic"
                         >{{ profile.comment }}</div>
                     </div>
-                    <div class="flex items-center gap-4">
-                        <div class="text-[16px] text-orange-300 font-medium">{{ profile.rating }}</div>
-                        <div class="text-[16px] text-yellow-300 font-medium">{{ profile.reviewsCount }}</div>
-                        <div class="text-[16px] text-teal-300 font-medium">{{ profile.subscribers }}</div>
-                        <div class="text-[16px] text-rose-300 font-medium">{{ profile.deliveryInfo }}</div>
-                        <div v-if="profile.existsInDataBase" class="text-[16px] text-green-300 font-medium">Найден в базе</div>
-                        <div v-if="profile.savedDate" class="text-[16px] text-gray-300 font-medium">{{ profile.savedDate ? toLocaleString(profile.savedDate) : '' }}</div>
+                    <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-[16px] font-medium">
+                        <div class="text-orange-300">{{ profile.rating }}</div>
+                        <div class="text-yellow-300">{{ profile.reviewsCount }}</div>
+                        <div class="text-teal-300">{{ profile.subscribers }}</div>
+                        <div class="text-rose-300">{{ profile.deliveryInfo }}</div>
+                        <div class="text-amber-300">Активные - {{ profile.activeAdds }}</div>
+                        <div v-if="profile.completedAdds" class="text-lime-300">Завершенные - {{ profile.completedAdds }}</div>
+                        <div v-if="profile.savedDate" class="text-gray-300">{{ profile.savedDate ? toLocaleString(profile.savedDate) : '' }}</div>
                     </div>
                 </div>
                 <div class="flex-none flex items-center gap-4">
-                    <div v-if="!profile.existsInDataBase" class="flex-none ml-auto" @click.stop="onSave(profile)">
+                    <div v-if="profile.existsInDataBase" class="flex-none">
+                        <i class="font-icon text-3xl text-white drop-shadow-xl">storage</i>
+                    </div>
+                    <div v-else class="flex-none ml-auto" @click.stop="onSave(profile)">
                         <i class="font-icon text-3xl text-white drop-shadow-xl">cloud_upload</i>
                     </div>
                     <div class="flex-none" @click.stop="onCopy(profile)">
                         <i class="font-icon text-3xl text-white drop-shadow-xl">content_copy</i>
                     </div>
                     <div class="flex-none" @click.stop="onMark(profile)">
-                        <i 
-                            class="font-icon text-3xl drop-shadow-xl" 
-                            :class="[profile.marked ? 'text-gray-500' : 'text-white']"
-                        >bookmark</i>
+                        <div class="font-icon text-3xl drop-shadow-xl">{{ profile.marked ? 'bookmark' : 'bookmark_border' }}</div>
                     </div>
                 </div>
             </div>
@@ -64,26 +66,48 @@
                         <table class="w-full relative">
                             <tr class="text-[16px] sticky top-[64px] bg-gray-600">
                                 <th class="text-left px-4 py-2 border border-white border-opacity-50">
-                                    <div class="flex items-center cursor-pointer" @click="onSort(profile, 'date')">
-                                        <div class="font-icon flex-none mr-2" :class="{'text-cyan-400': profile.reviewsSortedBy === 'date'}">sort</div>
+                                    <div 
+                                        class="flex items-center cursor-pointer" 
+                                        @click="onSort(profile, profile.reviewsSortedBy === 'date_desc' ? 'date_asc' : 'date_desc')"
+                                    >
+                                        <div 
+                                            class="font-icon mr-2" 
+                                            :class="[
+                                                {'text-cyan-400': profile.reviewsSortedBy === 'date_desc' || profile.reviewsSortedBy === 'date_asc'},
+                                                {'rotate-180': profile.reviewsSortedBy === 'date_asc'}
+                                            ]">sort</div>
                                         <div>Дата</div>
                                     </div>
                                 </th>
                                 <th class="text-left px-4 py-2 border border-white border-opacity-50">
-                                    <div class="flex items-center cursor-pointer" @click="onSort(profile, 'rating')">
-                                        <div class="font-icon flex-none mr-2" :class="{'text-cyan-400': profile.reviewsSortedBy === 'rating'}">sort</div>
+                                    <div 
+                                        class="flex items-center cursor-pointer" 
+                                        @click="onSort(profile, profile.reviewsSortedBy === 'rating_desc' ? 'rating_asc' : 'rating_desc')"
+                                    >
+                                        <div
+                                            class="font-icon mr-2" 
+                                            :class="[
+                                                {'text-cyan-400': profile.reviewsSortedBy === 'rating_desc' || profile.reviewsSortedBy === 'rating_asc'},
+                                                {'rotate-180': profile.reviewsSortedBy === 'rating_asc'}
+                                            ]">sort</div>
                                         <div>Оценка</div>
                                     </div>
                                 </th>
                                 <th class="text-left px-4 py-2 border border-white border-opacity-50">
-                                    <div class="flex items-center cursor-pointer" @click="onSort(profile, 'productName')">
-                                        <div class="font-icon flex-none mr-2" :class="{'text-cyan-400': profile.reviewsSortedBy === 'productName'}">sort</div>
+                                    <div 
+                                        class="flex items-center cursor-pointer" 
+                                        @click="onSort(profile, profile.reviewsSortedBy === 'product_name_desc' ? 'product_name_asc' : 'product_name_desc')"
+                                    >
+                                        <div 
+                                            class="font-icon mr-2" 
+                                            :class="[
+                                                {'text-cyan-400': profile.reviewsSortedBy === 'product_name_desc' || profile.reviewsSortedBy === 'product_name_asc'},
+                                                {'rotate-180': profile.reviewsSortedBy === 'product_name_asc'}
+                                            ]">sort</div>
                                         <div>Название товара</div>
                                     </div>
                                 </th>
-                                <th class="text-left px-4 py-2 border border-white border-opacity-50">
-                                    Доставка
-                                </th>
+                                <th class="text-left px-4 py-2 border border-white border-opacity-50">Доставка</th>
                             </tr>
                             <tr v-for="item, index in profile.reviewsList" :key="profile.reviewsSortedBy + index" class="text-[14px] hover:bg-gray-600">
                                 <td class="px-4 py-2 border border-white border-opacity-50 font-medium">{{ toLocaleString(item.date)?.slice(0, 10) }}</td>
@@ -120,10 +144,14 @@
             <template v-if="profileInfoList.state.contentModalData.length">
                 <div
                     v-for="result in profileInfoList.state.contentModalData" 
-                    class="flex items-center gap-2 py-0.5 px-1 mb-[2px] mr-5 font-medium"
+                    class="flex text-sm items-center gap-2 py-0.5 px-1 mb-[2px] mr-5 font-medium"
                     :style="{'background-color': result.color.bg, 'color': result.color.text}"
                     :title="result.info"
                 >
+                    <i 
+                        class="font-icon text-xl cursor-pointer drop-shadow-xl" 
+                        @click="onCopyProductName(result.productName)"
+                    >content_copy</i>
                     <div>{{ result.productName }}</div>
                     <div v-if="!result.count">{{ toLocaleString(result.date)?.slice(0, 10) }}</div>
                     <strong v-if="result.count">({{ result.count }})</strong>
@@ -144,7 +172,7 @@ import { copyToBuffer } from '@/helpers/common';
 import { toLocaleString } from '@/helpers/date'
 import { MessagesEnum } from '@/types/enums';
 import { toast } from '@/helpers/toast';
-import { IProfileItem, ReviewsSortBy, profileInfoList } from '@/reactive/useProfileInfoList';
+import { IProfileItem, TypeReviewsSortBy, profileInfoList } from '@/reactive/useProfileInfoList';
 
 function onCloseModal() {
     profileInfoList.state.contentModalVisible = false
@@ -156,7 +184,7 @@ function onCopyProductName(productName: string) {
     toast.show('success', MessagesEnum.ProductNameCopied)
 }
 
-function onSort(profile: IProfileItem, sortBy: ReviewsSortBy) {
+function onSort(profile: IProfileItem, sortBy: TypeReviewsSortBy) {
     profileInfoList.sortResults(profile, sortBy)
 }
 
@@ -186,14 +214,16 @@ async function onCopy(profile: IProfileItem) {
 onBeforeUnmount(() => {
     profileInfoList.state.viewAllButtonVisible = false
     profileInfoList.state.viewMoreThanButtonVisible = false
+    profileInfoList.state.removeInfoListButtonVisible = false
 })
 
-onMounted(() => {
+onMounted(async () => {
     profileInfoList.state.viewAllButtonVisible = true
     profileInfoList.state.viewMoreThanButtonVisible = true
+    profileInfoList.state.removeInfoListButtonVisible = true
 
     profileInfoList.list.value.forEach(async profile => {
-        await profileInfoList.apiCheckInDB(profile)
+        await profileInfoList.apiProfileCheckInDB(profile)
     })
 
     if (profileInfoList.list.value.length === 1) {

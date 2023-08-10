@@ -10,6 +10,8 @@ export interface IParsingResultItem {
     reviewsCount: string
     subscribers: string
     deliveryInfo: string
+    activeAdds: string
+    completedAdds: string
 }
 
 export interface IProfileItemDB {
@@ -18,9 +20,9 @@ export interface IProfileItemDB {
     name: string
     comment: string
     savedDate: number
-    parsingResults: IParsingResultItem[]
     loading: boolean
     opened: boolean
+    parsingResults: IParsingResultItem[]
 }
 
 class ProfileSavedList {
@@ -45,7 +47,9 @@ class ProfileSavedList {
                     rating: copyProfileByUrl.rating,
                     reviewsCount: copyProfileByUrl.reviewsCount,
                     deliveryInfo: copyProfileByUrl.deliveryInfo,
-                    subscribers: copyProfileByUrl.subscribers
+                    subscribers: copyProfileByUrl.subscribers,
+                    activeAdds: copyProfileByUrl.activeAdds,
+                    completedAdds: copyProfileByUrl.completedAdds,
                 })
 
                 const result = await DB.savedProfiles.put(resultProfile)
@@ -80,7 +84,7 @@ class ProfileSavedList {
             }
 
         } catch(error: any) {
-            toast.show('success', MessagesEnum.ProfileEditeError)
+            toast.show('error', MessagesEnum.ProfileEditeError)
             
         } finally {
 

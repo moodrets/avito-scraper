@@ -139,6 +139,7 @@ import { reviewsFilter } from '@/reactive/useReviewsFilter';
 import { IProfileLink } from '@/reactive/useReviewsFilter';
 import { toast } from '@/helpers/toast';
 import { MessagesEnum } from '@/types/enums';
+import { profileInfoList } from '@/reactive/useProfileInfoList';
 
 const componentLoaded = ref<boolean>(false)
 
@@ -161,8 +162,7 @@ const datePickersConfig: Record<string, any> = {
 }
 
 function onInputLink(link: IProfileLink, index: number) {
-    reviewsFilter.profileLinksClearHightlight()
-    reviewsFilter.profileLinksCheckSimilar()
+    reviewsFilter.profileLinksHighlightDuplicates()
     link.status = 'new'
     link.info = ''
 }
@@ -172,6 +172,8 @@ async function onReset() {
         reviewsFilter.resetFields()
         datePickers.dateFrom.selectDate(getDateTwoMonthAgo()) 
         datePickers.dateTo.selectDate(new Date())
+        profileInfoList.list.value = profileInfoList.list.value.filter(profile => profile.marked)
+        profileInfoList.apiRemoveInfoListOnlyUnmarked()
     }
 }
 
@@ -182,6 +184,7 @@ async function onSave() {
     }
 
     reviewsFilter.apiCreateFilter()
+    profileInfoList.apiCreateInfoList()
 }
 
 async function onSubmit() {

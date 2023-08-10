@@ -10,6 +10,7 @@
                 ]"
                 @click="appTabs.changeTab(tab.value)"
             >{{ tab.text }}</Button>
+
             <Button
                 v-if="profileInfoList.state.viewAllButtonVisible && profileInfoList.list.value.length > 1"
                 theme="success" 
@@ -23,9 +24,17 @@
                 theme="success" 
                 type="button"
                 icon="remove_red_eye"
-                class="mr-auto"
                 @click.stop.prevent="onViewMoreThan"
             > >= 5</Button>
+            <Button
+                v-if="profileInfoList.state.removeInfoListButtonVisible && profileInfoList.list.value.length > 1"
+                theme="danger" 
+                type="button"
+                icon="delete_sweep"
+                class="mr-auto"
+                @click.stop.prevent="onRemoveProfileInfoList"
+            ></Button>
+
             <Button 
                 theme="info" 
                 type="button"
@@ -53,5 +62,12 @@ async function onViewAll() {
 async function onViewMoreThan() {
     profileInfoList.state.contentModalVisible = true
     profileInfoList.state.contentModalData = profileInfoList.getMoreThanResults()
+}
+
+async function onRemoveProfileInfoList() {
+    if (window.confirm('Удаляем список профилей ?')) {
+        profileInfoList.list.value = []
+        profileInfoList.apiRemoveInfoList()
+    }
 }
 </script>

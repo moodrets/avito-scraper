@@ -5,8 +5,9 @@ import { toast } from '@/helpers/toast'
 import { MessagesEnum } from '@/types/enums'
 import { toLocaleString } from '@/helpers/date'
 import { copyToBuffer } from '@/helpers/common'
+import { profile } from 'console'
 
-export type ReviewsSortBy = 'rating' | 'productName' | 'date'
+export type TypeReviewsSortBy = 'rating_desc' | 'rating_asc' | 'product_name_desc' | 'product_name_asc' | 'date_desc' | 'date_asc'
 
 type TypeResultExtended = IReviewsItem & {
     color: {
@@ -38,7 +39,9 @@ export interface IProfileItem {
     opened: boolean
     marked: boolean
     comment: string
-    reviewsSortedBy: ReviewsSortBy
+    activeAdds: string,
+    completedAdds: string,
+    reviewsSortedBy: TypeReviewsSortBy
     color: {
         text: string,
         bg: string
@@ -57,11 +60,13 @@ class ProfileInfoList {
         contentModalVisible: boolean
         viewAllButtonVisible: boolean
         viewMoreThanButtonVisible: boolean
+        removeInfoListButtonVisible: boolean
     }>({
         contentModalData: [],
         contentModalVisible: false,
         viewAllButtonVisible: false,
-        viewMoreThanButtonVisible: false
+        viewMoreThanButtonVisible: false,
+        removeInfoListButtonVisible: false
     })
 
     public pushProfileInfo(profile: IProfileItem) {
@@ -73,25 +78,36 @@ class ProfileInfoList {
 
         if (profileByUrl) {
             profileByUrl.reviewsList = items
-            this.sortResults(profileByUrl, 'productName')
+            this.sortResults(profileByUrl, 'product_name_asc')
         }
     }
 
-    public sortResults(profile: IProfileItem, sortBy: ReviewsSortBy) {
+    public sortResults(profile: IProfileItem, sortBy: TypeReviewsSortBy) {
         if (profile.reviewsList) {
-            if (sortBy === 'productName') {
-                profile.reviewsSortedBy = sortBy
+            profile.reviewsSortedBy = sortBy
+
+            if (sortBy === 'product_name_asc') {
                 profile.reviewsList.sort((a, b) => a.productName.localeCompare(b.productName))
             }
-        
-            if (sortBy === 'rating') {
-                profile.reviewsSortedBy = sortBy
-                profile.reviewsList.sort((a, b) => b.rating - a.rating)
+
+            if (sortBy === 'product_name_desc') {
+                profile.reviewsList.sort((a, b) => b.productName.localeCompare(a.productName))
             }
         
-            if (sortBy === 'date') {
-                profile.reviewsSortedBy = sortBy
+            if (sortBy === 'rating_desc') {
+                profile.reviewsList.sort((a, b) => b.rating - a.rating)
+            }
+
+            if (sortBy === 'rating_asc') {
+                profile.reviewsList.sort((a, b) => a.rating - b.rating)
+            }
+        
+            if (sortBy === 'date_desc') {
                 profile.reviewsList.sort((a, b) => b.date - a.date)
+            }
+
+            if (sortBy === 'date_asc') {
+                profile.reviewsList.sort((a, b) => a.date - b.date)
             }
         }
     }
@@ -107,7 +123,7 @@ class ProfileInfoList {
         textValue+= `${profile.deliveryInfo}\n`
         textValue+= `${toLocaleString(profile.parsingDate)}\n\n\n\n`
 
-        this.sortResults(profile, 'productName')
+        this.sortResults(profile, 'product_name_asc')
 
         profile.reviewsList?.forEach(resultItem => {
             let date = new Date(resultItem.date)
@@ -181,7 +197,7 @@ class ProfileInfoList {
         return resultsList
     }
 
-    public async apiCheckInDB(profile: IProfileItem) {
+    public async apiProfileCheckInDB(profile: IProfileItem) {
         let rows = await DB.savedProfiles.where("url").equals(profile.url).toArray()
 
         if (rows.length && rows[0]) {
@@ -194,6 +210,70 @@ class ProfileInfoList {
         }
     
         return null
+    }
+
+    public async apiCreateInfoList() {
+        try {
+
+            let itemsToDB = JSON.parse(JSON.stringify(this.list.value))
+
+            if (itemsToDB.length) {
+                DB.profileInfoList.clear()
+                DB.profileInfoList.bulkAdd(itemsToDB)
+                toast.show('success', MessagesEnum.ProfileInfoListAddedInDB)
+            }
+
+        } catch (error: any) {
+            console.log(error);
+        } finally {
+
+        }
+    }
+
+    public async apiGetInfoList(): Promise<IProfileItem[]> {
+        try {
+
+            const rows = await DB.profileInfoList.toArray()
+
+            if (rows.length) {
+                return rows
+            }
+
+        } catch (error: any) {
+            console.log(error);
+        } finally {
+
+        }
+
+        return []
+    }
+
+    public async apiRemoveInfoList(): Promise<void> {
+        try {
+
+            await DB.profileInfoList.clear()
+            toast.show('success', MessagesEnum.ProfileInfoListRemovedFromDB)
+
+        } catch (error: any) {
+            console.log(error);
+        } finally {
+
+        }
+    }
+
+    public async apiRemoveInfoListOnlyUnmarked(): Promise<void> {
+        try {
+
+            let rows = await DB.profileInfoList.filter((profile: IProfileItem) => profile.marked === false).toArray()
+            let ids = rows.map((profile: IProfileItem) => profile.id)
+            await DB.profileInfoList.bulkDelete(ids)
+            toast.show('warning', MessagesEnum.ProfileInfoListRemovedFromDB)
+
+        } catch (error: any) {
+            console.log(error);
+        } finally {
+
+        }
     }
 
     public async apiProfileCreate(profile: IProfileItem) {
@@ -213,7 +293,9 @@ class ProfileInfoList {
                         rating: copyProfile.rating,
                         reviewsCount: copyProfile.reviewsCount,
                         deliveryInfo: copyProfile.deliveryInfo,
-                        subscribers: copyProfile.subscribers
+                        subscribers: copyProfile.subscribers,
+                        activeAdds: copyProfile.activeAdds,
+                        completedAdds: copyProfile.completedAdds,
                     }
                 ]
             }

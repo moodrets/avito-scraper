@@ -61,7 +61,7 @@ onMounted(async () => {
             if (status === 'success') {
                 profileInfoList.pushResultsByUrl(currentUrl, data)
                 profileSavedList.pushParsingResult(currentUrl)
-
+                
                 const currentProfileLink = reviewsFilter.profileLinkGetByUrl(currentUrl)
                 currentProfileLink && (currentProfileLink.status = 'success')
             }
@@ -100,5 +100,7 @@ onMounted(async () => {
     document.fonts.onloadingdone = () => {
         appLoaded.value = true
     }
+
+    profileInfoList.list.value = await profileInfoList.apiGetInfoList()
 })
 </script>

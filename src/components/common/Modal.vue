@@ -2,7 +2,7 @@
     <div 
         ref="modalRef"
         tabindex="0"
-        class="app-modal fixed inset-0 bg-black bg-opacity-60 z-100 overflow-y-auto p-10 flex" 
+        class="app-modal fixed inset-0 bg-black bg-opacity-60 z-100 overflow-y-scroll p-10 flex" 
         @click="onClickHandler"
         @keydown.esc="onClose"
     >

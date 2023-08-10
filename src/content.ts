@@ -22,6 +22,9 @@ const SELECTORS = {
     profileRating: '.Sidebar-root-h24MJ [data-marker="profile/score"]',
     profileSubscribers: '.Sidebar-root-h24MJ [data-marker="favorite-seller-counters"]',
     profileAsideInfoItems: '.Sidebar-root-h24MJ .ProfileBadge-root-bcR8G',
+    profileActiveAdds: '[data-marker="profile-tab(active)"]',
+    profileActiveAddsNew: '.ExtendedProfile-content-JTybB .desktop-11ncndy .desktop-1r4tu1s',
+    profileCompletedAdds: '[data-marker="profile-tab(closed)"]',
 
     reviewsItem: '.style-snippet-E6g8Y',
     reviewsItemProductName: '.desktop-35wlrd',
@@ -81,7 +84,7 @@ function generateContrastColors() {
 
     return {
         text,
-        bg: "rgb("+ r +","+ g +","+ b +")"
+        bg: `rgb(${r},${g},${b})`
     }
 }
 
@@ -94,18 +97,26 @@ async function getProfileInfo(): Promise<void> {
     let profileReviewsEl = document.querySelector(SELECTORS.profileReviewsCount)
     let profileRatingEl = document.querySelector(SELECTORS.profileRating)
     let profileSubscribersEl = document.querySelector(SELECTORS.profileSubscribers)
-    let profileDeviveryInfoEl = [...document.querySelectorAll(SELECTORS.profileAsideInfoItems)]?.find(item => item.textContent?.includes('прода'))
+    let profileDeviveryInfoEl = [...document.querySelectorAll(SELECTORS.profileAsideInfoItems)]?.find(item => item.textContent?.includes('продаж'))
+    let profileActiveAddsEl = document.querySelector(SELECTORS.profileActiveAdds)
+    let profileActiveAddsNewEl = document.querySelector(SELECTORS.profileActiveAddsNew)
+    let profileCompletedAddsEl = document.querySelector(SELECTORS.profileCompletedAdds)
 
-    let profileSubscribersInfo = profileSubscribersEl?.textContent ? profileSubscribersEl.textContent.split(',')[0] : null
+    let profileSubscribersText = profileSubscribersEl?.textContent ? profileSubscribersEl.textContent.split(',')[0] : null
+    let profileActiveAddsText = profileActiveAddsEl?.textContent ? profileActiveAddsEl.textContent.replace(/\D/g, '') : null
+    let profileActiveAddsNewText = profileActiveAddsNewEl?.textContent ? profileActiveAddsNewEl.textContent.replace(/\D/g, '') : null
+    let profileCompletedAddsText = profileCompletedAddsEl?.textContent ? profileCompletedAddsEl.textContent.replace(/\D/g, '') : null
 
     let profileInform: IProfileItem = {
-        parsingDate: Date.now(),
         name: profileNameEl?.textContent || MessagesEnum.InfoNotFound,
         rating: profileRatingEl?.textContent || MessagesEnum.InfoNotFound,
         reviewsCount: profileReviewsEl?.textContent || MessagesEnum.InfoNotFound,
-        subscribers: profileSubscribersInfo || MessagesEnum.InfoNotFound,
+        subscribers: profileSubscribersText || MessagesEnum.InfoNotFound,
         deliveryInfo: profileDeviveryInfoEl?.textContent || MessagesEnum.ProfileWithoutDelivery,
-        reviewsSortedBy: 'productName',
+        activeAdds: profileActiveAddsText || profileActiveAddsNewText || MessagesEnum.InfoNotFound,
+        completedAdds: profileCompletedAddsText || '',
+        parsingDate: Date.now(),
+        reviewsSortedBy: 'product_name_asc',
         url: CURRENT_URL,
         opened: false,
         loading: false,
