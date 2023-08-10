@@ -86,6 +86,23 @@ class ReviewsFilter {
         }
     }
 
+    public profileLinksPasteMultiple(link: IProfileLink, target: HTMLInputElement) {
+        let splitValue = target.value.split(' ')
+
+        if (splitValue.length > 1) {
+            splitValue.forEach((urlString, index) => {
+                if (urlString === '') {
+                    return
+                }
+                if (index === 0) {
+                    link.url = urlString.trim()
+                } else {
+                    this.profileLinkPushNew(urlString.trim())
+                }
+            })
+        }
+    }
+
     public async setFilterFromDB() {
         try {
             const result = await this.apiGetFilter()

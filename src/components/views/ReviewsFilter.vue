@@ -162,22 +162,7 @@ const datePickersConfig: Record<string, any> = {
 }
 
 function onInputLink(link: IProfileLink, event: Event) {
-    let target = event.target as HTMLInputElement 
-    let splitValue = target.value.split(' ')
-
-    if (splitValue.length > 1) {
-        splitValue.forEach((urlString, index) => {
-            if (urlString === '') {
-                return
-            }
-            if (index === 0) {
-                link.url = urlString.trim()
-            } else {
-                reviewsFilter.profileLinkPushNew(urlString.trim())
-            }
-        })
-    }
-    
+    reviewsFilter.profileLinksPasteMultiple(link, event.target as HTMLInputElement)
     reviewsFilter.profileLinksHighlightDuplicates()
     link.status = 'new'
     link.info = ''
