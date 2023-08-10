@@ -17,7 +17,7 @@ let REVIEWS_FILTER_FIELDS: IReviewsFilterFields | null = null
 let CURRENT_URL: string = ''
 
 const SELECTORS = {
-    profileName: '.Sidebar-root-h24MJ .desktop-1r4tu1s',
+    profileName: '.Sidebar-root-h24MJ [data-marker*="name"]',
     profileReviewsCount: '.Sidebar-root-h24MJ .desktop-fgq05w',
     profileRating: '.Sidebar-root-h24MJ [data-marker="profile/score"]',
     profileSubscribers: '.Sidebar-root-h24MJ [data-marker="favorite-seller-counters"]',

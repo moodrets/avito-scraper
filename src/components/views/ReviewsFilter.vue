@@ -26,7 +26,7 @@
                             required
                             class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
                             :class="{'ring-4 ring-red-400': link.highlight}"
-                            @input="onInputLink(link, linkIndex)"
+                            @input="onInputLink(link, $event)"
                         >
                         <div v-if="reviewsFilter.fields.profilesLinks.length > 1" class="flex-none cursor-pointer select-none">
                             <i class="font-icon text-3xl block text-red-400" @click="reviewsFilter.profileLinkRemove(linkIndex)">remove_circle_outline</i>
@@ -161,7 +161,23 @@ const datePickersConfig: Record<string, any> = {
     }
 }
 
-function onInputLink(link: IProfileLink, index: number) {
+function onInputLink(link: IProfileLink, event: Event) {
+    let target = event.target as HTMLInputElement 
+    let splitValue = target.value.split(' ')
+
+    if (splitValue.length > 1) {
+        splitValue.forEach((urlString, index) => {
+            if (urlString === '') {
+                return
+            }
+            if (index === 0) {
+                link.url = urlString.trim()
+            } else {
+                reviewsFilter.profileLinkPushNew(urlString.trim())
+            }
+        })
+    }
+    
     reviewsFilter.profileLinksHighlightDuplicates()
     link.status = 'new'
     link.info = ''
