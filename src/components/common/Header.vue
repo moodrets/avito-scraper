@@ -27,7 +27,7 @@
                 @click.stop.prevent="onViewMoreThan"
             > >= 5</Button>
             <Button
-                v-if="profileInfoList.state.removeInfoListButtonVisible && profileInfoList.list.value.length > 1"
+                v-if="profileInfoList.state.removeInfoListButtonVisible"
                 theme="danger" 
                 type="button"
                 icon="delete_sweep"
