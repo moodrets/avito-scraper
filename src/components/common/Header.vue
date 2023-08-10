@@ -11,29 +11,29 @@
                 @click="appTabs.changeTab(tab.value)"
             >{{ tab.text }}</Button>
 
-            <Button
-                v-if="profileInfoList.state.viewAllButtonVisible && profileInfoList.list.value.length > 1"
-                theme="success" 
-                type="button"
-                icon="remove_red_eye"
-                class="ml-auto"
-                @click.stop.prevent="onViewAll"
-            >Все результаты</Button>
-            <Button
-                v-if="profileInfoList.state.viewMoreThanButtonVisible && profileInfoList.list.value.length > 1"
-                theme="success" 
-                type="button"
-                icon="remove_red_eye"
-                @click.stop.prevent="onViewMoreThan"
-            > >= 5</Button>
-            <Button
-                v-if="profileInfoList.state.removeInfoListButtonVisible"
-                theme="danger" 
-                type="button"
-                icon="delete_sweep"
-                class="mr-auto"
-                @click.stop.prevent="onRemoveProfileInfoList"
-            ></Button>
+            <div class="flex items-center gap-3 ml-auto">
+                <Button
+                    v-if="profileInfoList.state.viewAllButtonVisible && profileInfoList.list.value.length > 1"
+                    theme="success" 
+                    type="button"
+                    icon="remove_red_eye"
+                    @click.stop.prevent="onViewAll"
+                >Все результаты</Button>
+                <Button
+                    v-if="profileInfoList.state.viewMoreThanButtonVisible && profileInfoList.list.value.length > 1"
+                    theme="success" 
+                    type="button"
+                    icon="remove_red_eye"
+                    @click.stop.prevent="onViewMoreThan"
+                > >= 5</Button>
+                <Button
+                    v-if="profileInfoList.state.removeInfoListButtonVisible && profileInfoList.list.value.length"
+                    theme="danger" 
+                    type="button"
+                    icon="delete_sweep"
+                    @click.stop.prevent="onRemoveProfileInfoList"
+                ></Button>
+            </div>
 
             <Button 
                 theme="info" 
