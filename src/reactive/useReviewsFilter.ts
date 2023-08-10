@@ -98,7 +98,10 @@ class ReviewsFilter {
                     this.profileLinkPushNew(urlString.trim())
                 }
             })
+            return
         }
+
+        link.url = target.value.trim()
     }
 
     public async setFilterFromDB() {
