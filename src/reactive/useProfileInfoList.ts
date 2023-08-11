@@ -5,7 +5,6 @@ import { toast } from '@/helpers/toast'
 import { MessagesEnum } from '@/types/enums'
 import { toLocaleString } from '@/helpers/date'
 import { copyToBuffer } from '@/helpers/common'
-import { profile } from 'console'
 
 export type TypeReviewsSortBy = 'rating_desc' | 'rating_asc' | 'product_name_desc' | 'product_name_asc' | 'date_desc' | 'date_asc'
 

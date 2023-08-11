@@ -13,19 +13,6 @@ enum MessagesEnum {
     ReviewsModalScrollerNotFound = 'Не найден селектор для скрола в модалке',
 }
 
-interface IReviewsItemAPI {
-    type: 'rating',
-    value: {
-        avatar: string,
-        deliveryTitle?: string,
-        itemTitle: string,
-        rated: string,
-        score: number,
-        stageTitle: string,
-        title: string
-    }
-}
-
 let REVIEWS_FILTER_FIELDS: IReviewsFilterFields | null = null
 let CURRENT_URL: string = ''
 
@@ -151,23 +138,9 @@ async function getCategories() {
     const categoriesShowButtonEl = document.querySelector(SELECTORS.categoriesShowButton)
 }
 
-class ReviewsFactory {
-    protected offset: number = 0
-
-    protected parsingEnded: boolean = false
-
-    protected reviewsCollection: IReviewsItemAPI[] = []
-
-    protected makeDateFromFilterString(dateString: string): number {
-        let splitString = dateString.split('.')
-        let day = splitString[0];
-        let month = splitString[1];
-        let year = splitString[2];
-
-        return Date.parse(`${year} ${month} ${day}`)
-    }
-
-    protected makeMonthNumberFromText(monthText: string): string {
+const ReviewsParser = {
+    parsingEnded: false,
+    makeMonthNumberFromText(monthText: string): string {
         let monthNumber = ''
 
         switch (monthText) {
@@ -210,9 +183,8 @@ class ReviewsFactory {
         }
 
         return monthNumber
-    }
-    
-    protected makeDateFromReviewString(dateString: string): number {
+    },
+    makeDateFromReviewString(dateString: string): number {
         if (dateString.trim() === 'сегодня') {
             return Date.now()
         }
@@ -228,21 +200,28 @@ class ReviewsFactory {
         let year = splitDateString[2] || `${new Date().getFullYear()}`
 
         return Date.parse(`${year} ${month} ${day}`)
-    }
+    },
+    makeDateFromFilterString(dateString: string): number {
+        let splitString = dateString.split('.')
+        let day = splitString[0];
+        let month = splitString[1];
+        let year = splitString[2];
 
-    protected makeReviewItemData(item: IReviewsItemAPI) {
-        let parsedReviewItem: IReviewsItem = {
-            date: this.makeDateFromReviewString(item.value.rated),
-            dateText: item.value.rated,
-            delivery: item.value.deliveryTitle ? true : false,
-            productName: item.value.itemTitle,
-            rating: item.value.score,
-            profileUrl: CURRENT_URL
-        }
-        return parsedReviewItem
-    }
-
-    protected getFilteredList(reviewsDataList: IReviewsItem[]) {
+        return Date.parse(`${year} ${month} ${day}`)
+    },
+    get loadMoreButton() {
+        return document.querySelector(SELECTORS.reviewsMoreLoadButton) as HTMLButtonElement
+    },
+    get loadMoreButtonError(){
+        return document.querySelector(SELECTORS.reviewsMoreLoadButtonError) as HTMLButtonElement
+    },
+    get summaryButton() {
+        return document.querySelector(SELECTORS.reviewsSummaryButton) as HTMLButtonElement
+    },
+    get modal() {
+        return document.querySelector(SELECTORS.reviewsModal) as HTMLElement
+    },
+    getFilteredList(reviewsDataList: IReviewsItem[]) {
         let resultList = [...reviewsDataList]
 
         // фильтруем по дате
@@ -292,77 +271,156 @@ class ReviewsFactory {
         }
 
         return resultList
-    }
+    },
+    makeReviewItemData(reviewElement: Element): IReviewsItem {
+        let ratingStarsEls = reviewElement.querySelectorAll(SELECTORS.reviewsItemRatingStars)
+        let productNameEl = reviewElement.querySelector(SELECTORS.reviewsItemProductName)
+        let dateDeliveryEl = reviewElement.querySelector(SELECTORS.reviewsItemDateDelivery)
 
-    protected async apiGetReviews(requestType: 'first' | 'next'): Promise<IReviewsItemAPI[]> {
-        let url = new URL(CURRENT_URL)
-        let urlParams = new URLSearchParams()
-        let splitUrl = url.pathname.split('/')
-        let userHash = splitUrl[2]
-        let requestUrl = `https://www.avito.ru/web/5/user/${userHash}/ratings?summary_redesign=1`
+        let deliveryText = null
+        let dateText = null
+        let date = null
 
-        if (requestType === 'next') {
-            this.offset += 25
-            urlParams.set('limit', '25')
-            urlParams.set('offset', `${this.offset}`)
-            requestUrl = `${requestUrl}&${urlParams.toString()}`
+        if (dateDeliveryEl?.textContent) {
+            dateText = dateDeliveryEl?.textContent.split(',')[0] || null
+            deliveryText = dateDeliveryEl?.textContent.split(',')[1] || null
         }
 
-        let reviewsRequest = await fetch(requestUrl)
-        let reviewsRequestJSON = await reviewsRequest.json()
-        let resultList = reviewsRequestJSON.entries.filter((item: IReviewsItemAPI) => item.type === 'rating')
+        if (dateText) {
+            date = this.makeDateFromReviewString(dateText)
+        }
 
-        return resultList || []
-    }
+        let parsedReviewItem: IReviewsItem = {
+            date: date || 0,
+            dateText: dateText || MessagesEnum.InfoNotFound,
+            delivery: deliveryText ? true : false,
+            productName: productNameEl?.textContent || MessagesEnum.InfoNotFound,
+            rating: ratingStarsEls?.length || 0,
+            profileUrl: CURRENT_URL
+        }
 
-    public async parseReviews(requestType: 'first' | 'next'): Promise<void> {
-        await wait(randomNumberBetween(3, 10) * 1000)
+        return parsedReviewItem
+    },
+    async parseItems() {
+        if (this.loadMoreButtonError) {
+            await wait(5000)
+            this.loadMoreButtonError.click()
+            await wait(3000)
+        }
 
+        let reviewsDataList: IReviewsItem[] = []
+        let reviewsItemsEls = [...document.querySelectorAll(SELECTORS.reviewsItem)]
+        
         try {
-            let resultList = await this.apiGetReviews(requestType)
-            this.reviewsCollection.push(...resultList)
-            let lastReviewData = this.makeReviewItemData(this.reviewsCollection[this.reviewsCollection.length - 1])
+            let lastReviewEl = reviewsItemsEls[reviewsItemsEls.length - 1]
+            let lastReviewData = this.makeReviewItemData(lastReviewEl)
 
+            if (!reviewsItemsEls.length || !lastReviewEl) {
+                throw new Error()
+            }
+            
+            if (lastReviewData.date === 0) {
+                throw new Error()
+            }
+    
             if (REVIEWS_FILTER_FIELDS?.dateFrom && lastReviewData.date < this.makeDateFromFilterString(REVIEWS_FILTER_FIELDS?.dateFrom)) {
                 this.parsingEnded = true
             }
 
-            if (this.parsingEnded) {
-                let reviewsDataList: IReviewsItem[] = []
-
-                for (let item of this.reviewsCollection) {
-                    let reviewItemData = this.makeReviewItemData(item)
-                    reviewsDataList.push(reviewItemData)
-                }
-
-                let reviewsFilteredList = this.getFilteredList(reviewsDataList)
-        
-                await sendMessage({
-                    action: 'reviews-parsing-ended',
-                    status: 'success',
-                    currentUrl: CURRENT_URL,
-                    data: reviewsFilteredList,
-                });
-
-            } else {
-                this.parseReviews('next')
-            }
-
         } catch(error: any) {
 
-        } finally {
+            await sendMessage({
+                action: 'reviews-parsing-ended',
+                status: 'error',
+                currentUrl: CURRENT_URL,
+                message: MessagesEnum.ReviewsSelectorsNotFound,
+            })
 
+            return
         }
-    }
 
-    public async parsingStart() {
+        if (this.parsingEnded) {
+
+            for (let item of reviewsItemsEls) {
+                let reviewItemData = this.makeReviewItemData(item)
+                reviewsDataList.push(reviewItemData)
+            }
+
+            let reviewsFilteredList = this.getFilteredList(reviewsDataList)
+        
+            await sendMessage({
+                action: 'reviews-parsing-ended',
+                status: 'success',
+                currentUrl: CURRENT_URL,
+                data: reviewsFilteredList,
+            });
+
+        } else {
+            if (this.modal) {
+                this.loadMoreInModal()
+            } else {
+                this.loadMoreOnPage()
+            }
+        }
+    },
+    async loadMoreInModal() {
+        if (this.loadMoreButtonError) {
+            await wait(5000)
+            this.loadMoreButtonError.click()
+            await wait(3000)
+            this.loadMoreInModal()
+            return
+        }
+        
+        const reviewsModalScrollerEl = this.modal?.querySelector(SELECTORS.reviewsModalScroller)
+        const reviewsModalScrollerInnerEl = this.modal?.querySelector(SELECTORS.reviewsModalScrollerInner)
+
+        if (!reviewsModalScrollerEl || !reviewsModalScrollerInnerEl) {
+            await sendMessage({
+                action: 'reviews-parsing-ended',
+                status: 'error',
+                currentUrl: CURRENT_URL,
+                message: MessagesEnum.ReviewsModalScrollerNotFound,
+            });
+            return
+        }
+
+        if (reviewsModalScrollerEl && reviewsModalScrollerInnerEl) {
+            scrollElement(reviewsModalScrollerEl, reviewsModalScrollerInnerEl.clientHeight)
+            await wait(randomNumberBetween(3, 10) * 1000)
+            this.parseItems()
+        }
+    },
+    async loadMoreOnPage() {
+        if (this.loadMoreButtonError) {
+            await wait(5000)
+            this.loadMoreButtonError.click()
+            await wait(3000)
+            this.loadMoreOnPage()
+            return
+        }
+
+        scrollPageToBottom()
+        await wait(randomNumberBetween(3, 10) * 1000)
+
+        if (this.loadMoreButton) {
+            this.loadMoreButton.click()
+        }
+
+        await wait(randomNumberBetween(3, 10) * 1000)
+        this.parseItems()
+    },
+    async parsingStart() {
         await sendMessage({
             action: 'reviews-parsing-started',
             status: 'success',
             currentUrl: CURRENT_URL,
         });
 
-        this.parseReviews('first')
+        await wait(1000)
+        this.summaryButton?.click()
+        await wait(3000)
+        this.parseItems()
     }
 }
 
@@ -382,7 +440,7 @@ chrome.runtime.onMessage.addListener(async ({action, reviewsFilterFields, curren
         CURRENT_URL = currentUrl
         REVIEWS_FILTER_FIELDS = reviewsFilterFields
         REVIEWS_FILTER_FIELDS && getProfileInfo()
-        new ReviewsFactory().parsingStart()
+        ReviewsParser.parsingStart()
     }
 
     if (action === 'get-categories') {
