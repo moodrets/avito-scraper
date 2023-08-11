@@ -299,14 +299,21 @@ class ReviewsFactory {
         let urlParams = new URLSearchParams()
         let splitUrl = url.pathname.split('/')
         let userHash = splitUrl[2]
-        let requestUrl = `https://www.avito.ru/web/5/user/${userHash}/ratings?summary_redesign=1`
+        let requestUrl = `https://www.avito.ru/web/5/user/${userHash}/ratings`
+
+        if (requestType === 'first') {
+            urlParams.set('summary_redesign', '1')
+        }
 
         if (requestType === 'next') {
             this.offset += 25
             urlParams.set('limit', '25')
             urlParams.set('offset', `${this.offset}`)
-            requestUrl = `${requestUrl}&${urlParams.toString()}`
+            urlParams.set('sortRating', 'date_desc')
+            urlParams.set('summary_redesign', '1')
         }
+        
+        requestUrl = `${requestUrl}?${urlParams.toString()}`
 
         let reviewsRequest = await fetch(requestUrl)
         let reviewsRequestJSON = await reviewsRequest.json()
