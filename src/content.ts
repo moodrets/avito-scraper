@@ -9,8 +9,10 @@ enum MessagesEnum {
     ParsingReviewsEnded = 'Парсинг отзывов завершен',
     ProfileWithoutDelivery = 'Нет продаж с Авито Доставкой',
     ReviewsNotFound = 'Отзывы не найдены',
+    ReviewsRequestError = 'Ошибка запроса отзывов',
     ReviewsSelectorsNotFound = 'Не найдены селекторы в отзывах',
     ReviewsModalScrollerNotFound = 'Не найден селектор для скрола в модалке',
+    CategoriesReceived = 'Категории получены'
 }
 
 interface IReviewsItemAPI {
@@ -50,7 +52,15 @@ const SELECTORS = {
     reviewsModalScroller: '.desktop-y382as',
     reviewsModalScrollerInner: '.style-root-qXsDs',
 
-    categoriesShowButton: '[data-marker="top-rubricator/all-categories"]'
+    categoriesShowButton: '[data-marker="top-rubricator/all-categories"]',
+    categoriesRootItem: '[data-marker*="top-rubricator/root-category"]',
+    categoriesLinksWrapper: '.new-rubricator-content-rightContent-zbUZa',
+    categoriesMoreLoadButton: '[data-marker="top-rubricator/more-button"]',
+
+    addListFilterDeliveryCheckbox: '.form-form-bRZ7C [data-marker="delivery-filter"] input[type="checkbox"]',
+    addListFilterRatingCheckbox: '.form-form-bRZ7C',
+    addListFilterDescInput: '.form-form-bRZ7C input[placeholder="Что-то важное для вас"]',
+    addListFilterSubmitButton: '.form-form-bRZ7C [data-marker="search-filters/submit-button"]'
 }
 
 async function sendMessage(data: Record<string, any>){
@@ -148,7 +158,60 @@ async function getProfileInfo(): Promise<void> {
 }
 
 async function getCategories() {
-    const categoriesShowButtonEl = document.querySelector(SELECTORS.categoriesShowButton)
+    let categoriesList: Record<string, {text: string, url: string}[]> = {}
+    let actualCategoriesList = ['личные вещи', 'хобби и отдых', 'электроника', 'для дома и дачи', 'животные']
+
+    await wait(1000)
+    let categoriesShowButtonEl = document.querySelector(SELECTORS.categoriesShowButton) as HTMLElement
+    categoriesShowButtonEl?.click()
+
+    await wait(500)
+    let categoriesRootItemEls = document.querySelectorAll(SELECTORS.categoriesRootItem)
+
+    for (let rootCategory of categoriesRootItemEls) {
+        let rootCategoryName = rootCategory.textContent || ''
+        categoriesList[rootCategoryName] = []
+
+        rootCategory.dispatchEvent(new MouseEvent('mouseover', {
+            'view': window,
+            'bubbles': true,
+            'cancelable': true
+        }))
+
+        await wait(500)
+
+        let moreLoadButtonEls = document.querySelectorAll(`${SELECTORS.categoriesLinksWrapper} ${SELECTORS.categoriesMoreLoadButton}`) as any
+
+        for (const button of moreLoadButtonEls) {
+            button.click()
+        }
+
+        await wait(500)
+
+        const links = document.querySelectorAll(`${SELECTORS.categoriesLinksWrapper} a`)
+
+        links.forEach((link: any) => {
+            categoriesList[rootCategoryName].push({
+                text: link.textContent,
+                url: link.href
+            })
+        })
+    }
+
+    for (const key in categoriesList) {
+        let lowercaseKey = key.toLocaleLowerCase()
+        if (!actualCategoriesList.includes(lowercaseKey)) {
+            delete categoriesList[key]
+        }
+    }
+
+    await sendMessage({
+        action: 'get-categories',
+        status: 'success',
+        currentUrl: CURRENT_URL,
+        message: MessagesEnum.CategoriesReceived,
+        data: categoriesList,
+    })
 }
 
 class ReviewsFactory {
@@ -356,6 +419,12 @@ class ReviewsFactory {
             }
 
         } catch(error: any) {
+            await sendMessage({
+                action: 'reviews-parsing-ended',
+                status: 'error',
+                currentUrl: CURRENT_URL,
+                message: MessagesEnum.ReviewsRequestError,
+            });
 
         } finally {
 
@@ -374,6 +443,12 @@ class ReviewsFactory {
 }
 
 chrome.runtime.onMessage.addListener(async ({action, reviewsFilterFields, currentUrl}) => {
+    if (action === 'get-categories') {
+        await wait(1000)
+        getCategories()
+        return
+    }
+
     if (!reviewsFilterFields) {
         await sendMessage({
             action: 'reviews-parsing-ended',
@@ -390,10 +465,5 @@ chrome.runtime.onMessage.addListener(async ({action, reviewsFilterFields, curren
         REVIEWS_FILTER_FIELDS = reviewsFilterFields
         REVIEWS_FILTER_FIELDS && getProfileInfo()
         new ReviewsFactory().parsingStart()
-    }
-
-    if (action === 'get-categories') {
-        await wait(1000)
-        getCategories()
     }
 })

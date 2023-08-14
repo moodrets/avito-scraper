@@ -37,4 +37,7 @@ export enum MessagesEnum {
     DBImportSuccess = 'Импорт базы успешно завершен',
     DBDropSuccess = 'База данных успешно удалена',
     DBDropError = 'Не удалось удалить базу данных',
+
+    CategoriesSaved = 'Категории сохранены',
+    CategoriesNotSelected = 'Выберите категорию'
 }

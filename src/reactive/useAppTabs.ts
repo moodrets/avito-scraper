@@ -15,14 +15,14 @@ interface IAppTab {
 }
 
 class AppTabs {
-    public active = ref<AppTabsEnum>(AppTabsEnum.ReviewsFilter)
+    public active = ref<AppTabsEnum>(AppTabsEnum.ProfilesFilter)
 
     public list: IAppTab[] = [
-        // {
-        //     value: AppTabsEnum.ProfilesFilter,
-        //     text: 'Фильтр профилей',
-        //     icon: 'group_add',
-        // },
+        {
+            value: AppTabsEnum.ProfilesFilter,
+            text: 'Поиск продавцов',
+            icon: 'group_add',
+        },
         {
             value: AppTabsEnum.ReviewsFilter,
             text: 'Парсинг',

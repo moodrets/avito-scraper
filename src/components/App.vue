@@ -33,6 +33,7 @@ import { reviewsFilter } from '@/reactive/useReviewsFilter';
 import { profileInfoList } from '@/reactive/useProfileInfoList';
 import { profileSavedList } from '@/reactive/useProfileSavedList';
 import { MessagesEnum } from '@/types/enums';
+import { profilesFilter } from '@/reactive/useProfilesFilter';
 
 const appLoaded = ref<boolean>(false)
 
@@ -95,6 +96,15 @@ onMounted(async () => {
             `
             reviewsFilter.profileLinkSetInfo(currentUrl, linkInfo)
         }
+
+        if (action === 'get-categories') {
+            if (status === 'success') {
+                setExtensionTabActive()
+                profilesFilter.state.categories = data
+                profilesFilter.state.categoriesLoading = false
+                profilesFilter.apiCreateCategories()
+            }
+        }
     })
 
     document.fonts.onloadingdone = () => {
@@ -102,5 +112,6 @@ onMounted(async () => {
     }
 
     profileInfoList.list.value = await profileInfoList.apiGetInfoList()
+    profilesFilter.state.categories = await profilesFilter.apiGetCategories()
 })
 </script>
