@@ -1,30 +1,35 @@
-import DB from '@/db/db';
-import { createTab } from '@/helpers/common';
+import { reactive, ref } from 'vue'
+import { createTab, findBrowserTabByURL, wait } from '@/helpers/common';
 import { toast } from '@/helpers/toast';
 import { MessagesEnum } from '@/types/enums';
-import { reactive, ref } from 'vue'
 
 export interface IProfileFilterCategories {
     [key: string]: {text: string, url: string}[]
 }
 
 export interface IProfileFilterFields {
-    category: string
+    category: string,
+    profileName: string,
+    reviewsCount: number
 }
 
 class ProfilesFilter {
     public openedTab = ref<Record<string, any>>({})
 
     public state = reactive<{
+        currentPage: number,
         categoriesLoading: boolean,
         categories: IProfileFilterCategories,
     }>({
+        currentPage: 0,
         categoriesLoading: false,
         categories: {},
     })
 
     public fields = reactive<IProfileFilterFields>({
-        category: ''
+        reviewsCount: 100,
+        category: '',
+        profileName: ''
     })
 
     public async getCategories() {
@@ -35,6 +40,41 @@ class ProfilesFilter {
             chrome.tabs.sendMessage(currentTab.id, {
                 action: 'get-categories',
             })
+        }
+    }
+
+    public async setCategoryPageFilter() {
+        const currentTab = await createTab(this.fields.category)
+        this.openedTab.value = currentTab
+
+        if (currentTab.id) {
+            chrome.tabs.sendMessage(currentTab.id, {
+                action: 'profiles-search-set-filter',
+                currentUrl: this.fields.category,
+                profilesFilterFields: JSON.parse(JSON.stringify(this.fields))
+            })
+        }
+    }
+
+    public async parsingStart() {
+        await wait(3000)
+        const categoryTab = await findBrowserTabByURL(this.fields.category)
+
+        if (categoryTab && categoryTab.url) {
+            let tabUrl = new URL(categoryTab.url)
+            if (!Array.from(tabUrl.searchParams).length) {
+                this.parsingStart()
+                return
+            }
+        }
+
+        if (categoryTab?.id) {
+            chrome.tabs.sendMessage(categoryTab.id, {
+                action: 'profiles-search-parsing-start',
+                currentUrl: categoryTab.url,
+                profilesFilterFields: JSON.parse(JSON.stringify(this.fields))
+            })
+            toast.show('success', MessagesEnum.ProfilesSearchStarted)
         }
     }
 

@@ -1,7 +1,7 @@
 <template>
     <form @submit.prevent="onSubmit()">
-        <div class="grid grid-cols-4">
-            <div class="col-span-2">
+        <div class="grid grid-cols-4 gap-5">
+            <div>
                 <div class="mb-2 text-sm font-medium">Категория</div>
                 <div class="flex items-center gap-4">
                     <i 
@@ -20,6 +20,24 @@
                     </select>
                 </div>
             </div>
+            <div>
+                <div class="mb-2 text-sm font-medium">Имя продавца</div>
+                <input 
+                    v-model="profilesFilter.fields.profileName"
+                    type="text"
+                    class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
+                >
+            </div>
+            <div>
+                <div class="mb-2 text-sm font-medium">Количество отзывов</div>
+                <input 
+                    v-model="profilesFilter.fields.reviewsCount"
+                    type="number"
+                    min="0"
+                    required
+                    class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
+                >
+            </div>
         </div>
         <div class="flex items-center gap-4 mt-10">
             <Button
@@ -37,7 +55,7 @@ import { toast } from '@/helpers/toast';
 import { profilesFilter } from '@/reactive/useProfilesFilter';
 
 async function onSubmit() {
-    
+    profilesFilter.setCategoryPageFilter()
 }
 
 async function getCategories() {

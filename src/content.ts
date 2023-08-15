@@ -1,5 +1,6 @@
 import { IReviewsFilterFields } from "@/reactive/useReviewsFilter"
 import { IProfileItem, IReviewsItem } from "@/reactive/useProfileInfoList"
+import { IProfileFilterFields } from "./reactive/useProfilesFilter";
 
 enum MessagesEnum {
     InfoNotFound = 'Информация не найдена',
@@ -13,54 +14,6 @@ enum MessagesEnum {
     ReviewsSelectorsNotFound = 'Не найдены селекторы в отзывах',
     ReviewsModalScrollerNotFound = 'Не найден селектор для скрола в модалке',
     CategoriesReceived = 'Категории получены'
-}
-
-interface IReviewsItemAPI {
-    type: 'rating',
-    value: {
-        avatar: string,
-        deliveryTitle?: string,
-        itemTitle: string,
-        rated: string,
-        score: number,
-        stageTitle: string,
-        title: string
-    }
-}
-
-let REVIEWS_FILTER_FIELDS: IReviewsFilterFields | null = null
-let CURRENT_URL: string = ''
-
-const SELECTORS = {
-    profileName: '.Sidebar-root-h24MJ [data-marker*="name"]',
-    profileReviewsCount: '.Sidebar-root-h24MJ .desktop-fgq05w',
-    profileRating: '.Sidebar-root-h24MJ [data-marker="profile/score"]',
-    profileSubscribers: '.Sidebar-root-h24MJ [data-marker="favorite-seller-counters"]',
-    profileAsideInfoItems: '.Sidebar-root-h24MJ .ProfileBadge-root-bcR8G',
-    profileActiveAdds: '[data-marker="profile-tab(active)"]',
-    profileActiveAddsNew: '.ExtendedProfile-content-JTybB .desktop-11ncndy .desktop-1r4tu1s',
-    profileCompletedAdds: '[data-marker="profile-tab(closed)"]',
-
-    reviewsItem: '.style-snippet-E6g8Y',
-    reviewsItemProductName: '.desktop-35wlrd',
-    reviewsItemDateDelivery: '.desktop-11ffzh3',
-    reviewsItemRatingStars: '.RatingStars-root-Edhhx .Attributes-yellow-star-PY9XT',
-    reviewsMoreLoadButton: '[data-marker="rating-list/moreReviewsButton"]',
-    reviewsMoreLoadButtonError: '[data-marker="errorMessage/button"]',
-    reviewsSummaryButton: '[data-marker="profile/summary"]',
-    reviewsModal: '[data-marker="profile-rating-detailed/popup"]',
-    reviewsModalScroller: '.desktop-y382as',
-    reviewsModalScrollerInner: '.style-root-qXsDs',
-
-    categoriesShowButton: '[data-marker="top-rubricator/all-categories"]',
-    categoriesRootItem: '[data-marker*="top-rubricator/root-category"]',
-    categoriesLinksWrapper: '.new-rubricator-content-rightContent-zbUZa',
-    categoriesMoreLoadButton: '[data-marker="top-rubricator/more-button"]',
-
-    addListFilterDeliveryCheckbox: '.form-form-bRZ7C [data-marker="delivery-filter"] input[type="checkbox"]',
-    addListFilterRatingCheckbox: '.form-form-bRZ7C',
-    addListFilterDescInput: '.form-form-bRZ7C input[placeholder="Что-то важное для вас"]',
-    addListFilterSubmitButton: '.form-form-bRZ7C [data-marker="search-filters/submit-button"]'
 }
 
 async function sendMessage(data: Record<string, any>){
@@ -115,7 +68,18 @@ function randomNumberBetween(min: number, max: number) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-async function getProfileInfo(): Promise<void> {
+async function getProfileInfo(currentURL: string): Promise<void> {
+    const SELECTORS = {
+        profileName: '.Sidebar-root-h24MJ [data-marker*="name"]',
+        profileReviewsCount: '.Sidebar-root-h24MJ .desktop-fgq05w',
+        profileRating: '.Sidebar-root-h24MJ [data-marker="profile/score"]',
+        profileSubscribers: '.Sidebar-root-h24MJ [data-marker="favorite-seller-counters"]',
+        profileAsideInfoItems: '.Sidebar-root-h24MJ .ProfileBadge-root-bcR8G',
+        profileActiveAdds: '[data-marker="profile-tab(active)"]',
+        profileActiveAddsNew: '.ExtendedProfile-content-JTybB .desktop-11ncndy .desktop-1r4tu1s',
+        profileCompletedAdds: '[data-marker="profile-tab(closed)"]',
+    }
+
     let profileNameEl = document.querySelector(SELECTORS.profileName)
     let profileReviewsEl = document.querySelector(SELECTORS.profileReviewsCount)
     let profileRatingEl = document.querySelector(SELECTORS.profileRating)
@@ -140,7 +104,7 @@ async function getProfileInfo(): Promise<void> {
         completedAdds: profileCompletedAddsText || '',
         parsingDate: Date.now(),
         reviewsSortedBy: 'product_name_asc',
-        url: CURRENT_URL,
+        url: currentURL,
         opened: false,
         loading: false,
         marked: false,
@@ -151,13 +115,20 @@ async function getProfileInfo(): Promise<void> {
     await sendMessage({
         action: 'profile-info',
         status: 'success',
-        currentUrl: CURRENT_URL,
+        currentUrl: currentURL,
         messsage: MessagesEnum.ProfileInfoSuccess,
         data: profileInform,
     })
 }
 
 async function getCategories() {
+    const SELECTORS = {
+        categoriesShowButton: '[data-marker="top-rubricator/all-categories"]',
+        categoriesRootItem: '[data-marker*="top-rubricator/root-category"]',
+        categoriesLinksWrapper: '.new-rubricator-content-rightContent-zbUZa',
+        categoriesMoreLoadButton: '[data-marker="top-rubricator/more-button"]',
+    }
+
     let categoriesList: Record<string, {text: string, url: string}[]> = {}
     let actualCategoriesList = ['личные вещи', 'хобби и отдых', 'электроника', 'для дома и дачи', 'животные']
 
@@ -178,19 +149,21 @@ async function getCategories() {
             'cancelable': true
         }))
 
-        await wait(500)
+        await wait(200)
 
-        let moreLoadButtonEls = document.querySelectorAll(`${SELECTORS.categoriesLinksWrapper} ${SELECTORS.categoriesMoreLoadButton}`) as any
+        /**
+         * клики на кнопки "показать еще"
+            let moreLoadButtonEls = document.querySelectorAll(`${SELECTORS.categoriesLinksWrapper} ${SELECTORS.categoriesMoreLoadButton}`) as any
+            for (const button of moreLoadButtonEls) {
+                button.click()
+            }
+            await wait(500)
+        */
 
-        for (const button of moreLoadButtonEls) {
-            button.click()
-        }
+        let linksEls: any = document.querySelectorAll(`${SELECTORS.categoriesLinksWrapper} a`)
+        let linksFiltered = [...linksEls].filter((link, index) => link.textContent.includes('›') && index !== 0)
 
-        await wait(500)
-
-        const links = document.querySelectorAll(`${SELECTORS.categoriesLinksWrapper} a`)
-
-        links.forEach((link: any) => {
+        linksFiltered.forEach((link: any) => {
             categoriesList[rootCategoryName].push({
                 text: link.textContent,
                 url: link.href
@@ -206,15 +179,36 @@ async function getCategories() {
     }
 
     await sendMessage({
-        action: 'get-categories',
+        action: 'set-categories',
         status: 'success',
-        currentUrl: CURRENT_URL,
         message: MessagesEnum.CategoriesReceived,
         data: categoriesList,
     })
 }
 
+interface IReviewsItemAPI {
+    type: 'rating',
+    value: {
+        avatar: string,
+        deliveryTitle?: string,
+        itemTitle: string,
+        rated: string,
+        score: number,
+        stageTitle: string,
+        title: string
+    }
+}
+
 class ReviewsFactory {
+    constructor(filterFields: IReviewsFilterFields, currentURL: string) {
+        this.filterFields = filterFields
+        this.currentURL = currentURL
+    }
+
+    protected currentURL!: string
+    
+    protected filterFields!: IReviewsFilterFields
+    
     protected offset: number = 0
 
     protected parsingEnded: boolean = false
@@ -300,7 +294,7 @@ class ReviewsFactory {
             delivery: item.value.deliveryTitle ? true : false,
             productName: item.value.itemTitle,
             rating: item.value.score,
-            profileUrl: CURRENT_URL
+            profileUrl: this.currentURL
         }
         return parsedReviewItem
     }
@@ -309,13 +303,13 @@ class ReviewsFactory {
         let resultList = [...reviewsDataList]
 
         // фильтруем по дате
-        if (REVIEWS_FILTER_FIELDS?.dateFrom && REVIEWS_FILTER_FIELDS?.dateTo) {
+        if (this.filterFields.dateFrom && this.filterFields.dateTo) {
             resultList = resultList.filter((item) => {
                 if (
-                    REVIEWS_FILTER_FIELDS?.dateFrom && 
-                    REVIEWS_FILTER_FIELDS?.dateTo &&
-                    item.date >= this.makeDateFromFilterString(REVIEWS_FILTER_FIELDS.dateFrom) &&
-                    item.date <= this.makeDateFromFilterString(REVIEWS_FILTER_FIELDS.dateTo)
+                    this.filterFields.dateFrom && 
+                    this.filterFields.dateTo &&
+                    item.date >= this.makeDateFromFilterString(this.filterFields.dateFrom) &&
+                    item.date <= this.makeDateFromFilterString(this.filterFields.dateTo)
                 ) {
                     return item
                 }
@@ -323,13 +317,13 @@ class ReviewsFactory {
         }
 
         // фильтруем по рейтингу
-        if (REVIEWS_FILTER_FIELDS?.ratingFrom && REVIEWS_FILTER_FIELDS?.ratingTo) {
+        if (this.filterFields.ratingFrom && this.filterFields.ratingTo) {
             resultList = resultList.filter((item) => {
                 if (
-                    REVIEWS_FILTER_FIELDS?.ratingFrom &&
-                    REVIEWS_FILTER_FIELDS?.ratingTo &&
-                    item.rating >= REVIEWS_FILTER_FIELDS?.ratingFrom &&
-                    item.rating <= REVIEWS_FILTER_FIELDS?.ratingTo
+                    this.filterFields.ratingFrom &&
+                    this.filterFields.ratingTo &&
+                    item.rating >= this.filterFields.ratingFrom &&
+                    item.rating <= this.filterFields.ratingTo
                 ) {
                     return item
                 }
@@ -337,11 +331,11 @@ class ReviewsFactory {
         }
 
         // фильтруем по названию
-        if (REVIEWS_FILTER_FIELDS?.productName) {
+        if (this.filterFields.productName) {
             resultList = resultList.filter((item) => {
 
                 let lowercaseProductName = item.productName.toLowerCase()
-                let lowercaseFilterProductName = (REVIEWS_FILTER_FIELDS as IReviewsFilterFields).productName.toLowerCase()
+                let lowercaseFilterProductName = (this.filterFields as IReviewsFilterFields).productName.toLowerCase()
 
                 if (lowercaseProductName.includes(lowercaseFilterProductName)) {
                     return item
@@ -350,7 +344,7 @@ class ReviewsFactory {
         }
 
         // ищем только с доставкой
-        if (REVIEWS_FILTER_FIELDS?.deliveryOnly) {
+        if (this.filterFields.deliveryOnly) {
             resultList = resultList.filter((item) => item.delivery)
         }
 
@@ -358,7 +352,7 @@ class ReviewsFactory {
     }
 
     protected async apiGetReviews(requestType: 'first' | 'next'): Promise<IReviewsItemAPI[]> {
-        let url = new URL(CURRENT_URL)
+        let url = new URL(this.currentURL)
         let urlParams = new URLSearchParams()
         let splitUrl = url.pathname.split('/')
         let userHash = splitUrl[2]
@@ -393,7 +387,7 @@ class ReviewsFactory {
             this.reviewsCollection.push(...resultList)
             let lastReviewData = this.makeReviewItemData(this.reviewsCollection[this.reviewsCollection.length - 1])
 
-            if (REVIEWS_FILTER_FIELDS?.dateFrom && lastReviewData.date < this.makeDateFromFilterString(REVIEWS_FILTER_FIELDS?.dateFrom)) {
+            if (this.filterFields.dateFrom && lastReviewData.date < this.makeDateFromFilterString(this.filterFields.dateFrom)) {
                 this.parsingEnded = true
             }
 
@@ -410,7 +404,7 @@ class ReviewsFactory {
                 await sendMessage({
                     action: 'reviews-parsing-ended',
                     status: 'success',
-                    currentUrl: CURRENT_URL,
+                    currentUrl: this.currentURL,
                     data: reviewsFilteredList,
                 });
 
@@ -422,7 +416,7 @@ class ReviewsFactory {
             await sendMessage({
                 action: 'reviews-parsing-ended',
                 status: 'error',
-                currentUrl: CURRENT_URL,
+                currentUrl: this.currentURL,
                 message: MessagesEnum.ReviewsRequestError,
             });
 
@@ -435,35 +429,108 @@ class ReviewsFactory {
         await sendMessage({
             action: 'reviews-parsing-started',
             status: 'success',
-            currentUrl: CURRENT_URL,
+            currentUrl: this.currentURL,
         });
 
         this.parseReviews('first')
     }
 }
 
-chrome.runtime.onMessage.addListener(async ({action, reviewsFilterFields, currentUrl}) => {
+class ProfilesFactory {
+    constructor(filterFields: IProfileFilterFields, currentURL: string){
+        this.filterFields = filterFields
+        this.currentURL = currentURL
+    }
+
+    protected SELECTORS = {
+        filterDeliveryCheckbox: '.form-form-bRZ7C [data-marker="delivery-filter"] input',
+        filterNewCheckbox: '.form-form-bRZ7C span',
+        filterRatingCheckbox: '.form-form-bRZ7C span',
+        filterDescInput: '.form-form-bRZ7C input[placeholder="Что-то важное для вас"]',
+        filterSubmitButton: 'button[data-marker="search-filters/submit-button"]'
+    }
+
+    protected currentURL!: string
+
+    protected filterFields!: IProfileFilterFields
+
+    protected async filterSubmitTrigger() {
+        await wait(2000)
+
+        let filterSubmitButtonEl = document.querySelector(this.SELECTORS.filterSubmitButton)
+
+        if (filterSubmitButtonEl?.textContent?.includes('не найдено')) {
+            await sendMessage({
+                action: 'profiles-search-filter-not-found',
+                status: 'error'
+            })
+            return
+        }
+
+        if (filterSubmitButtonEl && filterSubmitButtonEl.querySelectorAll('span').length > 1) {
+            this.filterSubmitTrigger()
+            return
+        }
+
+        if (filterSubmitButtonEl) {
+            await sendMessage({
+                action: 'profiles-search-filter-installed',
+                status: 'success',
+                currentUrl: this.currentURL
+            });
+
+            (filterSubmitButtonEl as HTMLElement).click()
+        }
+    }
+
+    public async setCategoryPageFilter() {
+        await wait(1000)
+        let filterDeliveryCheckboxEl = document.querySelector(this.SELECTORS.filterDeliveryCheckbox)
+        let filterNewCheckboxEl = [...document.querySelectorAll(this.SELECTORS.filterNewCheckbox)].find(span => span.textContent?.includes('овое'))?.parentElement
+        let filterRatingCheckboxEl = [...document.querySelectorAll(this.SELECTORS.filterRatingCheckbox)].find(span => span.textContent?.includes('звезды'))?.parentElement
+        
+        if (filterDeliveryCheckboxEl) {
+            (filterDeliveryCheckboxEl as HTMLElement).click()
+        }
+        
+        if (filterNewCheckboxEl) {
+            filterNewCheckboxEl.click()
+        }
+        
+        if (filterRatingCheckboxEl) {
+            filterRatingCheckboxEl.click()
+        }    
+
+        this.filterSubmitTrigger()
+    }
+}
+
+chrome.runtime.onMessage.addListener(async ({
+    action,
+    currentUrl,
+    reviewsFilterFields, 
+    profilesFilterFields
+}) => {
     if (action === 'get-categories') {
         await wait(1000)
         getCategories()
         return
     }
 
-    if (!reviewsFilterFields) {
-        await sendMessage({
-            action: 'reviews-parsing-ended',
-            status: 'error',
-            currentUrl: CURRENT_URL,
-            message: MessagesEnum.FilterFieldsNotReceived,
-        });
+    if (action === 'profiles-search-set-filter') {
+        await wait(1000)
+        new ProfilesFactory(profilesFilterFields, currentUrl).setCategoryPageFilter()
         return
+    }
+
+    if (action === 'profiles-search-parsing-start') {
+        await wait(1000)
+        alert('samsa')
     }
 
     if (action === 'reviews-parsing-start' && reviewsFilterFields) {
         await wait(1000)
-        CURRENT_URL = currentUrl
-        REVIEWS_FILTER_FIELDS = reviewsFilterFields
-        REVIEWS_FILTER_FIELDS && getProfileInfo()
-        new ReviewsFactory().parsingStart()
+        getProfileInfo(currentUrl)
+        new ReviewsFactory(reviewsFilterFields, currentUrl).parsingStart()
     }
 })

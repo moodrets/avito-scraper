@@ -97,12 +97,25 @@ onMounted(async () => {
             reviewsFilter.profileLinkSetInfo(currentUrl, linkInfo)
         }
 
-        if (action === 'get-categories') {
+        if (action === 'set-categories') {
             if (status === 'success') {
                 setExtensionTabActive()
                 profilesFilter.state.categories = data
                 profilesFilter.state.categoriesLoading = false
                 profilesFilter.apiCreateCategories()
+            }
+        }
+
+        if (action === 'profiles-search-filter-not-found') {
+            if (status === 'error') {
+                setExtensionTabActive()
+                toast.show('error', MessagesEnum.FilterAddsNotFound, {duration: 172800})
+            }
+        }
+
+        if (action === 'profiles-search-filter-installed') {
+            if (status === 'success') {
+                profilesFilter.parsingStart()
             }
         }
     })

@@ -59,12 +59,7 @@ async function onDrop(){
 
 async function onClear() {
     if (window.confirm('Чистим хранилище ?')) {
-        await chrome.storage.local.remove([
-            'profileList', 
-            'parsingResults', 
-            'filterFields',
-            'reviewsFilter'
-        ])
+        await chrome.storage.local.clear()
         window.location.reload()
     }
 }
