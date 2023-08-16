@@ -12,7 +12,7 @@ export async function createTab(url: string): Promise<chrome.tabs.Tab> {
 }
 
 export async function setExtensionTabActive(): Promise<void> {
-    let tabs = await chrome.tabs.query({active: false});
+    let tabs = await chrome.tabs.query({})
     let extensionTab = tabs.find(tab => tab.url?.includes('options.html'))
 
     if (extensionTab && extensionTab.id) {

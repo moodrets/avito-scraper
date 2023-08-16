@@ -1,15 +1,17 @@
-import { reactive, ref } from 'vue'
-import { createTab, findBrowserTabByURL, wait } from '@/helpers/common';
-import { toast } from '@/helpers/toast';
-import { MessagesEnum } from '@/types/enums';
-
-export interface IProfileFilterCategories {
-    [key: string]: {text: string, url: string}[]
-}
+import { reactive, ref, computed } from 'vue'
+import { createTab } from '@/helpers/common';
 
 export interface IProfileFilterFields {
-    category: string,
+    categoryUrl: string,
     profileName: string,
+    pagesRange: string,
+    reviewsCount: number,
+}
+
+export interface IProfileInAdd {
+    url: string
+    name: string
+    rating: string
     reviewsCount: number
 }
 
@@ -17,82 +19,50 @@ class ProfilesFilter {
     public openedTab = ref<Record<string, any>>({})
 
     public state = reactive<{
+        loading: boolean,
         currentPage: number,
-        categoriesLoading: boolean,
-        categories: IProfileFilterCategories,
+        profilesList: IProfileInAdd[]
     }>({
+        loading: false,
         currentPage: 0,
-        categoriesLoading: false,
-        categories: {},
+        profilesList: []
+    })
+
+    public pagesRange = computed<{start: number, end: number}>(() => {
+        let split = this.fields.pagesRange.split('-')
+        let start = +split[0]
+        let end = +split[1]
+        return {
+            start,
+            end  
+        }
     })
 
     public fields = reactive<IProfileFilterFields>({
         reviewsCount: 100,
-        category: '',
-        profileName: ''
+        categoryUrl: '',
+        profileName: '',
+        pagesRange: '1-20'
     })
 
-    public async getCategories() {
-        const currentTab = await createTab('https://www.avito.ru/')
-        this.openedTab.value = currentTab
-
-        if (currentTab.id) {
-            chrome.tabs.sendMessage(currentTab.id, {
-                action: 'get-categories',
-            })
-        }
-    }
-
-    public async setCategoryPageFilter() {
-        const currentTab = await createTab(this.fields.category)
-        this.openedTab.value = currentTab
-
-        if (currentTab.id) {
-            chrome.tabs.sendMessage(currentTab.id, {
-                action: 'profiles-search-set-filter',
-                currentUrl: this.fields.category,
-                profilesFilterFields: JSON.parse(JSON.stringify(this.fields))
-            })
-        }
-    }
-
     public async parsingStart() {
-        await wait(3000)
-        const categoryTab = await findBrowserTabByURL(this.fields.category)
+        const currentTab = await createTab(this.fields.categoryUrl)
+        this.openedTab.value = currentTab
 
-        if (categoryTab && categoryTab.url) {
-            let tabUrl = new URL(categoryTab.url)
-            if (!Array.from(tabUrl.searchParams).length) {
-                this.parsingStart()
-                return
-            }
-        }
-
-        if (categoryTab?.id) {
-            chrome.tabs.sendMessage(categoryTab.id, {
-                action: 'profiles-search-parsing-start',
-                currentUrl: categoryTab.url,
-                profilesFilterFields: JSON.parse(JSON.stringify(this.fields))
+        if (currentTab.id) {
+            chrome.tabs.sendMessage(currentTab.id, {
+                action: 'profiles-parsing-start',
+                profilesFilterFields: this.fields,
+                currentUrl: this.fields.categoryUrl
             })
-            toast.show('success', MessagesEnum.ProfilesSearchStarted)
         }
     }
 
-    public async apiCreateCategories() {
-        try {
-            const copyCategories = JSON.parse(JSON.stringify(this.state.categories))
-            await chrome.storage.local.set({categories: copyCategories})
-            toast.show('success', MessagesEnum.CategoriesSaved)
-        } catch(error: any) {
-            console.log(error);
-        } finally {
-
-        }
-    }
-
-    public async apiGetCategories() {
-        const result = await chrome.storage.local.get('categories')
-        return result.categories || {} 
+    public pushProfileList(profilesList: IProfileInAdd[]) {
+        let resultArr:any = [...profilesList, ...this.state.profilesList]
+        resultArr = new Set(resultArr.map((item: any) => JSON.stringify(item)))
+        resultArr = [...resultArr].map(item => JSON.parse(item))
+        this.state.profilesList = resultArr
     }
 }
 

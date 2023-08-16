@@ -5,7 +5,9 @@
     >
         <Header></Header>
         <main class="centered">
-            <ProfilesFilter v-if="appTabs.active.value === AppTabsEnum.ProfilesFilter"></ProfilesFilter>
+            <KeepAlive>
+                <ProfilesFilter v-if="appTabs.active.value === AppTabsEnum.ProfilesFilter"></ProfilesFilter>
+            </KeepAlive>
             <ParsingResult v-if="appTabs.active.value === AppTabsEnum.ParsingResult"></ParsingResult>
             <ProfileSavedList v-if="appTabs.active.value === AppTabsEnum.ProfileSavedList"></ProfileSavedList>
             <Settings v-if="appTabs.active.value === AppTabsEnum.Settings"></Settings>
@@ -97,25 +99,29 @@ onMounted(async () => {
             reviewsFilter.profileLinkSetInfo(currentUrl, linkInfo)
         }
 
-        if (action === 'set-categories') {
+        if (action === 'profiles-parsing-started') {
             if (status === 'success') {
-                setExtensionTabActive()
-                profilesFilter.state.categories = data
-                profilesFilter.state.categoriesLoading = false
-                profilesFilter.apiCreateCategories()
+                profilesFilter.state.loading = true
             }
         }
 
-        if (action === 'profiles-search-filter-not-found') {
+        if (action === 'profiles-parsing-current-page') {
+            if (status === 'success') {
+                profilesFilter.state.currentPage = data
+            }
+        }
+
+        if (action === 'profiles-parsing-ended') {
+            if (status === 'success') {
+                profilesFilter.state.loading = false
+                toast.show('success', MessagesEnum.ProfilesParsingEnded, {duration: 172800})
+                setExtensionTabActive()
+                profilesFilter.pushProfileList(data)
+            }
+
             if (status === 'error') {
-                setExtensionTabActive()
-                toast.show('error', MessagesEnum.FilterAddsNotFound, {duration: 172800})
-            }
-        }
-
-        if (action === 'profiles-search-filter-installed') {
-            if (status === 'success') {
-                profilesFilter.parsingStart()
+                profilesFilter.state.loading = false
+                toast.show('error', MessagesEnum.ProfilesParsingError, {duration: 172800})
             }
         }
     })
@@ -125,6 +131,5 @@ onMounted(async () => {
     }
 
     profileInfoList.list.value = await profileInfoList.apiGetInfoList()
-    profilesFilter.state.categories = await profilesFilter.apiGetCategories()
 })
 </script>

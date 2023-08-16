@@ -38,11 +38,6 @@ export enum MessagesEnum {
     DBDropSuccess = 'База данных успешно удалена',
     DBDropError = 'Не удалось удалить базу данных',
 
-    CategoriesSaved = 'Категории сохранены',
-    CategoriesNotSelected = 'Выберите категорию',
-    FilterAddsNotFound = 'По данному фильтру объявления не найдены',
-    WaitProfilesSearch = 'Ожидаем начала поиска продавцов ...',
-    CategoryTabNotFound = 'Не найдена вкладка категории',
-    CategoryTabFound = 'Вкладка категории найдена',
-    ProfilesSearchStarted = 'Поиск продавцов запущен'
+    ProfilesParsingEnded = 'Поиск продавцов завершен',
+    ProfilesParsingError = 'Поиск продавцов завершен неудачно',
 }

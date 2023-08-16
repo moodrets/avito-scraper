@@ -1,6 +1,6 @@
 import { IReviewsFilterFields } from "@/reactive/useReviewsFilter"
 import { IProfileItem, IReviewsItem } from "@/reactive/useProfileInfoList"
-import { IProfileFilterFields } from "./reactive/useProfilesFilter";
+import { IProfileFilterFields, IProfileInAdd } from "./reactive/useProfilesFilter";
 
 enum MessagesEnum {
     InfoNotFound = 'Информация не найдена',
@@ -13,10 +13,9 @@ enum MessagesEnum {
     ReviewsRequestError = 'Ошибка запроса отзывов',
     ReviewsSelectorsNotFound = 'Не найдены селекторы в отзывах',
     ReviewsModalScrollerNotFound = 'Не найден селектор для скрола в модалке',
-    CategoriesReceived = 'Категории получены'
 }
 
-async function sendMessage(data: Record<string, any>){
+async function sendMessage(data: Record<string, any>) {
     await chrome.runtime.sendMessage(data);
 }
 
@@ -118,71 +117,6 @@ async function getProfileInfo(currentURL: string): Promise<void> {
         currentUrl: currentURL,
         messsage: MessagesEnum.ProfileInfoSuccess,
         data: profileInform,
-    })
-}
-
-async function getCategories() {
-    const SELECTORS = {
-        categoriesShowButton: '[data-marker="top-rubricator/all-categories"]',
-        categoriesRootItem: '[data-marker*="top-rubricator/root-category"]',
-        categoriesLinksWrapper: '.new-rubricator-content-rightContent-zbUZa',
-        categoriesMoreLoadButton: '[data-marker="top-rubricator/more-button"]',
-    }
-
-    let categoriesList: Record<string, {text: string, url: string}[]> = {}
-    let actualCategoriesList = ['личные вещи', 'хобби и отдых', 'электроника', 'для дома и дачи', 'животные']
-
-    await wait(1000)
-    let categoriesShowButtonEl = document.querySelector(SELECTORS.categoriesShowButton) as HTMLElement
-    categoriesShowButtonEl?.click()
-
-    await wait(500)
-    let categoriesRootItemEls = document.querySelectorAll(SELECTORS.categoriesRootItem)
-
-    for (let rootCategory of categoriesRootItemEls) {
-        let rootCategoryName = rootCategory.textContent || ''
-        categoriesList[rootCategoryName] = []
-
-        rootCategory.dispatchEvent(new MouseEvent('mouseover', {
-            'view': window,
-            'bubbles': true,
-            'cancelable': true
-        }))
-
-        await wait(200)
-
-        /**
-         * клики на кнопки "показать еще"
-            let moreLoadButtonEls = document.querySelectorAll(`${SELECTORS.categoriesLinksWrapper} ${SELECTORS.categoriesMoreLoadButton}`) as any
-            for (const button of moreLoadButtonEls) {
-                button.click()
-            }
-            await wait(500)
-        */
-
-        let linksEls: any = document.querySelectorAll(`${SELECTORS.categoriesLinksWrapper} a`)
-        let linksFiltered = [...linksEls].filter((link, index) => link.textContent.includes('›') && index !== 0)
-
-        linksFiltered.forEach((link: any) => {
-            categoriesList[rootCategoryName].push({
-                text: link.textContent,
-                url: link.href
-            })
-        })
-    }
-
-    for (const key in categoriesList) {
-        let lowercaseKey = key.toLocaleLowerCase()
-        if (!actualCategoriesList.includes(lowercaseKey)) {
-            delete categoriesList[key]
-        }
-    }
-
-    await sendMessage({
-        action: 'set-categories',
-        status: 'success',
-        message: MessagesEnum.CategoriesReceived,
-        data: categoriesList,
     })
 }
 
@@ -380,7 +314,7 @@ class ReviewsFactory {
     }
 
     public async parseReviews(requestType: 'first' | 'next'): Promise<void> {
-        await wait(randomNumberBetween(3, 10) * 1000)
+        await wait(randomNumberBetween(2, 10) * 1000)
 
         try {
             let resultList = await this.apiGetReviews(requestType)
@@ -443,65 +377,144 @@ class ProfilesFactory {
     }
 
     protected SELECTORS = {
-        filterDeliveryCheckbox: '.form-form-bRZ7C [data-marker="delivery-filter"] input',
-        filterNewCheckbox: '.form-form-bRZ7C span',
-        filterRatingCheckbox: '.form-form-bRZ7C span',
-        filterDescInput: '.form-form-bRZ7C input[placeholder="Что-то важное для вас"]',
-        filterSubmitButton: 'button[data-marker="search-filters/submit-button"]'
+        profileItem: `.iva-item-userInfoStep-dWwGU`,
+        profileItemLink: 'a',
+        profileItemName: 'a p',
+        profileItemRating: '[data-marker="seller-rating/score"]',
+        profileItemReviewsCount: '[data-marker="seller-rating/summary"]'
     }
 
     protected currentURL!: string
-
+    
     protected filterFields!: IProfileFilterFields
+    
+    protected currentPageNumber: number = 0
 
-    protected async filterSubmitTrigger() {
-        await wait(2000)
+    protected profilesCollection: IProfileInAdd[] = []
 
-        let filterSubmitButtonEl = document.querySelector(this.SELECTORS.filterSubmitButton)
-
-        if (filterSubmitButtonEl?.textContent?.includes('не найдено')) {
-            await sendMessage({
-                action: 'profiles-search-filter-not-found',
-                status: 'error'
-            })
-            return
-        }
-
-        if (filterSubmitButtonEl && filterSubmitButtonEl.querySelectorAll('span').length > 1) {
-            this.filterSubmitTrigger()
-            return
-        }
-
-        if (filterSubmitButtonEl) {
-            await sendMessage({
-                action: 'profiles-search-filter-installed',
-                status: 'success',
-                currentUrl: this.currentURL
-            });
-
-            (filterSubmitButtonEl as HTMLElement).click()
+    protected get pagesRange() {
+        let pagesRangeSplit = this.filterFields.pagesRange.split('-')
+        return {
+            start: pagesRangeSplit[0],
+            end: pagesRangeSplit[1]
         }
     }
 
-    public async setCategoryPageFilter() {
-        await wait(1000)
-        let filterDeliveryCheckboxEl = document.querySelector(this.SELECTORS.filterDeliveryCheckbox)
-        let filterNewCheckboxEl = [...document.querySelectorAll(this.SELECTORS.filterNewCheckbox)].find(span => span.textContent?.includes('овое'))?.parentElement
-        let filterRatingCheckboxEl = [...document.querySelectorAll(this.SELECTORS.filterRatingCheckbox)].find(span => span.textContent?.includes('звезды'))?.parentElement
-        
-        if (filterDeliveryCheckboxEl) {
-            (filterDeliveryCheckboxEl as HTMLElement).click()
-        }
-        
-        if (filterNewCheckboxEl) {
-            filterNewCheckboxEl.click()
-        }
-        
-        if (filterRatingCheckboxEl) {
-            filterRatingCheckboxEl.click()
-        }    
+    protected getFilteredList() {
+        let profilesList = [...this.profilesCollection]
 
-        this.filterSubmitTrigger()
+        if (this.filterFields.reviewsCount) {
+            profilesList = profilesList.filter(item => {
+                if (item.reviewsCount >= this.filterFields.reviewsCount) {
+                    return item
+                }
+            })
+        }
+        
+        if (this.filterFields.profileName) {
+            profilesList = profilesList.filter(item => {
+                let filterProfileNameLowercase = this.filterFields.profileName.toLowerCase()
+                let itemProfileNameLowercase = item.name.toLowerCase()
+
+                if (itemProfileNameLowercase.includes(filterProfileNameLowercase)) {
+                    return item
+                }
+            })
+        }
+
+        return profilesList
+    }
+
+    protected makeProfileItemData(profileElement: HTMLElement): IProfileInAdd {
+        let profileLinkEl = profileElement.querySelector(this.SELECTORS.profileItemLink)
+        let profileNameEl = profileElement.querySelector(this.SELECTORS.profileItemName)
+        let profileRatingEl = profileElement.querySelector(this.SELECTORS.profileItemRating)
+        let profileItemReviewsCountEl = profileElement.querySelector(this.SELECTORS.profileItemReviewsCount)
+
+        let profileItemReviewsCountValue = profileItemReviewsCountEl?.textContent?.replace(/\D/g, '')
+
+        let profileItemData: IProfileInAdd = {
+            url: (profileLinkEl as HTMLLinkElement).href,
+            name: (profileNameEl as HTMLElement).textContent || '',
+            rating: (profileRatingEl as HTMLElement).textContent || '',
+            reviewsCount: profileItemReviewsCountValue ? +profileItemReviewsCountValue : 0,
+        }
+
+        return profileItemData
+    }
+
+    protected async parseProfiles(requestType: 'first' | 'next') {
+        await wait(randomNumberBetween(2, 10) * 1000)
+        await this.apiGetAdds(requestType)
+    }
+
+    protected async apiGetAdds(requestType: 'first' | 'next') {
+        if (requestType === 'first') {
+            this.currentPageNumber = +this.pagesRange.start
+        }
+        
+        if (requestType === 'next') {
+            this.currentPageNumber += 1
+        }
+
+        sendMessage({
+            action: 'profiles-parsing-current-page',
+            status: 'success',
+            currentUrl: this.currentURL,
+            data: this.currentPageNumber
+        });
+
+        let urlObj = new URL(this.currentURL)
+        urlObj.searchParams.delete('p')
+
+        if (this.currentPageNumber !== 1) {
+            urlObj.searchParams.set('p', `${this.currentPageNumber}`)
+        }
+
+        try {
+
+            let pageReqest = await fetch(urlObj.toString())
+            let pageHTMLText = await pageReqest.text()
+
+            let parser = new DOMParser().parseFromString(pageHTMLText, "text/html")
+            let profilesEls = parser.body.querySelectorAll(this.SELECTORS.profileItem)
+
+            profilesEls.forEach(item => {
+                let profileItemData = this.makeProfileItemData(item as HTMLElement)
+                this.profilesCollection.push(profileItemData)
+            })
+
+            if (this.currentPageNumber === +this.pagesRange.end) {
+                await sendMessage({
+                    action: 'profiles-parsing-ended',
+                    status: 'success',
+                    currentUrl: this.currentURL,
+                    data: this.getFilteredList()
+                });
+            } else {
+                this.parseProfiles('next')
+            }
+
+        } catch(error: any) {
+            await sendMessage({
+                action: 'profiles-parsing-ended',
+                status: 'error',
+                currentUrl: this.currentURL,
+            });
+
+        } finally {
+
+        }
+    }
+
+    public async parsingStart() {
+        await sendMessage({
+            action: 'profiles-parsing-started',
+            status: 'success',
+            currentUrl: this.currentURL,
+        });
+
+        this.parseProfiles('first')
     }
 }
 
@@ -511,21 +524,10 @@ chrome.runtime.onMessage.addListener(async ({
     reviewsFilterFields, 
     profilesFilterFields
 }) => {
-    if (action === 'get-categories') {
+    if (action === 'profiles-parsing-start') {
         await wait(1000)
-        getCategories()
+        new ProfilesFactory(profilesFilterFields, currentUrl).parsingStart()
         return
-    }
-
-    if (action === 'profiles-search-set-filter') {
-        await wait(1000)
-        new ProfilesFactory(profilesFilterFields, currentUrl).setCategoryPageFilter()
-        return
-    }
-
-    if (action === 'profiles-search-parsing-start') {
-        await wait(1000)
-        alert('samsa')
     }
 
     if (action === 'reviews-parsing-start' && reviewsFilterFields) {
