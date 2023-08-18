@@ -6,25 +6,21 @@
         <Header></Header>
         <main class="centered">
             <KeepAlive>
-                <ProfilesFilter v-if="appTabs.active.value === AppTabsEnum.ProfilesFilter"></ProfilesFilter>
+                <ProfilesSearchPage v-if="appTabs.active.value === AppTabsEnum.ProfilesSearch"></ProfilesSearchPage>
+                <ProfilesParsedPage v-if="appTabs.active.value === AppTabsEnum.ProfilesParsing"></ProfilesParsedPage>
             </KeepAlive>
-            <ParsingResult v-if="appTabs.active.value === AppTabsEnum.ParsingResult"></ParsingResult>
-            <ProfileSavedList v-if="appTabs.active.value === AppTabsEnum.ProfileSavedList"></ProfileSavedList>
-            <Settings v-if="appTabs.active.value === AppTabsEnum.Settings"></Settings>
-            <KeepAlive>
-                <ReviewsFilter v-if="appTabs.active.value === AppTabsEnum.ReviewsFilter"></ReviewsFilter>
-            </KeepAlive>
+            <ProfilesSavedPage v-if="appTabs.active.value === AppTabsEnum.ProfilesSaved"></ProfilesSavedPage>
+            <SettingsPage v-if="appTabs.active.value === AppTabsEnum.Settings"></SettingsPage>
         </main>
     </div>
 </template>
 
 <script lang="ts" setup>
 import Header from '@/components/common/Header.vue';
-import ReviewsFilter from '@/components/views/ReviewsFilter.vue';
-import ParsingResult from '@/components/views/ParsingResult.vue';
-import ProfileSavedList from '@/components/views/ProfileSavedList.vue';
-import ProfilesFilter from '@/components/views/ProfilesFilter.vue';
-import Settings from '@/components/views/Settings.vue';
+import ProfilesParsedPage from '@/components/views/ProfilesParsedPage.vue';
+import ProfilesSearchPage from '@/components/views/ProfilesSearchPage.vue';
+import ProfilesSavedPage from '@/components/views/ProfilesSavedPage.vue';
+import SettingsPage from '@/components/views/SettingsPage.vue';
 
 import { onMounted, ref } from 'vue';
 import { randomNumberBetween, setExtensionTabActive, wait } from '@/helpers/common';
@@ -81,7 +77,7 @@ onMounted(async () => {
                 reviewsFilter.parsingStart()
             } else {
                 toast.show('success', MessagesEnum.ParsingReviewsFinished, {duration: 172800})
-                appTabs.changeTab(AppTabsEnum.ParsingResult)
+                appTabs.changeTab(AppTabsEnum.ProfilesParsing)
                 setExtensionTabActive()
             }
         }
@@ -94,7 +90,9 @@ onMounted(async () => {
                 ${data.rating}&nbsp;&nbsp;/&nbsp;&nbsp; 
                 ${data.reviewsCount}&nbsp;&nbsp;/&nbsp;&nbsp; 
                 ${data.subscribers}&nbsp;&nbsp;/&nbsp;&nbsp; 
-                ${data.deliveryInfo}
+                ${data.deliveryInfo}&nbsp;&nbsp;/&nbsp;&nbsp;
+                Активные ${data.activeAdds}
+                ${data.completedAdds ? '&nbsp;&nbsp;/&nbsp;&nbsp; Завершенные ' + data.completedAdds : ''}
             `
             reviewsFilter.profileLinkSetInfo(currentUrl, linkInfo)
         }
@@ -131,5 +129,9 @@ onMounted(async () => {
     }
 
     profileInfoList.list.value = await profileInfoList.apiGetInfoList()
+    
+    setTimeout(()=>{
+        reviewsFilter.setFilterFromDB()
+    }, 0)
 })
 </script>

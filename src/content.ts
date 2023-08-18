@@ -1,6 +1,6 @@
 import { IReviewsFilterFields } from "@/reactive/useReviewsFilter"
 import { IProfileItem, IReviewsItem } from "@/reactive/useProfileInfoList"
-import { IProfileFilterFields, IProfileInAdd } from "./reactive/useProfilesFilter";
+import { IProfileFilterFields, IProfileInAdd } from "@/reactive/useProfilesFilter";
 
 enum MessagesEnum {
     InfoNotFound = 'Информация не найдена',
@@ -74,33 +74,45 @@ async function getProfileInfo(currentURL: string): Promise<void> {
         profileRating: '.Sidebar-root-h24MJ [data-marker="profile/score"]',
         profileSubscribers: '.Sidebar-root-h24MJ [data-marker="favorite-seller-counters"]',
         profileAsideInfoItems: '.Sidebar-root-h24MJ .ProfileBadge-root-bcR8G',
-        profileActiveAdds: '[data-marker="profile-tab(active)"]',
-        profileActiveAddsNew: '.ExtendedProfile-content-JTybB .desktop-11ncndy .desktop-1r4tu1s',
-        profileCompletedAdds: '[data-marker="profile-tab(closed)"]',
+        profileActiveAdds_1: '[data-marker="profile-tab(active)"]',
+        profileActiveAdds_2: '#item_list_with_filters button[type="button"][data-num="0"]',
+        profileActiveAdds_3: '#item_list_with_filters .desktop-1r4tu1s',
+        profileCompletedAdds_1: '#item_list_with_filters button[type="button"][data-num="1"]',
+        profileCompletedAdds_2: '[data-marker="profile-tab(closed)"]',
     }
 
+    // dom elements
     let profileNameEl = document.querySelector(SELECTORS.profileName)
     let profileReviewsEl = document.querySelector(SELECTORS.profileReviewsCount)
     let profileRatingEl = document.querySelector(SELECTORS.profileRating)
     let profileSubscribersEl = document.querySelector(SELECTORS.profileSubscribers)
     let profileDeviveryInfoEl = [...document.querySelectorAll(SELECTORS.profileAsideInfoItems)]?.find(item => item.textContent?.includes('продаж'))
-    let profileActiveAddsEl = document.querySelector(SELECTORS.profileActiveAdds)
-    let profileActiveAddsNewEl = document.querySelector(SELECTORS.profileActiveAddsNew)
-    let profileCompletedAddsEl = document.querySelector(SELECTORS.profileCompletedAdds)
+    let profileActiveAddsEl_1 = document.querySelector(SELECTORS.profileActiveAdds_1)
+    let profileActiveAddsEl_2 = document.querySelector(SELECTORS.profileActiveAdds_2)
+    let profileActiveAddsEl_3 = document.querySelector(SELECTORS.profileActiveAdds_3)
+    let profileCompletedAddsEl_1 = document.querySelector(SELECTORS.profileCompletedAdds_1)
+    let profileCompletedAddsEl_2 = document.querySelector(SELECTORS.profileCompletedAdds_2)
 
-    let profileSubscribersText = profileSubscribersEl?.textContent ? profileSubscribersEl.textContent.split(',')[0] : null
-    let profileActiveAddsText = profileActiveAddsEl?.textContent ? profileActiveAddsEl.textContent.replace(/\D/g, '') : null
-    let profileActiveAddsNewText = profileActiveAddsNewEl?.textContent ? profileActiveAddsNewEl.textContent.replace(/\D/g, '') : null
-    let profileCompletedAddsText = profileCompletedAddsEl?.textContent ? profileCompletedAddsEl.textContent.replace(/\D/g, '') : null
+    // values
+    let profileSubscribersValue = profileSubscribersEl?.textContent ? profileSubscribersEl.textContent.split(',')[0] : null
+    let profileActiveAddsValue_1 = profileActiveAddsEl_1?.textContent ? profileActiveAddsEl_1.textContent.replace(/\D/g, '') : null
+    let profileActiveAddsValue_2 = profileActiveAddsEl_2?.textContent ? profileActiveAddsEl_2.textContent.replace(/\D/g, '') : null
+    let profileActiveAddsValue_3 = profileActiveAddsEl_3?.textContent ? profileActiveAddsEl_3.textContent.replace(/\D/g, '') : null
+    let profileCompletedAddsValue_1 = profileCompletedAddsEl_1?.textContent ? profileCompletedAddsEl_1.textContent.replace(/\D/g, '') : null
+    let profileCompletedAddsValue_2 = profileCompletedAddsEl_2?.textContent ? profileCompletedAddsEl_2.textContent.replace(/\D/g, '') : null
+    let profileRatingValue = profileRatingEl?.textContent ? profileRatingEl.textContent.replace(',', '.') : ''
+    let profileNameValue = profileNameEl?.textContent ? profileNameEl.textContent : null
+    let profileReviewsCountValue = profileReviewsEl?.textContent ? profileReviewsEl.textContent : null
+    let profileDeliveryInfoValue = profileDeviveryInfoEl?.textContent ? profileDeviveryInfoEl.textContent : null
 
     let profileInform: IProfileItem = {
-        name: profileNameEl?.textContent || MessagesEnum.InfoNotFound,
-        rating: profileRatingEl?.textContent || MessagesEnum.InfoNotFound,
-        reviewsCount: profileReviewsEl?.textContent || MessagesEnum.InfoNotFound,
-        subscribers: profileSubscribersText || MessagesEnum.InfoNotFound,
-        deliveryInfo: profileDeviveryInfoEl?.textContent || MessagesEnum.ProfileWithoutDelivery,
-        activeAdds: profileActiveAddsText || profileActiveAddsNewText || MessagesEnum.InfoNotFound,
-        completedAdds: profileCompletedAddsText || '',
+        name: profileNameValue || MessagesEnum.InfoNotFound,
+        rating: profileRatingValue || MessagesEnum.InfoNotFound,
+        reviewsCount: profileReviewsCountValue || MessagesEnum.InfoNotFound,
+        subscribers: profileSubscribersValue || MessagesEnum.InfoNotFound,
+        deliveryInfo: profileDeliveryInfoValue || MessagesEnum.ProfileWithoutDelivery,
+        activeAdds: profileActiveAddsValue_1 || profileActiveAddsValue_2 || profileActiveAddsValue_3 || MessagesEnum.InfoNotFound,
+        completedAdds: profileCompletedAddsValue_1 || profileCompletedAddsValue_2 || '',
         parsingDate: Date.now(),
         reviewsSortedBy: 'product_name_asc',
         url: currentURL,
@@ -416,7 +428,7 @@ class ProfilesFactory {
                 let filterProfileNameLowercase = this.filterFields.profileName.toLowerCase()
                 let itemProfileNameLowercase = item.name.toLowerCase()
 
-                if (itemProfileNameLowercase.includes(filterProfileNameLowercase)) {
+                if (itemProfileNameLowercase.includes(filterProfileNameLowercase) || itemProfileNameLowercase === filterProfileNameLowercase) {
                     return item
                 }
             })
@@ -432,12 +444,14 @@ class ProfilesFactory {
         let profileItemReviewsCountEl = profileElement.querySelector(this.SELECTORS.profileItemReviewsCount)
 
         let profileItemReviewsCountValue = profileItemReviewsCountEl?.textContent?.replace(/\D/g, '')
+        let profileRatingValue = profileRatingEl?.textContent ? parseFloat(profileRatingEl.textContent.replace(',', '.')) : 0
 
         let profileItemData: IProfileInAdd = {
             url: (profileLinkEl as HTMLLinkElement).href,
             name: (profileNameEl as HTMLElement).textContent || '',
-            rating: (profileRatingEl as HTMLElement).textContent || '',
+            rating: profileRatingValue,
             reviewsCount: profileItemReviewsCountValue ? +profileItemReviewsCountValue : 0,
+            existsInDataBase: false
         }
 
         return profileItemData

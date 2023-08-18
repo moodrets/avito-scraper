@@ -6,15 +6,13 @@ import { MessagesEnum } from '@/types/enums'
 import { toLocaleString } from '@/helpers/date'
 import { copyToBuffer } from '@/helpers/common'
 
-export type TypeReviewsSortBy = 'rating_desc' | 'rating_asc' | 'product_name_desc' | 'product_name_asc' | 'date_desc' | 'date_asc'
-
 type TypeResultExtended = IReviewsItem & {
     color: {
         text: string,
         bg: string
     }, 
     info: string,
-    count?: number
+    count: number
 }
 
 export interface IReviewsItem {
@@ -40,7 +38,7 @@ export interface IProfileItem {
     comment: string
     activeAdds: string,
     completedAdds: string,
-    reviewsSortedBy: TypeReviewsSortBy
+    reviewsSortedBy: string
     color: {
         text: string,
         bg: string
@@ -81,33 +79,45 @@ class ProfileInfoList {
         }
     }
 
-    public sortResults(profile: IProfileItem, sortBy: TypeReviewsSortBy) {
+    public sortResults(profile: IProfileItem, sortBy: string) {
         if (profile.reviewsList) {
+
             profile.reviewsSortedBy = sortBy
+            let copyArray = JSON.parse(JSON.stringify(profile.reviewsList)) as IReviewsItem[]
 
             if (sortBy === 'product_name_asc') {
-                profile.reviewsList.sort((a, b) => a.productName.localeCompare(b.productName))
+                copyArray.sort((a, b) => a.productName.localeCompare(b.productName))
             }
 
             if (sortBy === 'product_name_desc') {
-                profile.reviewsList.sort((a, b) => b.productName.localeCompare(a.productName))
+                copyArray.sort((a, b) => b.productName.localeCompare(a.productName))
             }
         
             if (sortBy === 'rating_desc') {
-                profile.reviewsList.sort((a, b) => b.rating - a.rating)
+                copyArray.sort((a, b) => a.rating > b.rating ? -1 : a.rating < b.rating ? 1 : 0)
             }
 
             if (sortBy === 'rating_asc') {
-                profile.reviewsList.sort((a, b) => a.rating - b.rating)
+                copyArray.sort((a, b) => a.rating > b.rating ? 1 : a.rating < b.rating ? -1 : 0)
             }
         
             if (sortBy === 'date_desc') {
-                profile.reviewsList.sort((a, b) => b.date - a.date)
+                copyArray.sort((a, b) => a.date > b.date ? -1 : a.date < b.date ? 1 : 0)
             }
 
             if (sortBy === 'date_asc') {
-                profile.reviewsList.sort((a, b) => a.date - b.date)
+                copyArray.sort((a, b) => a.date > b.date ? 1 : a.date < b.date ? -1 : 0)
             }
+
+            if (sortBy === 'delivery_desc') {
+                copyArray.sort((a, b) => Number(b.delivery) - Number(a.delivery))
+            }
+
+            if (sortBy === 'delivery_asc') {
+                copyArray.sort((a, b) => Number(a.delivery) - Number(b.delivery))
+            }
+
+            profile.reviewsList = copyArray
         }
     }
 
@@ -148,7 +158,8 @@ class ProfileInfoList {
                         let newMapValue: TypeResultExtended[] = [...mapValue, {
                             ...resultItem,
                             color: profile.color,
-                            info: `${profile.name} / ${profile.rating} / ${profile.reviewsCount} / ${profile.subscribers} / ${profile.deliveryInfo}`
+                            info: `${profile.name} / ${profile.rating} / ${profile.reviewsCount} / ${profile.subscribers} / ${profile.deliveryInfo}`,
+                            count: 0,
                         }]
                         resultMap.set(resultItem.productName, newMapValue)
                     }
@@ -157,7 +168,8 @@ class ProfileInfoList {
                         {
                             ...resultItem,
                             color: profile.color,
-                            info: `${profile.name} / ${profile.rating} / ${profile.reviewsCount} / ${profile.subscribers} / ${profile.deliveryInfo}`
+                            info: `${profile.name} / ${profile.rating} / ${profile.reviewsCount} / ${profile.subscribers} / ${profile.deliveryInfo}`,
+                            count: 0,
                         }
                     ])
                 }
@@ -175,6 +187,11 @@ class ProfileInfoList {
 
         resultMap.clear()
 
+        let copyArray = JSON.parse(JSON.stringify(resultsList)) as TypeResultExtended[]
+        copyArray.sort((a,b) => a.count > b.count ? -1 : a.count < b.count ? 1 : 0)
+
+        resultsList = copyArray
+
         return resultsList
     }
 
@@ -186,12 +203,16 @@ class ProfileInfoList {
                 resultsList.push({
                     ...resultItem,
                     color: profile.color,
-                    info: `${profile.name} / ${profile.rating} / ${profile.reviewsCount} / ${profile.subscribers} / ${profile.deliveryInfo}`
+                    info: `${profile.name} / ${profile.rating} / ${profile.reviewsCount} / ${profile.subscribers} / ${profile.deliveryInfo}`,
+                    count: 0,
                 })
             })
         })
 
-        resultsList.sort((a, b) => a.productName.localeCompare(b.productName))
+        let copyArray = JSON.parse(JSON.stringify(resultsList)) as TypeResultExtended[]
+        copyArray.sort((a, b) => a.productName.localeCompare(b.productName))
+
+        resultsList = copyArray
 
         return resultsList
     }

@@ -1,5 +1,5 @@
 <template>
-    <template v-if="profileInfoList.list.value.length">
+    <div v-if="profileInfoList.list.value.length" class="pb-10">
         <div
             v-for="profile in profileInfoList.list.value"
             :key="profile.url"
@@ -66,48 +66,37 @@
                         <table class="w-full relative">
                             <tr class="text-[16px] sticky top-[64px] bg-gray-600">
                                 <th class="text-left px-4 py-2 border border-white border-opacity-50">
-                                    <div 
-                                        class="flex items-center cursor-pointer" 
-                                        @click="onSort(profile, profile.reviewsSortedBy === 'date_desc' ? 'date_asc' : 'date_desc')"
-                                    >
-                                        <div 
-                                            class="font-icon mr-2" 
-                                            :class="[
-                                                {'text-cyan-400': profile.reviewsSortedBy === 'date_desc' || profile.reviewsSortedBy === 'date_asc'},
-                                                {'rotate-180': profile.reviewsSortedBy === 'date_asc'}
-                                            ]">sort</div>
-                                        <div>Дата</div>
-                                    </div>
+                                    <SortHeading
+                                        :sort-types="['date_desc', 'date_asc']"
+                                        :current-sort-type="profile.reviewsSortedBy"
+                                        label="Дата"
+                                        @sort="onSort(profile, $event)"
+                                    ></SortHeading>
                                 </th>
                                 <th class="text-left px-4 py-2 border border-white border-opacity-50">
-                                    <div 
-                                        class="flex items-center cursor-pointer" 
-                                        @click="onSort(profile, profile.reviewsSortedBy === 'rating_desc' ? 'rating_asc' : 'rating_desc')"
-                                    >
-                                        <div
-                                            class="font-icon mr-2" 
-                                            :class="[
-                                                {'text-cyan-400': profile.reviewsSortedBy === 'rating_desc' || profile.reviewsSortedBy === 'rating_asc'},
-                                                {'rotate-180': profile.reviewsSortedBy === 'rating_asc'}
-                                            ]">sort</div>
-                                        <div>Оценка</div>
-                                    </div>
+                                    <SortHeading
+                                        :sort-types="['rating_desc', 'rating_asc']"
+                                        :current-sort-type="profile.reviewsSortedBy"
+                                        label="Оценка"
+                                        @sort="onSort(profile, $event)"
+                                    ></SortHeading>
                                 </th>
                                 <th class="text-left px-4 py-2 border border-white border-opacity-50">
-                                    <div 
-                                        class="flex items-center cursor-pointer" 
-                                        @click="onSort(profile, profile.reviewsSortedBy === 'product_name_desc' ? 'product_name_asc' : 'product_name_desc')"
-                                    >
-                                        <div 
-                                            class="font-icon mr-2" 
-                                            :class="[
-                                                {'text-cyan-400': profile.reviewsSortedBy === 'product_name_desc' || profile.reviewsSortedBy === 'product_name_asc'},
-                                                {'rotate-180': profile.reviewsSortedBy === 'product_name_asc'}
-                                            ]">sort</div>
-                                        <div>Название товара</div>
-                                    </div>
+                                    <SortHeading
+                                        :sort-types="['product_name_desc', 'product_name_asc']"
+                                        :current-sort-type="profile.reviewsSortedBy"
+                                        label="Название товара"
+                                        @sort="onSort(profile, $event)"
+                                    ></SortHeading>
                                 </th>
-                                <th class="text-left px-4 py-2 border border-white border-opacity-50">Доставка</th>
+                                <th class="text-left px-4 py-2 border border-white border-opacity-50">
+                                    <SortHeading
+                                        :sort-types="['delivery_desc', 'delivery_asc']"
+                                        :current-sort-type="profile.reviewsSortedBy"
+                                        label="Доставка"
+                                        @sort="onSort(profile, $event)"
+                                    ></SortHeading>
+                                </th>
                             </tr>
                             <tr v-for="item, index in profile.reviewsList" :key="profile.reviewsSortedBy + index" class="text-[14px] hover:bg-gray-600">
                                 <td class="px-4 py-2 border border-white border-opacity-50 font-medium">{{ toLocaleString(item.date)?.slice(0, 10) }}</td>
@@ -161,18 +150,19 @@
                 <div class="text-center text-xl font-bold">Результаты не найдены</div>
             </template>
         </Modal>
-    </template>
-    <div v-else class="text-center text-xl font-bold">Ничего не найдено</div>
+    </div>
+    <div v-else class="text-center text-xl font-bold pb-10">Результаты не найдены</div>
 </template>
 
 <script lang="ts" setup>
 import Modal from '@/components/common/Modal.vue'
+import SortHeading from '@/components/common/SortHeading.vue'
 import { onMounted, onBeforeUnmount } from 'vue';
 import { copyToBuffer } from '@/helpers/common';
 import { toLocaleString } from '@/helpers/date'
 import { MessagesEnum } from '@/types/enums';
 import { toast } from '@/helpers/toast';
-import { IProfileItem, TypeReviewsSortBy, profileInfoList } from '@/reactive/useProfileInfoList';
+import { IProfileItem, profileInfoList } from '@/reactive/useProfileInfoList';
 
 function onCloseModal() {
     profileInfoList.state.contentModalVisible = false
@@ -184,7 +174,7 @@ function onCopyProductName(productName: string) {
     toast.show('success', MessagesEnum.ProductNameCopied)
 }
 
-function onSort(profile: IProfileItem, sortBy: TypeReviewsSortBy) {
+function onSort(profile: IProfileItem, sortBy: string) {
     profileInfoList.sortResults(profile, sortBy)
 }
 

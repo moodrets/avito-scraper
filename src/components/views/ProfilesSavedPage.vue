@@ -163,15 +163,15 @@ async function onEditProfile(profile: IProfileItemDB) {
 async function onDeleteProfile(profile: IProfileItemDB) {
     if (window.confirm(`Удаляем "${profile.name}" ?`) && profile.id) {
         await profileSavedList.apiProfileDelete(profile)
-        setTimeout(() => {
-            profileSavedList.apiGetList()
+        setTimeout(async () => {
+            profileSavedList.list.value = await profileSavedList.apiGetList()
         }, 0)
     }
 }
 
 onMounted(async () => {
-    setTimeout(() => {
-        profileSavedList.apiGetList()
+    setTimeout(async () => {
+        profileSavedList.list.value = await profileSavedList.apiGetList()
     }, 0)
 })
 

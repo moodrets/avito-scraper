@@ -62,10 +62,12 @@ class ProfileSavedList {
         }
     }
 
-    public async apiGetList(offset: number = 0, limit: number = 0) {
+    public async apiGetList(offset: number = 0, limit: number = 0): Promise<IProfileItemDB[]> {
         if (offset === 0 && limit === 0) {
-            this.list.value = await DB.savedProfiles.toArray()
+            return await DB.savedProfiles.toArray()
         }
+        
+        return []
     }
 
     async apiProfileUpdate(profile: IProfileItemDB) {

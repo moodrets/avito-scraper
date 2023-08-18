@@ -1,7 +1,6 @@
 <template>
     <form 
-        class="pb-20 transition-opacity duration-300 delay-100"
-        :class="componentLoaded ? 'opacity-100' : 'opacity-0'"
+        class="pb-14 transition-opacity duration-300 delay-100"
         @submit.prevent="onSubmit"
     >
         <div class="grid grid-cols-4 gap-5">
@@ -141,8 +140,6 @@ import { toast } from '@/helpers/toast';
 import { MessagesEnum } from '@/types/enums';
 import { profileInfoList } from '@/reactive/useProfileInfoList';
 
-const componentLoaded = ref<boolean>(false)
-
 const datePickers: Record<string, any> = {
     dateFrom: null,
     dateTo: null,
@@ -202,17 +199,13 @@ onMounted(() => {
     datePickers.dateTo = new AirDatepicker('#dateTo', datePickersConfig)
     datePickers.dateFrom.selectDate(getDateTwoMonthAgo())
     datePickers.dateTo.selectDate(new Date())
-    
-    setTimeout(async () => {
-        const storageResult = await reviewsFilter.setFilterFromDB()
 
+    setTimeout(async () => {
+        const storageResult = await reviewsFilter.apiGetFilter()
         if (storageResult) {
             datePickers.dateFrom.selectDate(storageResult.dateFrom)
             datePickers.dateTo.selectDate(storageResult.dateTo)
         }
-
-        componentLoaded.value = true
-
     }, 0)
 })
 

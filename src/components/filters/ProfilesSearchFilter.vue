@@ -1,5 +1,5 @@
 <template>
-    <form @submit.prevent="onSubmit()" :class="{'pointer-events-none': profilesFilter.state.loading}">
+    <form class="pb-14" :class="{'pointer-events-none': profilesFilter.state.loading}" @submit.prevent="onSubmit()">
         <div class="grid grid-cols-4 gap-5">
             <div class="col-span-4">
                 <div class="mb-2 text-sm font-medium">Страница категории</div>
@@ -55,38 +55,10 @@
                 theme="danger" 
                 type="button" 
                 icon="delete_sweep"
+                @click="profilesFilter.clearProfilesList()"
             >Очистить список</Button>
         </div>
     </form>
-    <div v-if="profilesFilter.state.profilesList.length" class="mt-10 pb-10">
-        <div class="mb-8 font-bold text-xl">
-            <div>Найдено продавцов - <strong>{{ profilesFilter.state.profilesList.length }}</strong></div>
-        </div>
-        <table class="w-full relative">
-            <tr class="text-[16px] sticky top-[64px] bg-gray-600">
-                <th class="text-left px-4 py-2 border border-white border-opacity-50">Имя</th>
-                <th class="text-left px-4 py-2 border border-white border-opacity-50">Рейтинг</th>
-                <th class="text-left px-4 py-2 border border-white border-opacity-50">Отзывы</th>
-                <th class="text-left px-4 py-2 border border-white border-opacity-50">Найден в базе</th>
-            </tr>
-            <tr v-for="profile in profilesFilter.state.profilesList" :key="profile.name" class="text-[14px] hover:bg-gray-600">
-                <td class="px-4 py-2 border border-white border-opacity-50 font-medium">
-                    <div class="flex items-center gap-4">
-                        <a class="text-white hover:text-white text-xl font-medium border-b border-dashed border-white" target="_blank" :href="profile.url">{{ profile.name }}</a>
-                    </div>
-                </td>
-                <td class="px-4 py-2 border border-white border-opacity-50 font-medium">
-                    {{ profile.rating }}
-                </td>
-                <td class="px-4 py-2 border border-white border-opacity-50 font-medium">
-                    {{ profile.reviewsCount }}
-                </td>
-                <td class="px-4 py-2 border border-white border-opacity-50 font-medium">
-                    <strong class="text-red-400">Нет</strong>
-                </td>
-            </tr>
-        </table>
-    </div>
 </template>
 
 <script setup lang="ts">
