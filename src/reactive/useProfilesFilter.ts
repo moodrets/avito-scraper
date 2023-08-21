@@ -98,10 +98,14 @@ class ProfilesFilter {
             copyArray.sort((a, b) => Number(a.existsInDataBase) - Number(b.existsInDataBase))
         }
 
-        this.state.profilesList = copyArray
+        this.state.profilesList = []
+
+        setTimeout(()=>{
+            this.state.profilesList = [...copyArray]
+        }, 0)
     }
 
-    public async checkProfilesInDB(){
+    public async checkProfilesInDB() {
         let dbProfileList = await profileSavedList.apiGetList()
 
         this.state.profilesList.forEach(profile => {

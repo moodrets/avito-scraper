@@ -42,7 +42,7 @@ const isDangerMode = computed<boolean>(() => {
     return urlParams.has('danger') ? true : false 
 })
 
-async function onDrop(){
+async function onDrop() {
     if (window.confirm('Удаляем базу данных ?')) {
         // if (window.confirm('Вы точно в этом уверены ?')) {
             try {
