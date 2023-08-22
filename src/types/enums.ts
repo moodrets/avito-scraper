@@ -20,7 +20,7 @@ export enum MessagesEnum {
     ProfileEditeError = 'Не удалось обновить профиль',
     ProfileDeleted = 'Профиль успешно удален',
     ProfileDeleteError = 'Не удалось удалить профиль',
-    ProfileLinkCopied = 'Ссылка скопирована в буффер',
+    ProfileLinkCopied = 'Ссылка профиля скопирована в буффер',
     ProfileLinkAddedInReviewsFilter = 'Ссылка профиля вставлена в форму фильтра',
     ProfileInfoListAddedInDB = 'Список профилей сохранен',
     ProfileInfoListRemovedFromDB = 'Список профилей очищен',

@@ -1,7 +1,7 @@
 <template>
     <div
         class="flex items-center cursor-pointer select-none whitespace-nowrap" 
-        @click="onSort"
+        @click.prevent="onSort"
     >
         <div 
             class="font-icon mr-2" 

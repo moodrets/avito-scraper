@@ -6,13 +6,14 @@ export function initDBCollections(version: number = 1) {
     DB.version(version).stores({
         reviewsFilter: `
             key,
-            productName, 
+            productName,
             dateFrom, 
             dateTo, 
             ratingFrom, 
             ratingTo, 
             scrollInterval, 
             deliveryOnly, 
+            closeTabs, 
             *profilesLinks
         `,
         profileInfoList: `

@@ -5,12 +5,13 @@ import { MessagesEnum } from "@/types/enums"
 import { dateFromDatepickerString } from "@/helpers/date"
 import { createTab } from "@/helpers/common"
 import { profileInfoList } from "@/reactive/useProfileInfoList"
+import { profilesSearchedList } from "./useProfilesSearchedList"
 
 export interface IProfileLink {
-    status: 'success' | 'error' | 'wait' | 'new',
-    url: string,
-    highlight: boolean,
-    info?: string,
+    status: 'success' | 'error' | 'wait' | 'new'
+    url: string
+    highlight: boolean
+    info?: string
 }
 
 export interface IReviewsFilterFields {
@@ -20,7 +21,8 @@ export interface IReviewsFilterFields {
     dateTo: string
     ratingFrom: number
     ratingTo: number
-    deliveryOnly: false
+    deliveryOnly: boolean
+    closeTabs: boolean
 }
 
 class ReviewsFilter {
@@ -34,6 +36,7 @@ class ReviewsFilter {
         ratingFrom: 4,
         ratingTo: 5,
         deliveryOnly: false,
+        closeTabs: true
     }) as IReviewsFilterFields
 
     public openedTab = ref<Record<string, any>>({})
@@ -66,8 +69,13 @@ class ReviewsFilter {
         });
     }
 
-    public profileLinkRemove(index: number) {
-        this.fields.profilesLinks.splice(index, 1)
+    public profileLinkRemove(link: IProfileLink, index: number) {
+        profilesSearchedList.removeLinksFromParsingFilter(link.url)
+        if (this.fields.profilesLinks.length === 1) {
+            this.fields.profilesLinks[0].url = ''
+        } else {
+            this.fields.profilesLinks.splice(index, 1)
+        }
         this.profileLinksHighlightDuplicates()
     }
 
@@ -112,8 +120,9 @@ class ReviewsFilter {
                 this.fields.profilesLinks = result.profilesLinks
                 this.fields.ratingFrom = result.ratingFrom
                 this.fields.ratingTo = result.ratingTo
-                this.fields.deliveryOnly = result.deliveryOnly
                 this.fields.productName = result.productName
+                this.fields.deliveryOnly = result.deliveryOnly
+                this.fields.closeTabs = result.closeTabs
 
                 return result
             }
@@ -136,6 +145,7 @@ class ReviewsFilter {
         this.fields.ratingFrom = 4
         this.fields.ratingTo = 5
         this.fields.deliveryOnly = false
+        this.fields.closeTabs = true
         
         await this.apiRemoveFilter()
     }

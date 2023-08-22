@@ -25,7 +25,7 @@
                     type="button"
                     icon="remove_red_eye"
                     @click.stop.prevent="onViewMoreThan"
-                > >= 5</Button>
+                > >= 10</Button>
                 <Button
                     v-if="profileInfoList.state.removeInfoListButtonVisible && profileInfoList.list.value.length"
                     theme="danger" 

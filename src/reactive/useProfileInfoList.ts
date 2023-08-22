@@ -6,15 +6,6 @@ import { MessagesEnum } from '@/types/enums'
 import { toLocaleString } from '@/helpers/date'
 import { copyToBuffer } from '@/helpers/common'
 
-type TypeResultExtended = IReviewsItem & {
-    color: {
-        text: string,
-        bg: string
-    }, 
-    info: string,
-    count: number
-}
-
 export interface IReviewsItem {
     date: number
     dateText: string
@@ -22,6 +13,15 @@ export interface IReviewsItem {
     delivery: boolean
     rating: number
     profileUrl: string
+}
+
+export interface IReviewsItemExt extends IReviewsItem {
+    color: {
+        text: string,
+        bg: string
+    }, 
+    info: string,
+    count: number
 }
 
 export interface IProfileItem {
@@ -53,7 +53,7 @@ class ProfileInfoList {
     public list = ref<IProfileItem[]>([])
 
     public state = reactive<{
-        contentModalData: TypeResultExtended[],
+        contentModalData: IReviewsItemExt[],
         contentModalVisible: boolean
         viewAllButtonVisible: boolean
         viewMoreThanButtonVisible: boolean
@@ -146,16 +146,16 @@ class ProfileInfoList {
         }
     }
 
-    public getMoreThanResults(moreThan: number = 5): TypeResultExtended[] {
-        let resultsList: TypeResultExtended[] = []
-        let resultMap : Map<string, TypeResultExtended[]> = new Map()
+    public getMoreThanResults(moreThan: number = 10): IReviewsItemExt[] {
+        let resultsList: IReviewsItemExt[] = []
+        let resultMap : Map<string, IReviewsItemExt[]> = new Map()
         
         this.list.value.forEach(profile => {
             profile.reviewsList?.forEach(resultItem => {
                 if (resultMap.has(resultItem.productName)) {
                     let mapValue = resultMap.get(resultItem.productName)
                     if (mapValue) {
-                        let newMapValue: TypeResultExtended[] = [...mapValue, {
+                        let newMapValue: IReviewsItemExt[] = [...mapValue, {
                             ...resultItem,
                             color: profile.color,
                             info: `${profile.name} / ${profile.rating} / ${profile.reviewsCount} / ${profile.subscribers} / ${profile.deliveryInfo}`,
@@ -187,7 +187,7 @@ class ProfileInfoList {
 
         resultMap.clear()
 
-        let copyArray = JSON.parse(JSON.stringify(resultsList)) as TypeResultExtended[]
+        let copyArray = JSON.parse(JSON.stringify(resultsList)) as IReviewsItemExt[]
         copyArray.sort((a,b) => a.count > b.count ? -1 : a.count < b.count ? 1 : 0)
 
         resultsList = copyArray
@@ -195,8 +195,8 @@ class ProfileInfoList {
         return resultsList
     }
 
-    public getAllResults(): TypeResultExtended[] {
-        let resultsList: TypeResultExtended[] = []
+    public getAllResults(): IReviewsItemExt[] {
+        let resultsList: IReviewsItemExt[] = []
 
         this.list.value.forEach(profile => {
             profile.reviewsList?.forEach((resultItem) => {
@@ -209,7 +209,7 @@ class ProfileInfoList {
             })
         })
 
-        let copyArray = JSON.parse(JSON.stringify(resultsList)) as TypeResultExtended[]
+        let copyArray = JSON.parse(JSON.stringify(resultsList)) as IReviewsItemExt[]
         copyArray.sort((a, b) => a.productName.localeCompare(b.productName))
 
         resultsList = copyArray

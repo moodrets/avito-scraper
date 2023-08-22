@@ -6,11 +6,11 @@
         <Header></Header>
         <main class="centered">
             <KeepAlive>
-                <ProfilesSearchPage v-if="appTabs.active.value === AppTabsEnum.ProfilesSearch"></ProfilesSearchPage>
-                <ProfilesParsedPage v-if="appTabs.active.value === AppTabsEnum.ProfilesParsing"></ProfilesParsedPage>
+                <ProfilesSearchPage v-if="appTabs.active.value === AppTabsEnum.ProfilesSearch" />
+                <ProfilesParsedPage v-if="appTabs.active.value === AppTabsEnum.ProfilesParsing" />
             </KeepAlive>
-            <ProfilesSavedPage v-if="appTabs.active.value === AppTabsEnum.ProfilesSaved"></ProfilesSavedPage>
-            <SettingsPage v-if="appTabs.active.value === AppTabsEnum.Settings"></SettingsPage>
+            <ProfilesSavedPage v-if="appTabs.active.value === AppTabsEnum.ProfilesSaved" />
+            <SettingsPage v-if="appTabs.active.value === AppTabsEnum.Settings" />
         </main>
     </div>
 </template>
@@ -31,7 +31,7 @@ import { reviewsFilter } from '@/reactive/useReviewsFilter';
 import { profileInfoList } from '@/reactive/useProfileInfoList';
 import { profileSavedList } from '@/reactive/useProfileSavedList';
 import { MessagesEnum } from '@/types/enums';
-import { profilesFilter } from '@/reactive/useProfilesFilter';
+import { profilesSearchedList } from '@/reactive/useProfilesSearchedList';
 
 const appLoaded = ref<boolean>(false)
 
@@ -99,26 +99,26 @@ onMounted(async () => {
 
         if (action === 'profiles-parsing-started') {
             if (status === 'success') {
-                profilesFilter.state.loading = true
+                profilesSearchedList.state.loading = true
             }
         }
 
         if (action === 'profiles-parsing-current-page') {
             if (status === 'success') {
-                profilesFilter.state.currentPage = data
+                profilesSearchedList.state.currentPage = data
             }
         }
 
         if (action === 'profiles-parsing-ended') {
             if (status === 'success') {
-                profilesFilter.state.loading = false
+                profilesSearchedList.state.loading = false
                 toast.show('success', MessagesEnum.ProfilesParsingEnded, {duration: 172800})
                 setExtensionTabActive()
-                profilesFilter.pushProfileList(data)
+                profilesSearchedList.pushProfileList(data)
             }
 
             if (status === 'error') {
-                profilesFilter.state.loading = false
+                profilesSearchedList.state.loading = false
                 toast.show('error', MessagesEnum.ProfilesParsingError, {duration: 172800})
             }
         }
@@ -130,7 +130,7 @@ onMounted(async () => {
 
     profileInfoList.list.value = await profileInfoList.apiGetInfoList()
     
-    setTimeout(()=>{
+    setTimeout(() => {
         reviewsFilter.setFilterFromDB()
     }, 0)
 })

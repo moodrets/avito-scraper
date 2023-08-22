@@ -27,8 +27,8 @@
                             :class="{'ring-4 ring-red-400': link.highlight}"
                             @input="onInputLink(link, $event)"
                         >
-                        <div v-if="reviewsFilter.fields.profilesLinks.length > 1" class="flex-none cursor-pointer select-none">
-                            <i class="font-icon text-3xl block text-red-400" @click="reviewsFilter.profileLinkRemove(linkIndex)">remove_circle_outline</i>
+                        <div class="flex-none cursor-pointer select-none">
+                            <i class="font-icon text-3xl block text-red-400" @click="reviewsFilter.profileLinkRemove(link, linkIndex)">remove_circle_outline</i>
                         </div>
                         <div class="flex-none cursor-pointer select-none ml-auto">
                             <i class="font-icon text-3xl block text-green-400" @click="reviewsFilter.profileLinkPushNew()">add_circle_outline</i>
@@ -70,7 +70,6 @@
                     class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
                 >
             </div>
-            
             <div>
                 <div class="mb-2 text-sm font-medium">Рейтинг от</div>
                 <input 
@@ -95,11 +94,17 @@
                     class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
                 >
             </div>
-            <div class="col-span-4 select-none">
-                <label class="inline-block">
-                    <div class="mb-3 text-sm font-medium">Только с доставкой</div>
-                    <Switch :tabindex="6" v-model="reviewsFilter.fields.deliveryOnly"></Switch>
-                </label>
+            <div class="col-span-4">
+                <div class="flex items-center">
+                    <label class="inline-block w-1/4">
+                        <div class="mb-3 text-sm font-medium">Только с доставкой</div>
+                        <Switch :tabindex="6" v-model="reviewsFilter.fields.deliveryOnly"></Switch>
+                    </label>
+                    <label class="inline-block w-1/4">
+                        <div class="mb-3 text-sm font-medium">Закрывать вкладки</div>
+                        <Switch :tabindex="7" v-model="reviewsFilter.fields.closeTabs"></Switch>
+                    </label>
+                </div>
             </div>
         </div>
         <div class="flex items-center gap-4 mt-10">
@@ -131,7 +136,7 @@
 import Button from '@/components/common/Button.vue';
 import Switch from '@/components/common/Switch.vue';
 
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { onBeforeUnmount, onMounted } from 'vue';
 import AirDatepicker from 'air-datepicker';
 import { getDateTwoMonthAgo } from '@/helpers/date';
 import { reviewsFilter } from '@/reactive/useReviewsFilter';

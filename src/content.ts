@@ -1,6 +1,7 @@
 import { IReviewsFilterFields } from "@/reactive/useReviewsFilter"
 import { IProfileItem, IReviewsItem } from "@/reactive/useProfileInfoList"
-import { IProfileFilterFields, IProfileInAdd } from "@/reactive/useProfilesFilter";
+import { IProfileFilterFields } from "@/reactive/useProfilesFilter";
+import { IProfileInAdd } from "@/reactive/useProfilesSearchedList";
 
 enum MessagesEnum {
     InfoNotFound = 'Информация не найдена',
@@ -354,6 +355,10 @@ class ReviewsFactory {
                     data: reviewsFilteredList,
                 });
 
+                if (this.filterFields.closeTabs) {
+                    window.close()
+                }
+
             } else {
                 this.parseReviews('next')
             }
@@ -403,14 +408,6 @@ class ProfilesFactory {
     protected currentPageNumber: number = 0
 
     protected profilesCollection: IProfileInAdd[] = []
-
-    protected get pagesRange() {
-        let pagesRangeSplit = this.filterFields.pagesRange.split('-')
-        return {
-            start: pagesRangeSplit[0],
-            end: pagesRangeSplit[1]
-        }
-    }
 
     protected getFilteredList() {
         let profilesList = [...this.profilesCollection]
@@ -464,7 +461,7 @@ class ProfilesFactory {
 
     protected async apiGetAdds(requestType: 'first' | 'next') {
         if (requestType === 'first') {
-            this.currentPageNumber = +this.pagesRange.start
+            this.currentPageNumber = +this.filterFields.pageStart
         }
         
         if (requestType === 'next') {
@@ -498,7 +495,7 @@ class ProfilesFactory {
                 this.profilesCollection.push(profileItemData)
             })
 
-            if (this.currentPageNumber === +this.pagesRange.end) {
+            if (this.currentPageNumber === +this.filterFields.pageEnd) {
                 await sendMessage({
                     action: 'profiles-parsing-ended',
                     status: 'success',

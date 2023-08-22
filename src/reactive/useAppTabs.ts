@@ -24,7 +24,7 @@ class AppTabs {
         },
         {
             value: AppTabsEnum.ProfilesParsing,
-            text: 'Парсинг продавцов',
+            text: 'Парсинг',
             icon: 'tune',
         },
         {
