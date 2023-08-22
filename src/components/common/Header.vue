@@ -13,26 +13,19 @@
 
             <div class="flex items-center gap-3 ml-auto">
                 <Button
-                    v-if="profileInfoList.state.viewAllButtonVisible && profileInfoList.list.value.length > 1"
+                    v-if="profilesParsedList.state.viewAllButtonVisible && profilesParsedList.list.value.length > 1"
                     theme="success" 
                     type="button"
                     icon="remove_red_eye"
                     @click.stop.prevent="onViewAll"
                 >Все результаты</Button>
                 <Button
-                    v-if="profileInfoList.state.viewMoreThanButtonVisible && profileInfoList.list.value.length > 1"
+                    v-if="profilesParsedList.state.viewMoreThanButtonVisible && profilesParsedList.list.value.length > 1"
                     theme="success" 
                     type="button"
                     icon="remove_red_eye"
                     @click.stop.prevent="onViewMoreThan"
                 > >= 10</Button>
-                <Button
-                    v-if="profileInfoList.state.removeInfoListButtonVisible && profileInfoList.list.value.length"
-                    theme="danger" 
-                    type="button"
-                    icon="delete_sweep"
-                    @click.stop.prevent="onRemoveProfileInfoList"
-                ></Button>
             </div>
 
             <Button 
@@ -52,22 +45,15 @@
 <script lang="ts" setup>
 import Button from '@/components/common/Button.vue'
 import { AppTabsEnum, appTabs } from '@/reactive/useAppTabs';
-import { profileInfoList } from '@/reactive/useProfileInfoList';
+import { profilesParsedList } from '@/reactive/useProfilesParsedList';
 
 async function onViewAll() {
-    profileInfoList.state.contentModalVisible = true
-    profileInfoList.state.contentModalData = profileInfoList.getAllResults()
+    profilesParsedList.state.contentModalVisible = true
+    profilesParsedList.state.contentModalData = profilesParsedList.getAllResults()
 }
 
 async function onViewMoreThan() {
-    profileInfoList.state.contentModalVisible = true
-    profileInfoList.state.contentModalData = profileInfoList.getMoreThanResults()
-}
-
-async function onRemoveProfileInfoList() {
-    if (window.confirm('Удаляем список профилей ?')) {
-        profileInfoList.list.value = []
-        profileInfoList.apiRemoveInfoList()
-    }
+    profilesParsedList.state.contentModalVisible = true
+    profilesParsedList.state.contentModalData = profilesParsedList.getMoreThanResults()
 }
 </script>

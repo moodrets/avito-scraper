@@ -1,5 +1,5 @@
 import { IReviewsFilterFields } from "@/reactive/useReviewsFilter"
-import { IProfileItem, IReviewsItem } from "@/reactive/useProfileInfoList"
+import { IProfileItem, IReviewsItem } from "@/reactive/useProfilesParsedList"
 
 enum MessagesEnum {
     InfoNotFound = 'Информация не найдена',

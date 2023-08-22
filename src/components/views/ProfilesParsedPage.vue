@@ -1,9 +1,9 @@
 <template>
     <ProfilesParseFilter></ProfilesParseFilter>
-    <ProfilesInfoList></ProfilesInfoList>
+    <ProfilesParsedList></ProfilesParsedList>
 </template>
 
 <script setup lang="ts">
 import ProfilesParseFilter from '@/components/filters/ProfilesParseFilter.vue'
-import ProfilesInfoList from '@/components/list/ProfilesInfoList.vue'
+import ProfilesParsedList from '@/components/list/ProfilesParsedList.vue'
 </script>

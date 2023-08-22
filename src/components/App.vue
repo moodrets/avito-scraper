@@ -28,10 +28,11 @@ import { toast } from '@/helpers/toast';
 import { initDBCollections } from '@/db/db';
 import { AppTabsEnum, appTabs } from '@/reactive/useAppTabs';
 import { reviewsFilter } from '@/reactive/useReviewsFilter';
-import { profileInfoList } from '@/reactive/useProfileInfoList';
+import { profilesParsedList } from '@/reactive/useProfilesParsedList';
 import { profileSavedList } from '@/reactive/useProfileSavedList';
 import { MessagesEnum } from '@/types/enums';
 import { profilesSearchedList } from '@/reactive/useProfilesSearchedList';
+import { profilesFilter } from '@/reactive/useProfilesFilter';
 
 const appLoaded = ref<boolean>(false)
 
@@ -39,6 +40,8 @@ onMounted(async () => {
 
     initDBCollections()
 
+    appTabs.setActiveTabFromStorage()
+    
     chrome.runtime.onMessage.addListener(async ({
         message,
         action,
@@ -58,7 +61,7 @@ onMounted(async () => {
 
         if (action === 'reviews-parsing-ended') {
             if (status === 'success') {
-                profileInfoList.pushResultsByUrl(currentUrl, data)
+                profilesParsedList.pushResultsByUrl(currentUrl, data)
                 profileSavedList.pushParsingResult(currentUrl)
                 
                 const currentProfileLink = reviewsFilter.profileLinkGetByUrl(currentUrl)
@@ -79,22 +82,13 @@ onMounted(async () => {
                 toast.show('success', MessagesEnum.ParsingReviewsFinished, {duration: 172800})
                 appTabs.changeTab(AppTabsEnum.ProfilesParsing)
                 setExtensionTabActive()
+                reviewsFilter.apiCreateFilter()
             }
         }
 
         if (action === 'profile-info') {
-            profileInfoList.list.value.push(data)
-
-            let linkInfo = `
-                ${data.name}&nbsp;&nbsp;/&nbsp;&nbsp; 
-                ${data.rating}&nbsp;&nbsp;/&nbsp;&nbsp; 
-                ${data.reviewsCount}&nbsp;&nbsp;/&nbsp;&nbsp; 
-                ${data.subscribers}&nbsp;&nbsp;/&nbsp;&nbsp; 
-                ${data.deliveryInfo}&nbsp;&nbsp;/&nbsp;&nbsp;
-                Активные ${data.activeAdds}
-                ${data.completedAdds ? '&nbsp;&nbsp;/&nbsp;&nbsp; Завершенные ' + data.completedAdds : ''}
-            `
-            reviewsFilter.profileLinkSetInfo(currentUrl, linkInfo)
+            profilesParsedList.list.value.push(data)
+            reviewsFilter.profileLinkSetInfo(currentUrl, data)
         }
 
         if (action === 'profiles-parsing-started') {
@@ -115,6 +109,7 @@ onMounted(async () => {
                 toast.show('success', MessagesEnum.ProfilesParsingEnded, {duration: 172800})
                 setExtensionTabActive()
                 profilesSearchedList.pushProfileList(data)
+                appTabs.changeTab(AppTabsEnum.ProfilesSearch)
             }
 
             if (status === 'error') {
@@ -128,10 +123,11 @@ onMounted(async () => {
         appLoaded.value = true
     }
 
-    profileInfoList.list.value = await profileInfoList.apiGetInfoList()
+    profilesParsedList.list.value = await profilesParsedList.apiGetInfoList()
     
     setTimeout(() => {
         reviewsFilter.setFilterFromDB()
+        profilesFilter.setFilterFromDB()
     }, 0)
 })
 </script>

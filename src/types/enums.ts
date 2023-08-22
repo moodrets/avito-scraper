@@ -1,12 +1,18 @@
 export enum MessagesEnum {
     // filter
-    ReviewsFilterSaved = 'Фильтр сохранен',
-    ReviewsFilterSaveError = 'Не удалось сохранить фильтр',
-    ReviewsFilterCleared = 'Фильтр сброшен',
-    ReviewsFilterClearError = 'Не удалось удалить фильтр из базы',
-    ReviewsFilterGetError = 'Не удалось достать фильтр из базы',
+    ReviewsFilterSaved = 'Фильтр парсинга сохранен',
+    ReviewsFilterSaveError = 'Не удалось сохранить фильтр парсинга',
+    ReviewsFilterCleared = 'Фильтр парсинга сброшен',
+    ReviewsFilterClearError = 'Не удалось удалить фильтр парсинга из базы',
+    ReviewsFilterGetError = 'Не удалось достать фильтр парсинга из базы',
     ReviewsFilterAllLinksParsed = 'Все ссылки уже прошли парсинг',
-    ReviewsFilterSimilarLinks = 'В фильтре присутствуют одинаковые ссылки',
+    ReviewsFilterSimilarLinks = 'В фильтре парсинга присутствуют одинаковые ссылки',
+    // profiles search filter
+    ProfilesSearchFilterSaved = 'Фильтр поиска сохранен',
+    ProfilesSearchFilterSaveError = 'Не удалось сохранить фильтр поиска',
+    ProfilesSearchFilterCleared = 'Фильтр поиска сброшен',
+    ProfilesSearchFilterClearError = 'Не удалось удалить фильтр поиска из базы',
+    ProfilesSearchFilterGetError = 'Не удалось достать фильтр поиска из базы',
     // parsing
     ParsingReviewsCanceled = 'Парсинг отзывов отменен',
     ParsingReviewsStarted = 'Парсинг отзывов запущен',

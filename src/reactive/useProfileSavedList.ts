@@ -2,7 +2,7 @@ import DB from "@/db/db"
 import { ref } from "vue"
 import { toast } from "@/helpers/toast"
 import { MessagesEnum } from "@/types/enums"
-import { profileInfoList } from "@/reactive/useProfileInfoList"
+import { profilesParsedList } from "@/reactive/useProfilesParsedList"
 
 export interface IParsingResultItem {
     parsingDate: number
@@ -35,8 +35,8 @@ class ProfileSavedList {
     public async pushParsingResult(url: string) {
         try {
 
-            let profileInfoByUrl = profileInfoList.list.value.find(item => item.url === url)
-            let rows = await DB.savedProfiles.where("url").equals(url).toArray()
+            let profileInfoByUrl = profilesParsedList.list.value.find(item => item.url === url)
+            let rows = await DB.profilesSavedList.where("url").equals(url).toArray()
 
             if (rows.length && rows[0] && profileInfoByUrl) {
                 let copyProfileByUrl = JSON.parse(JSON.stringify(profileInfoByUrl))
@@ -52,7 +52,7 @@ class ProfileSavedList {
                     completedAdds: copyProfileByUrl.completedAdds,
                 })
 
-                const result = await DB.savedProfiles.put(resultProfile)
+                const result = await DB.profilesSavedList.put(resultProfile)
             }
 
         } catch (error: any) {
@@ -64,7 +64,7 @@ class ProfileSavedList {
 
     public async apiGetList(offset: number = 0, limit: number = 0): Promise<IProfileItemDB[]> {
         if (offset === 0 && limit === 0) {
-            return await DB.savedProfiles.toArray()
+            return await DB.profilesSavedList.toArray()
         }
         
         return []
@@ -77,7 +77,7 @@ class ProfileSavedList {
             copyProfile.opened = false
             copyProfile.loading = false
     
-            const result = await DB.savedProfiles.put(copyProfile);
+            const result = await DB.profilesSavedList.put(copyProfile);
 
             if (result) {
                 toast.show('success', MessagesEnum.ProfileEdited)
@@ -95,7 +95,7 @@ class ProfileSavedList {
     
     async apiProfileDelete(profile: IProfileItemDB) {
         try {
-            await DB.savedProfiles.delete(profile.id)
+            await DB.profilesSavedList.delete(profile.id)
             toast.show('success', MessagesEnum.ProfileDeleted)
         } catch(error: any) {
             console.log(error);

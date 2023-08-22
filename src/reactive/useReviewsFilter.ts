@@ -4,7 +4,7 @@ import { toast } from "@/helpers/toast"
 import { MessagesEnum } from "@/types/enums"
 import { dateFromDatepickerString } from "@/helpers/date"
 import { createTab } from "@/helpers/common"
-import { profileInfoList } from "@/reactive/useProfileInfoList"
+import { IProfileItem, profilesParsedList } from "@/reactive/useProfilesParsedList"
 import { profilesSearchedList } from "./useProfilesSearchedList"
 
 export interface IProfileLink {
@@ -86,11 +86,19 @@ class ReviewsFilter {
         })
     }
 
-    public profileLinkSetInfo(url: string, data: string) {
+    public profileLinkSetInfo(url: string, data: IProfileItem) {
         const linkByUrl = this.profileLinkGetByUrl(url)
 
         if (linkByUrl) {
-            linkByUrl.info = data
+            linkByUrl.info = `
+                ${data.name}&nbsp;&nbsp;/&nbsp;&nbsp; 
+                ${data.rating}&nbsp;&nbsp;/&nbsp;&nbsp; 
+                ${data.reviewsCount}&nbsp;&nbsp;/&nbsp;&nbsp; 
+                ${data.subscribers}&nbsp;&nbsp;/&nbsp;&nbsp; 
+                ${data.deliveryInfo}&nbsp;&nbsp;/&nbsp;&nbsp;
+                Активные ${data.activeAdds}
+                ${data.completedAdds ? '&nbsp;&nbsp;/&nbsp;&nbsp; Завершенные ' + data.completedAdds : ''}
+            `
         }
     }
 
@@ -155,9 +163,11 @@ class ReviewsFilter {
 
             if (this.profileLinkNew) {
 
+                this.apiCreateFilter()
+
                 // чистим результаты парсинга в соответствии с урлами фильтра
                 const profileUrlsFromFilter = this.fields.profilesLinks.map(item => item.url)
-                profileInfoList.list.value = profileInfoList.list.value.filter(profile => profileUrlsFromFilter.includes(profile.url) || profile.marked)
+                profilesParsedList.list.value = profilesParsedList.list.value.filter(profile => profileUrlsFromFilter.includes(profile.url) || profile.marked)
 
                 const currentTab = await createTab(this.profileLinkNew.url)
                 this.openedTab.value = currentTab
@@ -180,7 +190,7 @@ class ReviewsFilter {
 
     public async apiRemoveFilter() {
         try {
-            await DB.reviewsFilter.where('key').equals('reviewsFilter').delete()
+            await DB.profilesParseFilter.clear()
             toast.show('warning', MessagesEnum.ReviewsFilterCleared)
 
         } catch(error: any) {
@@ -190,7 +200,7 @@ class ReviewsFilter {
     }
 
     public async apiGetFilter() {
-        const rows = await DB.reviewsFilter.where('key').equals('reviewsFilter').toArray()
+        const rows = await DB.profilesParseFilter.toArray()
 
         if (rows.length && rows[0]) {
             const result = {...rows[0]}
@@ -208,13 +218,8 @@ class ReviewsFilter {
             copyFilter.dateFrom = dateFromDatepickerString(copyFilter.dateFrom)
             copyFilter.dateTo = dateFromDatepickerString(copyFilter.dateTo)
 
-            const rows = await DB.reviewsFilter.where("key").equals('reviewsFilter').toArray()
-
-            if (rows.length) {
-                DB.reviewsFilter.update('reviewsFilter', {...copyFilter, key: 'reviewsFilter'})
-            } else {
-                DB.reviewsFilter.add({...copyFilter, key: 'reviewsFilter'})
-            }
+            await DB.profilesParseFilter.clear()
+            await DB.profilesParseFilter.add(copyFilter)
 
             toast.show('success', MessagesEnum.ReviewsFilterSaved)
     

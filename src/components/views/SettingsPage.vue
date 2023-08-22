@@ -1,5 +1,12 @@
 <template>
     <div class="relative p-5 shadow-xl rounded-xl mb-5 bg-gray-600">
+        <div class="text-2xl font-bold mb-6">Модули</div>
+        <div class="flex flex-wrap items-center gap-5">
+            <Button theme="info" icon="save" @click.stop="onSaveFilters">Сохранить данные</Button>
+            <Button theme="danger" icon="restore" @click.stop="onDropFilters">Сбросить данные</Button>
+        </div>
+    </div>
+    <div class="relative p-5 shadow-xl rounded-xl mb-5 bg-gray-600">
         <Spinner v-if="blocksLoading.dbLoading" class="w-8 h-8 absolute right-5 top-5"></Spinner>
         <div class="text-2xl font-bold mb-6">База данных</div>
         <div class="flex flex-wrap items-center gap-5">
@@ -14,7 +21,7 @@
             <Button theme="info" icon="cloud_download" @click="onExportDB">Экспорт</Button>
         </div>
     </div>
-    <div class="p-5 shadow-xl rounded-xl mb-5 bg-gray-600">
+    <div class="relative p-5 shadow-xl rounded-xl mb-5 bg-gray-600">
         <div class="text-2xl font-bold mb-6 text-red-400">Осторожно!</div>
         <div class="flex flex-wrap items-center gap-5">
             <Button theme="danger" icon="delete_sweep" @click.stop="onClear">Очистить localStorage</Button>
@@ -28,6 +35,8 @@ import Button from '@/components/common/Button.vue'
 import Spinner from '@/components/common/Spinner.vue'
 import DB from '@/db/db';
 import { toast } from '@/helpers/toast';
+import { profilesFilter } from '@/reactive/useProfilesFilter';
+import { reviewsFilter } from '@/reactive/useReviewsFilter';
 
 import { MessagesEnum } from '@/types/enums';
 import { exportDB } from 'dexie-export-import';
@@ -44,17 +53,25 @@ const isDangerMode = computed<boolean>(() => {
 
 async function onDrop() {
     if (window.confirm('Удаляем базу данных ?')) {
-        // if (window.confirm('Вы точно в этом уверены ?')) {
-            try {
-                await DB.close()
-                window.indexedDB.deleteDatabase("avito_scraper");
-                toast.show('error', MessagesEnum.DBDropSuccess)
-                window.location.reload()
-            } catch(error: any) {
-                toast.show('error', MessagesEnum.DBDropError)
-            }
-        // }
+        try {
+            await DB.close()
+            window.indexedDB.deleteDatabase("avito_scraper");
+            toast.show('error', MessagesEnum.DBDropSuccess)
+            window.location.reload()
+        } catch(error: any) {
+            toast.show('error', MessagesEnum.DBDropError)
+        }
     }
+}
+
+async function onSaveFilters() {
+    reviewsFilter.apiCreateFilter()
+    profilesFilter.apiCreateFilter()
+}
+
+async function onDropFilters() {
+    reviewsFilter.apiRemoveFilter()
+    profilesFilter.apiRemoveFilter()
 }
 
 async function onClear() {

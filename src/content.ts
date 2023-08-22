@@ -1,5 +1,5 @@
 import { IReviewsFilterFields } from "@/reactive/useReviewsFilter"
-import { IProfileItem, IReviewsItem } from "@/reactive/useProfileInfoList"
+import { IProfileItem, IReviewsItem } from "@/reactive/useProfilesParsedList"
 import { IProfileFilterFields } from "@/reactive/useProfilesFilter";
 import { IProfileInAdd } from "@/reactive/useProfilesSearchedList";
 

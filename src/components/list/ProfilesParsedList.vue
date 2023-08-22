@@ -1,7 +1,7 @@
 <template>
-    <div v-if="profileInfoList.list.value.length" class="pb-10">
+    <div v-if="profilesParsedList.list.value.length" class="pb-10">
         <div
-            v-for="profile in profileInfoList.list.value"
+            v-for="profile in profilesParsedList.list.value"
             :key="profile.url"
             class="relative rounded-xl shadow-xl bg-gray-600 text-[16px] mb-3"
             :class="profile.opened ? 'ring ring-blue-400' : ''"
@@ -33,18 +33,11 @@
                     </div>
                 </div>
                 <div class="flex-none flex items-center gap-4">
-                    <div v-if="profile.existsInDataBase" class="flex-none">
-                        <i class="font-icon text-3xl text-white drop-shadow-xl">storage</i>
-                    </div>
-                    <div v-else class="flex-none ml-auto" @click.stop="onSave(profile)">
-                        <i class="font-icon text-3xl text-white drop-shadow-xl">cloud_upload</i>
-                    </div>
-                    <div class="flex-none" @click.stop="onCopy(profile)">
-                        <i class="font-icon text-3xl text-white drop-shadow-xl">content_copy</i>
-                    </div>
-                    <div class="flex-none" @click.stop="onMark(profile)">
-                        <div class="font-icon text-3xl drop-shadow-xl">{{ profile.marked ? 'bookmark' : 'bookmark_border' }}</div>
-                    </div>
+                    <i v-if="profile.existsInDataBase" class="font-icon text-3xl text-white drop-shadow-xl">storage</i>
+                    <i v-else class="font-icon text-3xl text-white drop-shadow-xl" @click.stop="onSave(profile)">cloud_upload</i>
+                    <i class="font-icon text-3xl text-white drop-shadow-xl" @click.stop="onCopy(profile)">content_copy</i>
+                    <i class="font-icon text-3xl drop-shadow-xl" @click.stop="onMark(profile)">{{ profile.marked ? 'bookmark' : 'bookmark_border' }}</i>
+                    <i class="font-icon text-3xl drop-shadow-xl">delete_forever</i>
                 </div>
             </div>
             
@@ -126,13 +119,13 @@
         </div>
         
         <Modal
-            v-if="profileInfoList.state.contentModalVisible"
+            v-if="profilesParsedList.state.contentModalVisible"
             width="800px"
             @close="onCloseModal"
         >
-            <template v-if="profileInfoList.state.contentModalData.length">
+            <template v-if="profilesParsedList.state.contentModalData.length">
                 <div
-                    v-for="result in profileInfoList.state.contentModalData" 
+                    v-for="result in profilesParsedList.state.contentModalData" 
                     class="flex text-sm items-center gap-2 py-0.5 px-1 mb-[2px] mr-5 font-medium"
                     :style="{'background-color': result.color.bg, 'color': result.color.text}"
                     :title="result.info"
@@ -166,11 +159,11 @@ import { copyToBuffer } from '@/helpers/common';
 import { toLocaleString } from '@/helpers/date'
 import { MessagesEnum } from '@/types/enums';
 import { toast } from '@/helpers/toast';
-import { IProfileItem, IReviewsItemExt, profileInfoList } from '@/reactive/useProfileInfoList';
+import { IProfileItem, IReviewsItemExt, profilesParsedList } from '@/reactive/useProfilesParsedList';
 
 function onCloseModal() {
-    profileInfoList.state.contentModalVisible = false
-    profileInfoList.state.contentModalData = []
+    profilesParsedList.state.contentModalVisible = false
+    profilesParsedList.state.contentModalData = []
 }
 
 function onCopyProductName(productName: string) {
@@ -184,7 +177,7 @@ function onCopyProfileUrl(review: IReviewsItemExt) {
 }
 
 function onSort(profile: IProfileItem, sortBy: string) {
-    profileInfoList.sortResults(profile, sortBy)
+    profilesParsedList.sortResults(profile, sortBy)
 }
 
 function onOpenResults(profile: IProfileItem) {
@@ -203,30 +196,28 @@ function onMark(profile: IProfileItem) {
 }
 
 async function onSave(profile: IProfileItem) {
-    profileInfoList.apiProfileCreate(profile)
+    profilesParsedList.apiProfileCreate(profile)
 }
 
 async function onCopy(profile: IProfileItem) {
-    profileInfoList.copyItemInfo(profile)
+    profilesParsedList.copyItemInfo(profile)
 }
 
 onBeforeUnmount(() => {
-    profileInfoList.state.viewAllButtonVisible = false
-    profileInfoList.state.viewMoreThanButtonVisible = false
-    profileInfoList.state.removeInfoListButtonVisible = false
+    profilesParsedList.state.viewAllButtonVisible = false
+    profilesParsedList.state.viewMoreThanButtonVisible = false
 })
 
 onMounted(async () => {
-    profileInfoList.state.viewAllButtonVisible = true
-    profileInfoList.state.viewMoreThanButtonVisible = true
-    profileInfoList.state.removeInfoListButtonVisible = true
+    profilesParsedList.state.viewAllButtonVisible = true
+    profilesParsedList.state.viewMoreThanButtonVisible = true
 
-    profileInfoList.list.value.forEach(async profile => {
-        await profileInfoList.apiProfileCheckInDB(profile)
+    profilesParsedList.list.value.forEach(async profile => {
+        await profilesParsedList.apiProfileCheckInDB(profile)
     })
 
-    if (profileInfoList.list.value.length === 1) {
-        profileInfoList.list.value[0].opened = true
+    if (profilesParsedList.list.value.length === 1) {
+        profilesParsedList.list.value[0].opened = true
     }
 })
 </script>

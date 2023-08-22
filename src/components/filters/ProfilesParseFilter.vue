@@ -115,35 +115,33 @@
                 icon="find_in_page"
             >Начать парсинг</Button>
             <Button
-                tabindex="8"
-                theme="info" 
-                type="button" 
-                icon="save"
-                @click.stop.prevent="onSave" 
-            >Сохранить фильтр</Button>
-            <Button 
-                tabindex="11"
                 theme="warning" 
                 type="button" 
-                icon="restore" 
-                @click.stop.prevent="onReset"
-            >Сбросить фильтр</Button>
+                icon="delete"
+                @click.stop="onRemoveProfilesListUnmarked"
+            >Очистить незакрепленные</Button>
+            <Button
+                theme="danger" 
+                type="button" 
+                icon="delete_forever"
+                @click.stop="onRemoveProfilesListAll"
+            >Очистить весь список</Button>
         </div>
     </form>
 </template>
 
 <script setup lang="ts">
-import Button from '@/components/common/Button.vue';
-import Switch from '@/components/common/Switch.vue';
+import Button from '@/components/common/Button.vue'
+import Switch from '@/components/common/Switch.vue'
 
-import { onBeforeUnmount, onMounted } from 'vue';
-import AirDatepicker from 'air-datepicker';
-import { getDateTwoMonthAgo } from '@/helpers/date';
-import { reviewsFilter } from '@/reactive/useReviewsFilter';
-import { IProfileLink } from '@/reactive/useReviewsFilter';
-import { toast } from '@/helpers/toast';
-import { MessagesEnum } from '@/types/enums';
-import { profileInfoList } from '@/reactive/useProfileInfoList';
+import { onBeforeUnmount, onMounted } from 'vue'
+import AirDatepicker from 'air-datepicker'
+import { getDateTwoMonthAgo } from '@/helpers/date'
+import { reviewsFilter } from '@/reactive/useReviewsFilter'
+import { IProfileLink } from '@/reactive/useReviewsFilter'
+import { toast } from '@/helpers/toast'
+import { MessagesEnum } from '@/types/enums'
+import { profilesParsedList } from '@/reactive/useProfilesParsedList'
 
 const datePickers: Record<string, any> = {
     dateFrom: null,
@@ -170,24 +168,18 @@ function onInputLink(link: IProfileLink, event: Event) {
     link.info = ''
 }
 
-async function onReset() {
-    if (window.confirm('Сбросить фильтр ?')) {
-        reviewsFilter.resetFields()
-        datePickers.dateFrom.selectDate(getDateTwoMonthAgo()) 
-        datePickers.dateTo.selectDate(new Date())
-        profileInfoList.list.value = profileInfoList.list.value.filter(profile => profile.marked)
-        profileInfoList.apiRemoveInfoListOnlyUnmarked()
+async function onRemoveProfilesListAll() {
+    if (window.confirm('Очистить весь список ?')) {
+        profilesParsedList.list.value = []
+        profilesParsedList.apiRemoveInfoList()
     }
 }
 
-async function onSave() {
-    if (reviewsFilter.profileLinkHighlighted) {
-        toast.show('error', MessagesEnum.ReviewsFilterSimilarLinks)
-        return
+async function onRemoveProfilesListUnmarked() {
+    if (window.confirm('Очистить список незакрепленных?')) {
+        profilesParsedList.list.value = profilesParsedList.list.value.filter(profile => profile.marked)
+        profilesParsedList.apiRemoveInfoListOnlyUnmarked()
     }
-
-    reviewsFilter.apiCreateFilter()
-    profileInfoList.apiCreateInfoList()
 }
 
 async function onSubmit() {

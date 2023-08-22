@@ -34,8 +34,16 @@ class AppTabs {
         },
     ]
 
-    public changeTab(key: AppTabsEnum) {
+    public async changeTab(key: AppTabsEnum) {
         this.active.value = key
+        chrome.storage.local.set({activeTab: key})
+    }
+
+    public async setActiveTabFromStorage() {
+        const { activeTab } = await chrome.storage.local.get('activeTab')
+        if (activeTab) {
+            this.active.value = activeTab
+        }
     }
 }
 

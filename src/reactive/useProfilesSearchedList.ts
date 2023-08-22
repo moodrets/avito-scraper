@@ -1,6 +1,7 @@
 import { reactive } from "vue"
 import { profileSavedList } from "@/reactive/useProfileSavedList"
 import { reviewsFilter } from "@/reactive/useReviewsFilter"
+import { isEqual, orderBy, uniqWith } from 'lodash'
 
 export interface IProfileInAdd {
     url: string
@@ -30,42 +31,43 @@ export class ProfilesSearchedList {
     public sortProfileList(sortType: string = 'name_asc') {
         this.state.profilesListSortType = sortType
         let copyArray = JSON.parse(JSON.stringify(this.state.profilesList)) as IProfileInAdd[]
+        let resultArray: IProfileInAdd[] = []
 
         if (sortType === 'name_desc') {
-            copyArray.sort((a, b) => b.name.localeCompare(a.name))
+            resultArray = orderBy(copyArray, ['name'], ['desc'])
         }
         
         if (sortType === 'name_asc') {
-            copyArray.sort((a, b) => a.name.localeCompare(b.name))
+            resultArray = orderBy(copyArray, ['name'], ['asc'])
         }
 
         if (sortType === 'rating_desc') {
-            copyArray.sort((a, b) => a.rating > b.rating ? -1 : a.rating < b.rating ? 1 : 0)
+            resultArray = orderBy(copyArray, ['rating'], ['desc'])
         }
 
         if (sortType === 'rating_asc') {
-            copyArray.sort((a, b) => a.rating > b.rating ? 1 : a.rating < b.rating ? -1 : 0)
+            resultArray = orderBy(copyArray, ['rating'], ['asc'])
         }
 
         if (sortType === 'reviews_desc') {
-            copyArray.sort((a, b) => a.reviewsCount > b.reviewsCount ? -1 : a.reviewsCount < b.reviewsCount ? 1 : 0)
+            resultArray = orderBy(copyArray, ['reviewsCount'], ['desc'])
         }
 
         if (sortType === 'reviews_asc') {
-            copyArray.sort((a, b) => a.reviewsCount > b.reviewsCount ? 1 : a.reviewsCount < b.reviewsCount ? -1 : 0)
+            resultArray = orderBy(copyArray, ['reviewsCount'], ['asc'])
         }
 
         if (sortType === 'db_exist_desc') {
-            copyArray.sort((a, b) => Number(b.existsInDataBase) - Number(a.existsInDataBase))
+            resultArray = orderBy(copyArray, ['existsInDataBase'], ['desc', 'asc'])
         }
 
         if (sortType === 'db_exist_asc') {
-            copyArray.sort((a, b) => Number(a.existsInDataBase) - Number(b.existsInDataBase))
+            resultArray = orderBy(copyArray, ['existsInDataBase'], ['asc', 'desc'])
         }
 
         this.state.profilesList = []
 
-        this.state.profilesList = [...copyArray]
+        this.state.profilesList = resultArray
     }
 
     public async checkProfilesInDB() {
@@ -83,9 +85,7 @@ export class ProfilesSearchedList {
     }
 
     public pushProfileList(profilesList: IProfileInAdd[]) {
-        let resultArr:any = [...profilesList, ...this.state.profilesList]
-        resultArr = new Set(resultArr.map((item: any) => JSON.stringify(item)))
-        resultArr = [...resultArr].map(item => JSON.parse(item))
+        let resultArr = uniqWith(profilesList, isEqual)
         this.state.profilesList = resultArr
         this.sortProfileList()
         this.checkProfilesInDB()

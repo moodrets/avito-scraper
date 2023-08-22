@@ -5,6 +5,7 @@ import { toast } from '@/helpers/toast'
 import { MessagesEnum } from '@/types/enums'
 import { toLocaleString } from '@/helpers/date'
 import { copyToBuffer } from '@/helpers/common'
+import { orderBy } from 'lodash'
 
 export interface IReviewsItem {
     date: number
@@ -49,7 +50,7 @@ export interface IProfileItem {
     reviewsList?: IReviewsItem[]
 }
 
-class ProfileInfoList {
+class ProfilesParseList {
     public list = ref<IProfileItem[]>([])
 
     public state = reactive<{
@@ -57,13 +58,11 @@ class ProfileInfoList {
         contentModalVisible: boolean
         viewAllButtonVisible: boolean
         viewMoreThanButtonVisible: boolean
-        removeInfoListButtonVisible: boolean
     }>({
         contentModalData: [],
         contentModalVisible: false,
         viewAllButtonVisible: false,
         viewMoreThanButtonVisible: false,
-        removeInfoListButtonVisible: false
     })
 
     public pushProfileInfo(profile: IProfileItem) {
@@ -80,45 +79,47 @@ class ProfileInfoList {
     }
 
     public sortResults(profile: IProfileItem, sortBy: string) {
-        if (profile.reviewsList) {
+        if (!profile.reviewsList) return
 
-            profile.reviewsSortedBy = sortBy
-            let copyArray = JSON.parse(JSON.stringify(profile.reviewsList)) as IReviewsItem[]
+        profile.reviewsSortedBy = sortBy
+        let copyArray = JSON.parse(JSON.stringify(profile.reviewsList)) as IReviewsItem[]
+        let resultArray: IReviewsItem[] = []
 
-            if (sortBy === 'product_name_asc') {
-                copyArray.sort((a, b) => a.productName.localeCompare(b.productName))
-            }
-
-            if (sortBy === 'product_name_desc') {
-                copyArray.sort((a, b) => b.productName.localeCompare(a.productName))
-            }
-        
-            if (sortBy === 'rating_desc') {
-                copyArray.sort((a, b) => a.rating > b.rating ? -1 : a.rating < b.rating ? 1 : 0)
-            }
-
-            if (sortBy === 'rating_asc') {
-                copyArray.sort((a, b) => a.rating > b.rating ? 1 : a.rating < b.rating ? -1 : 0)
-            }
-        
-            if (sortBy === 'date_desc') {
-                copyArray.sort((a, b) => a.date > b.date ? -1 : a.date < b.date ? 1 : 0)
-            }
-
-            if (sortBy === 'date_asc') {
-                copyArray.sort((a, b) => a.date > b.date ? 1 : a.date < b.date ? -1 : 0)
-            }
-
-            if (sortBy === 'delivery_desc') {
-                copyArray.sort((a, b) => Number(b.delivery) - Number(a.delivery))
-            }
-
-            if (sortBy === 'delivery_asc') {
-                copyArray.sort((a, b) => Number(a.delivery) - Number(b.delivery))
-            }
-
-            profile.reviewsList = copyArray
+        if (sortBy === 'product_name_desc') {
+            resultArray = orderBy(copyArray, ['productName'], ['desc'])
         }
+
+        if (sortBy === 'product_name_asc') {
+            resultArray = orderBy(copyArray, ['productName'], ['asc'])
+        }
+        
+        if (sortBy === 'rating_desc') {
+            resultArray = orderBy(copyArray, ['rating'], ['desc'])
+        }
+
+        if (sortBy === 'rating_asc') {
+            resultArray = orderBy(copyArray, ['rating'], ['asc'])
+        }
+    
+        if (sortBy === 'date_desc') {
+            resultArray = orderBy(copyArray, ['date'], ['desc'])
+        }
+
+        if (sortBy === 'date_asc') {
+            resultArray = orderBy(copyArray, ['date'], ['asc'])
+        }
+
+        if (sortBy === 'delivery_desc') {
+            resultArray = orderBy(copyArray, ['delivery'], ['desc', 'asc'])
+        }
+
+        if (sortBy === 'delivery_asc') {
+            resultArray = orderBy(copyArray, ['delivery'], ['asc', 'desc'])
+        }
+
+        profile.reviewsList = []
+
+        profile.reviewsList = resultArray
     }
 
     public copyItemInfo(profile: IProfileItem) {
@@ -218,7 +219,7 @@ class ProfileInfoList {
     }
 
     public async apiProfileCheckInDB(profile: IProfileItem) {
-        let rows = await DB.savedProfiles.where("url").equals(profile.url).toArray()
+        let rows = await DB.profilesSavedList.where("url").equals(profile.url).toArray()
 
         if (rows.length && rows[0]) {
             let foundProfile = rows[0]
@@ -238,8 +239,8 @@ class ProfileInfoList {
             let itemsToDB = JSON.parse(JSON.stringify(this.list.value))
 
             if (itemsToDB.length) {
-                DB.profileInfoList.clear()
-                DB.profileInfoList.bulkAdd(itemsToDB)
+                DB.profilesParsedList.clear()
+                DB.profilesParsedList.bulkAdd(itemsToDB)
                 toast.show('success', MessagesEnum.ProfileInfoListAddedInDB)
             }
 
@@ -253,7 +254,7 @@ class ProfileInfoList {
     public async apiGetInfoList(): Promise<IProfileItem[]> {
         try {
 
-            const rows = await DB.profileInfoList.toArray()
+            const rows = await DB.profilesParsedList.toArray()
 
             if (rows.length) {
                 return rows
@@ -271,7 +272,7 @@ class ProfileInfoList {
     public async apiRemoveInfoList(): Promise<void> {
         try {
 
-            await DB.profileInfoList.clear()
+            await DB.profilesParsedList.clear()
             toast.show('success', MessagesEnum.ProfileInfoListRemovedFromDB)
 
         } catch (error: any) {
@@ -284,9 +285,9 @@ class ProfileInfoList {
     public async apiRemoveInfoListOnlyUnmarked(): Promise<void> {
         try {
 
-            let rows = await DB.profileInfoList.filter((profile: IProfileItem) => profile.marked === false).toArray()
+            let rows = await DB.profilesParsedList.filter((profile: IProfileItem) => profile.marked === false).toArray()
             let ids = rows.map((profile: IProfileItem) => profile.id)
-            await DB.profileInfoList.bulkDelete(ids)
+            await DB.profilesParsedList.bulkDelete(ids)
             toast.show('warning', MessagesEnum.ProfileInfoListRemovedFromDB)
 
         } catch (error: any) {
@@ -320,14 +321,12 @@ class ProfileInfoList {
                 ]
             }
 
-            const resultID = await DB.savedProfiles.add(newProfile)
+            const resultID = await DB.profilesSavedList.add(newProfile)
 
             profile.id = resultID
             profile.existsInDataBase = true
             profile.savedDate = newProfile.savedDate
             profile.comment = newProfile.comment
-
-            toast.show('success', MessagesEnum.ProfileCreated)
 
         } catch(error: any) {
             console.log(error);
@@ -338,4 +337,4 @@ class ProfileInfoList {
     }
 }
 
-export const profileInfoList = new ProfileInfoList()
+export const profilesParsedList = new ProfilesParseList()
