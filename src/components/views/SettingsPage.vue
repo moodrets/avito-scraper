@@ -23,10 +23,9 @@
         </div>
     </div>
     <div class="relative p-5 shadow-xl rounded-xl mb-5 bg-gray-600">
-        <div class="text-2xl font-bold mb-6 text-red-400">Осторожно!</div>
+        <div class="text-2xl font-bold mb-6 text-red-400">Осторожно</div>
         <div class="flex flex-wrap items-center gap-5">
-            <Button theme="danger" icon="delete_sweep" @click.stop="onClear">Очистить localStorage</Button>
-            <Button theme="danger" icon="delete_forever" @click.stop="onDrop">Очистить IndexedDB</Button>
+            <Button theme="danger" icon="delete_forever" @click.stop="onClearAppData">Очистить базу</Button>
         </div>
     </div>
 </template>
@@ -54,11 +53,12 @@ const isDangerMode = computed<boolean>(() => {
     return urlParams.has('danger') ? true : false 
 })
 
-async function onDrop() {
+async function onClearAppData() {
     if (window.confirm('Удаляем базу данных ?')) {
         try {
             await DB.close()
-            window.indexedDB.deleteDatabase("avito_scraper");
+            await chrome.storage.local.clear()
+            window.indexedDB.deleteDatabase("avito_scraper")
             chrome.storage.local.set({appStartMessage: MessagesEnum.DBDropSuccess})
             window.location.reload()
         } catch(error: any) {
@@ -84,13 +84,6 @@ async function onDropModulesData() {
         profilesSearchedList.list.value = []
         profilesParsedList.apiRemoveList()
         profilesSearchedList.apiRemoveList()
-    }
-}
-
-async function onClear() {
-    if (window.confirm('Чистим хранилище ?')) {
-        await chrome.storage.local.clear()
-        window.location.reload()
     }
 }
 
