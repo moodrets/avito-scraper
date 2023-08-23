@@ -1,3 +1,5 @@
+import { toast } from "@/helpers/toast";
+
 export async function createTab(url: string): Promise<chrome.tabs.Tab> {
     return new Promise(resolve => {
         chrome.tabs.create({url, active: true}, async tab => {
@@ -53,4 +55,13 @@ export function copyToBuffer(text: string) {
 
 export function randomNumberBetween(min: number, max: number) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+export async function showAppStartMessageFromStorage() {
+    const { appStartMessage } = await chrome.storage.local.get('appStartMessage')
+
+    if (appStartMessage) {
+        toast.show('success', appStartMessage) 
+        chrome.storage.local.remove(['appStartMessage'])
+    }
 }

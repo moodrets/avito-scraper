@@ -7,8 +7,10 @@ import { createTab } from "@/helpers/common"
 import { IProfileItem, profilesParsedList } from "@/reactive/useProfilesParsedList"
 import { profilesSearchedList } from "./useProfilesSearchedList"
 
+export type TypeProfileLinkStatus = 'success' | 'error' | 'wait' | 'new'
+
 export interface IProfileLink {
-    status: 'success' | 'error' | 'wait' | 'new'
+    status: TypeProfileLinkStatus
     url: string
     highlight: boolean
     info?: string
@@ -120,6 +122,13 @@ class ReviewsFilter {
         link.url = target.value.trim()
     }
 
+    public profileLinkSetStatus(url: string, status: TypeProfileLinkStatus) {
+        const linkByUrl = this.profileLinkGetByUrl(url)
+        if (linkByUrl) {
+            linkByUrl.status = status
+        }
+    }
+
     public async setFilterFromDB() {
         try {
             const result = await this.apiGetFilter()
@@ -154,16 +163,12 @@ class ReviewsFilter {
         this.fields.ratingTo = 5
         this.fields.deliveryOnly = false
         this.fields.closeTabs = true
-        
-        await this.apiRemoveFilter()
     }
 
     public async parsingStart() {
         try {
 
             if (this.profileLinkNew) {
-
-                this.apiCreateFilter()
 
                 // чистим результаты парсинга в соответствии с урлами фильтра
                 const profileUrlsFromFilter = this.fields.profilesLinks.map(item => item.url)

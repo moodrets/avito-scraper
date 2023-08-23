@@ -2,8 +2,8 @@
     <div class="relative p-5 shadow-xl rounded-xl mb-5 bg-gray-600">
         <div class="text-2xl font-bold mb-6">Модули</div>
         <div class="flex flex-wrap items-center gap-5">
-            <Button theme="info" icon="save" @click.stop="onSaveFilters">Сохранить данные</Button>
-            <Button theme="danger" icon="restore" @click.stop="onDropFilters">Сбросить данные</Button>
+            <Button theme="info" icon="save" @click.stop="onSaveModulesData">Сохранить данные</Button>
+            <Button theme="danger" icon="restore" @click.stop="onDropModulesData">Сбросить данные</Button>
         </div>
     </div>
     <div class="relative p-5 shadow-xl rounded-xl mb-5 bg-gray-600">
@@ -15,6 +15,7 @@
                     type="file"
                     accept="application/JSON" 
                     class="p-0 m-0 absolute inset-0 z-10 opacity-0 cursor-pointer"
+                    @change="onImportDB"
                 >
                 <span class="pointer-events-none">Импорт</span>
             </Button>
@@ -36,10 +37,12 @@ import Spinner from '@/components/common/Spinner.vue'
 import DB from '@/db/db';
 import { toast } from '@/helpers/toast';
 import { profilesFilter } from '@/reactive/useProfilesFilter';
+import { profilesParsedList } from '@/reactive/useProfilesParsedList';
 import { reviewsFilter } from '@/reactive/useReviewsFilter';
+import { profilesSearchedList } from '@/reactive/useProfilesSearchedList';
 
 import { MessagesEnum } from '@/types/enums';
-import { exportDB } from 'dexie-export-import';
+import { exportDB, importDB } from 'dexie-export-import';
 import { computed, reactive } from 'vue';
 
 const blocksLoading = reactive({
@@ -56,7 +59,7 @@ async function onDrop() {
         try {
             await DB.close()
             window.indexedDB.deleteDatabase("avito_scraper");
-            toast.show('error', MessagesEnum.DBDropSuccess)
+            chrome.storage.local.set({appStartMessage: MessagesEnum.DBDropSuccess})
             window.location.reload()
         } catch(error: any) {
             toast.show('error', MessagesEnum.DBDropError)
@@ -64,20 +67,52 @@ async function onDrop() {
     }
 }
 
-async function onSaveFilters() {
+async function onSaveModulesData() {
     reviewsFilter.apiCreateFilter()
     profilesFilter.apiCreateFilter()
+    profilesParsedList.apiCreateList()
+    profilesSearchedList.apiCreateList()
 }
 
-async function onDropFilters() {
-    reviewsFilter.apiRemoveFilter()
-    profilesFilter.apiRemoveFilter()
+async function onDropModulesData() {
+    if (window.confirm('Удалям данные модулей ?')) {
+        reviewsFilter.resetFields()
+        reviewsFilter.apiRemoveFilter()
+        profilesFilter.resetFields()
+        profilesFilter.apiRemoveFilter()
+        profilesParsedList.list.value = []
+        profilesSearchedList.list.value = []
+        profilesParsedList.apiRemoveList()
+        profilesSearchedList.apiRemoveList()
+    }
 }
 
 async function onClear() {
     if (window.confirm('Чистим хранилище ?')) {
         await chrome.storage.local.clear()
         window.location.reload()
+    }
+}
+
+async function onImportDB(event: Event) {
+    let target = event.target as HTMLInputElement
+    if (target.files && target.files[0]) {
+
+        try {
+            let file = target.files[0]
+            let blob = new Blob([file], {type: "application/json",});
+            await importDB(blob)
+            chrome.storage.local.set({appStartMessage: MessagesEnum.DBImportSuccess})
+            window.location.reload()
+
+        } catch (error: any) {
+
+            console.log(error);
+            toast.show('error', MessagesEnum.DBImportError)
+
+        } finally {
+
+        }
     }
 }
 

@@ -23,7 +23,7 @@ import ProfilesSavedPage from '@/components/views/ProfilesSavedPage.vue';
 import SettingsPage from '@/components/views/SettingsPage.vue';
 
 import { onMounted, ref } from 'vue';
-import { randomNumberBetween, setExtensionTabActive, wait } from '@/helpers/common';
+import { showAppStartMessageFromStorage, randomNumberBetween, setExtensionTabActive, wait } from '@/helpers/common';
 import { toast } from '@/helpers/toast';
 import { initDBCollections } from '@/db/db';
 import { AppTabsEnum, appTabs } from '@/reactive/useAppTabs';
@@ -39,8 +39,6 @@ const appLoaded = ref<boolean>(false)
 onMounted(async () => {
 
     initDBCollections()
-
-    appTabs.setActiveTabFromStorage()
     
     chrome.runtime.onMessage.addListener(async ({
         message,
@@ -55,22 +53,18 @@ onMounted(async () => {
         }
 
         if (action === 'reviews-parsing-started') {
-            const currentProfileLink = reviewsFilter.profileLinkGetByUrl(currentUrl)
-            currentProfileLink && (currentProfileLink.status = 'wait')
+            reviewsFilter.profileLinkSetStatus(currentUrl, 'wait')
         }
 
         if (action === 'reviews-parsing-ended') {
             if (status === 'success') {
                 profilesParsedList.pushResultsByUrl(currentUrl, data)
                 profileSavedList.pushParsingResult(currentUrl)
-                
-                const currentProfileLink = reviewsFilter.profileLinkGetByUrl(currentUrl)
-                currentProfileLink && (currentProfileLink.status = 'success')
+                reviewsFilter.profileLinkSetStatus(currentUrl, 'success')
             }
 
             if (status === 'error') {
-                const currentProfileLink = reviewsFilter.profileLinkGetByUrl(currentUrl)
-                currentProfileLink && (currentProfileLink.status = 'error')
+                reviewsFilter.profileLinkSetStatus(currentUrl, 'error')
             }
 
             if (reviewsFilter.profileLinkNew) {
@@ -79,10 +73,11 @@ onMounted(async () => {
                 toast.drop(waitOpenPageToast)
                 reviewsFilter.parsingStart()
             } else {
+                setExtensionTabActive()
                 toast.show('success', MessagesEnum.ParsingReviewsFinished, {duration: 172800})
                 appTabs.changeTab(AppTabsEnum.ProfilesParsing)
-                setExtensionTabActive()
                 reviewsFilter.apiCreateFilter()
+                profilesParsedList.apiCreateList()
             }
         }
 
@@ -103,13 +98,21 @@ onMounted(async () => {
             }
         }
 
+        if (action === 'profiles-parsing-category-info') {
+            if (status === 'success') {
+                profilesFilter.fields.pageTitle = data
+            }
+        }
+
         if (action === 'profiles-parsing-ended') {
             if (status === 'success') {
-                profilesSearchedList.state.loading = false
-                toast.show('success', MessagesEnum.ProfilesParsingEnded, {duration: 172800})
                 setExtensionTabActive()
-                profilesSearchedList.pushProfileList(data)
+                toast.show('success', MessagesEnum.ProfilesParsingEnded, {duration: 172800})
                 appTabs.changeTab(AppTabsEnum.ProfilesSearch)
+                profilesSearchedList.state.loading = false
+                profilesSearchedList.pushProfilesList(data)
+                profilesSearchedList.apiCreateList()
+                profilesFilter.apiCreateFilter()
             }
 
             if (status === 'error') {
@@ -123,11 +126,16 @@ onMounted(async () => {
         appLoaded.value = true
     }
 
-    profilesParsedList.list.value = await profilesParsedList.apiGetInfoList()
+    appTabs.setActiveTabFromStorage()
+
+    showAppStartMessageFromStorage()
     
-    setTimeout(() => {
+    setTimeout(async () => {
         reviewsFilter.setFilterFromDB()
         profilesFilter.setFilterFromDB()
+        profilesParsedList.list.value = await profilesParsedList.apiGetList()
+        profilesSearchedList.list.value = await profilesSearchedList.apiGetList()
+        profilesSearchedList.checkProfilesInParsingFilter()
     }, 0)
 })
 </script>

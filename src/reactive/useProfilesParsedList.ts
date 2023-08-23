@@ -218,22 +218,34 @@ class ProfilesParseList {
         return resultsList
     }
 
-    public async apiProfileCheckInDB(profile: IProfileItem) {
-        let rows = await DB.profilesSavedList.where("url").equals(profile.url).toArray()
+    public async apiRemoveProfile(id: number) {
+        try {
 
-        if (rows.length && rows[0]) {
-            let foundProfile = rows[0]
+            if (id) {
+                await DB.profilesParsedList.delete(id)
+            }
 
-            profile.id = foundProfile.id
-            profile.savedDate = foundProfile.savedDate
-            profile.comment = foundProfile.comment
-            profile.existsInDataBase = true
+        } catch(error: any) {
+
+        } finally {
+
         }
-    
-        return null
     }
 
-    public async apiCreateInfoList() {
+    public async apiUpdateProfile(profile: IProfileItem) {
+        try {
+
+            if (profile.id) {
+                let copyProfile = JSON.parse(JSON.stringify(profile))
+                await DB.profilesParsedList.update(copyProfile.id, {...copyProfile})
+            }
+            
+        } catch(error: any) {
+            console.log(error);
+        }
+    }
+
+    public async apiCreateList() {
         try {
 
             let itemsToDB = JSON.parse(JSON.stringify(this.list.value))
@@ -251,7 +263,7 @@ class ProfilesParseList {
         }
     }
 
-    public async apiGetInfoList(): Promise<IProfileItem[]> {
+    public async apiGetList(): Promise<IProfileItem[]> {
         try {
 
             const rows = await DB.profilesParsedList.toArray()
@@ -269,11 +281,11 @@ class ProfilesParseList {
         return []
     }
 
-    public async apiRemoveInfoList(): Promise<void> {
+    public async apiRemoveList(): Promise<void> {
         try {
 
             await DB.profilesParsedList.clear()
-            toast.show('success', MessagesEnum.ProfileInfoListRemovedFromDB)
+            toast.show('warning', MessagesEnum.ProfileInfoListRemovedFromDB)
 
         } catch (error: any) {
             console.log(error);
@@ -282,7 +294,7 @@ class ProfilesParseList {
         }
     }
 
-    public async apiRemoveInfoListOnlyUnmarked(): Promise<void> {
+    public async apiRemoveListUnmarkedOnly(): Promise<void> {
         try {
 
             let rows = await DB.profilesParsedList.filter((profile: IProfileItem) => profile.marked === false).toArray()
@@ -297,7 +309,7 @@ class ProfilesParseList {
         }
     }
 
-    public async apiProfileCreate(profile: IProfileItem) {
+    public async apiCreateProfile(profile: IProfileItem) {
         try {
             let copyProfile = JSON.parse(JSON.stringify(profile))
 
@@ -323,7 +335,6 @@ class ProfilesParseList {
 
             const resultID = await DB.profilesSavedList.add(newProfile)
 
-            profile.id = resultID
             profile.existsInDataBase = true
             profile.savedDate = newProfile.savedDate
             profile.comment = newProfile.comment

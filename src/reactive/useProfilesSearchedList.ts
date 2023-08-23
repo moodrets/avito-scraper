@@ -1,7 +1,10 @@
-import { reactive } from "vue"
+import { reactive, ref } from "vue"
 import { profileSavedList } from "@/reactive/useProfileSavedList"
 import { reviewsFilter } from "@/reactive/useReviewsFilter"
 import { isEqual, orderBy, uniqWith } from 'lodash'
+import DB from "@/db/db"
+import { toast } from "@/helpers/toast"
+import { MessagesEnum } from "@/types/enums"
 
 export interface IProfileInAdd {
     url: string
@@ -12,11 +15,13 @@ export interface IProfileInAdd {
 }
 
 export class ProfilesSearchedList {
+
+    public list = ref<IProfileInAdd[]>([])
+
     public state = reactive<{
         loading: boolean,
         currentPage: number,
         profilesListSortType: string,
-        profilesList: IProfileInAdd[],
         profilesInParsingFilter: {
             [key: string]: IProfileInAdd
         }
@@ -24,13 +29,12 @@ export class ProfilesSearchedList {
         loading: false,
         currentPage: 0,
         profilesListSortType: 'name_asc',
-        profilesList: [],
         profilesInParsingFilter: {} 
     })
 
     public sortProfileList(sortType: string = 'name_asc') {
         this.state.profilesListSortType = sortType
-        let copyArray = JSON.parse(JSON.stringify(this.state.profilesList)) as IProfileInAdd[]
+        let copyArray = JSON.parse(JSON.stringify(this.list.value)) as IProfileInAdd[]
         let resultArray: IProfileInAdd[] = []
 
         if (sortType === 'name_desc') {
@@ -65,15 +69,15 @@ export class ProfilesSearchedList {
             resultArray = orderBy(copyArray, ['existsInDataBase'], ['asc', 'desc'])
         }
 
-        this.state.profilesList = []
+        this.list.value = []
 
-        this.state.profilesList = resultArray
+        this.list.value = resultArray
     }
 
     public async checkProfilesInDB() {
         let dbProfileList = await profileSavedList.apiGetList()
 
-        this.state.profilesList.forEach(profile => {
+        this.list.value.forEach(profile => {
             let profileUrlHash = profile.url.split('/')[4]
             if (profileUrlHash) {
                 let foundInDb = dbProfileList.find(item => item.url.includes(profileUrlHash))
@@ -84,16 +88,16 @@ export class ProfilesSearchedList {
         })
     }
 
-    public pushProfileList(profilesList: IProfileInAdd[]) {
+    public pushProfilesList(profilesList: IProfileInAdd[]) {
         let resultArr = uniqWith(profilesList, isEqual)
-        this.state.profilesList = resultArr
+        this.list.value = resultArr
         this.sortProfileList()
         this.checkProfilesInDB()
         this.checkProfileInParsingFilter()
     }
 
     public checkProfileInParsingFilter() {
-        this.state.profilesList.forEach(profile => {
+        this.list.value.forEach(profile => {
             let findProfileInParsingFilter = reviewsFilter.profileLinkGetByUrl(profile.url)
             if (findProfileInParsingFilter) {
                 this.state.profilesInParsingFilter[profile.url] = profile     
@@ -107,8 +111,68 @@ export class ProfilesSearchedList {
 
     public clearProfilesList() {
         if (window.confirm('Удаляем список продавцов ?')) {
-            this.state.profilesList = []
+            this.list.value = []
             this.state.profilesInParsingFilter = {}
+            this.apiRemoveList()
+        }
+    }
+
+    public checkProfilesInParsingFilter() {
+        let paringFilterLinks = reviewsFilter.fields.profilesLinks 
+
+        paringFilterLinks.forEach(link => {
+            let foundProfileByUrl = this.list.value.find(profile => profile.url === link.url)
+            if (foundProfileByUrl) {
+                this.state.profilesInParsingFilter[foundProfileByUrl.url] = foundProfileByUrl
+            }
+        })
+    }
+
+    public async apiCreateList(): Promise<void> {
+        try {
+
+            let copyArray = JSON.parse(JSON.stringify(this.list.value))
+
+            if (copyArray.length) {
+                DB.profilesSearchedList.clear()
+                DB.profilesSearchedList.bulkAdd(copyArray)
+                toast.show('success', MessagesEnum.ProfilesSearchedListCreated)
+            }
+
+        } catch(error: any) {
+            console.log(error);
+        } finally {
+
+        }
+    }
+
+    public async apiGetList(): Promise<IProfileInAdd[]> {
+        try {
+
+            const rows = await DB.profilesSearchedList.toArray()
+
+            if (rows.length) {
+                return rows
+            }
+
+        } catch(error: any) {
+            console.log(error);
+        } finally {
+            
+        }
+
+        return []
+    }
+
+    public async apiRemoveList(): Promise<void> {
+        try {
+            await DB.profilesSearchedList.clear()
+            toast.show('warning', MessagesEnum.ProfileInfoListRemovedFromDB)
+
+        } catch(error: any) {
+            console.log(error);
+        } finally {
+            
         }
     }
 }

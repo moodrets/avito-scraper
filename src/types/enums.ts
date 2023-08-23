@@ -13,6 +13,9 @@ export enum MessagesEnum {
     ProfilesSearchFilterCleared = 'Фильтр поиска сброшен',
     ProfilesSearchFilterClearError = 'Не удалось удалить фильтр поиска из базы',
     ProfilesSearchFilterGetError = 'Не удалось достать фильтр поиска из базы',
+    ProfilesSearchedListCreated = 'Список найденных продавцов сохранен',
+    ProfilesSearchedListCreateError = 'Не удалось сохранить список найденных продавцов',
+    ProfilesSearchedListCleared = 'Список найденных продавцов очищен',
     // parsing
     ParsingReviewsCanceled = 'Парсинг отзывов отменен',
     ParsingReviewsStarted = 'Парсинг отзывов запущен',

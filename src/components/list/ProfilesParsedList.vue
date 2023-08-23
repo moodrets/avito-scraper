@@ -1,8 +1,8 @@
 <template>
     <div v-if="profilesParsedList.list.value.length" class="pb-10">
         <div
-            v-for="profile in profilesParsedList.list.value"
-            :key="profile.url"
+            v-for="profile, profileIndex in profilesParsedList.list.value"
+            :key="profileIndex"
             class="relative rounded-xl shadow-xl bg-gray-600 text-[16px] mb-3"
             :class="profile.opened ? 'ring ring-blue-400' : ''"
         >
@@ -33,11 +33,11 @@
                     </div>
                 </div>
                 <div class="flex-none flex items-center gap-4">
+                    <i class="font-icon text-3xl drop-shadow-xl" @click="onDeleteProfile(profile)">delete_forever</i>
                     <i v-if="profile.existsInDataBase" class="font-icon text-3xl text-white drop-shadow-xl">storage</i>
                     <i v-else class="font-icon text-3xl text-white drop-shadow-xl" @click.stop="onSave(profile)">cloud_upload</i>
-                    <i class="font-icon text-3xl text-white drop-shadow-xl" @click.stop="onCopy(profile)">content_copy</i>
                     <i class="font-icon text-3xl drop-shadow-xl" @click.stop="onMark(profile)">{{ profile.marked ? 'bookmark' : 'bookmark_border' }}</i>
-                    <i class="font-icon text-3xl drop-shadow-xl">delete_forever</i>
+                    <!-- <i class="font-icon text-3xl text-white drop-shadow-xl" @click.stop="onCopy(profile)">content_copy</i> -->
                 </div>
             </div>
             
@@ -91,12 +91,16 @@
                                     ></SortHeading>
                                 </th>
                             </tr>
-                            <tr v-for="item, index in profile.reviewsList" :key="profile.reviewsSortedBy + index" class="text-[14px] hover:bg-gray-600">
+                            <tr v-for="item, index in profile.reviewsList" :key="index" class="text-[14px] hover:bg-gray-600">
                                 <td class="px-4 py-2 border border-white border-opacity-50 font-medium">{{ toLocaleString(item.date)?.slice(0, 10) }}</td>
                                 <td class="px-4 py-2 border border-white border-opacity-50">
                                     <div class="flex-none flex items-center">
                                         <div class="text-base font-medium mr-1">({{ item.rating }}) - </div>
-                                        <div v-for="star in item.rating" class="text-[18px] font-icon text-yellow-400">star</div>
+                                        <div 
+                                            v-for="star, starIndex in item.rating"
+                                            :ley="starIndex" 
+                                            class="text-[18px] font-icon text-yellow-400"
+                                        >star</div>
                                     </div>
                                 </td>
                                 <td class="px-4 py-2 border border-white border-opacity-50">
@@ -125,7 +129,8 @@
         >
             <template v-if="profilesParsedList.state.contentModalData.length">
                 <div
-                    v-for="result in profilesParsedList.state.contentModalData" 
+                    v-for="result, resultIndex in profilesParsedList.state.contentModalData"
+                    :key="resultIndex" 
                     class="flex text-sm items-center gap-2 py-0.5 px-1 mb-[2px] mr-5 font-medium"
                     :style="{'background-color': result.color.bg, 'color': result.color.text}"
                     :title="result.info"
@@ -134,10 +139,12 @@
                         class="font-icon text-xl cursor-pointer drop-shadow-xl" 
                         @click="onCopyProductName(result.productName)"
                     >content_copy</i>
-                    <i 
+                    <a
+                        target="_blank"
+                        :href="result.profileUrl"
+                        :style="{color: result.color.text}"
                         class="font-icon text-xl cursor-pointer drop-shadow-xl" 
-                        @click="onCopyProfileUrl(result)"
-                    >account_box</i>
+                    >account_box</a>
                     <div>{{ result.productName }}</div>
                     <div v-if="!result.count">{{ toLocaleString(result.date)?.slice(0, 10) }}</div>
                     <strong v-if="result.count">({{ result.count }})</strong>
@@ -171,11 +178,6 @@ function onCopyProductName(productName: string) {
     toast.show('success', MessagesEnum.ProductNameCopied)
 }
 
-function onCopyProfileUrl(review: IReviewsItemExt) {
-    copyToBuffer(review.profileUrl)
-    toast.show('success', MessagesEnum.ProfileLinkCopied)
-}
-
 function onSort(profile: IProfileItem, sortBy: string) {
     profilesParsedList.sortResults(profile, sortBy)
 }
@@ -191,15 +193,34 @@ function onOpenLink(profile: IProfileItem) {
     }
 }
 
+async function onSave(profile: IProfileItem) {
+    await profilesParsedList.apiCreateProfile(profile)
+    
+    if (profile.id) {
+        profilesParsedList.apiUpdateProfile(profile)
+    }
+}
+
 function onMark(profile: IProfileItem) {
     profile.marked = !profile.marked
+    if (profile.id) {
+        profilesParsedList.apiUpdateProfile(profile)
+    }
 }
 
-async function onSave(profile: IProfileItem) {
-    profilesParsedList.apiProfileCreate(profile)
+async function onDeleteProfile(profile: IProfileItem) {
+    profilesParsedList.list.value = profilesParsedList.list.value.filter(profileItem => profileItem.id !== profile.id)
+    if (profile.id) {
+        profilesParsedList.apiRemoveProfile(profile.id)
+    }
 }
 
-async function onCopy(profile: IProfileItem) {
+function onCopyProfileUrl(review: IReviewsItemExt) {
+    copyToBuffer(review.profileUrl)
+    toast.show('success', MessagesEnum.ProfileLinkCopied)
+}
+
+function onCopyInfo(profile: IProfileItem) {
     profilesParsedList.copyItemInfo(profile)
 }
 
@@ -211,10 +232,6 @@ onBeforeUnmount(() => {
 onMounted(async () => {
     profilesParsedList.state.viewAllButtonVisible = true
     profilesParsedList.state.viewMoreThanButtonVisible = true
-
-    profilesParsedList.list.value.forEach(async profile => {
-        await profilesParsedList.apiProfileCheckInDB(profile)
-    })
 
     if (profilesParsedList.list.value.length === 1) {
         profilesParsedList.list.value[0].opened = true

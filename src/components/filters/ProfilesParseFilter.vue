@@ -171,14 +171,14 @@ function onInputLink(link: IProfileLink, event: Event) {
 async function onRemoveProfilesListAll() {
     if (window.confirm('Очистить весь список ?')) {
         profilesParsedList.list.value = []
-        profilesParsedList.apiRemoveInfoList()
+        profilesParsedList.apiRemoveList()
     }
 }
 
 async function onRemoveProfilesListUnmarked() {
     if (window.confirm('Очистить список незакрепленных?')) {
         profilesParsedList.list.value = profilesParsedList.list.value.filter(profile => profile.marked)
-        profilesParsedList.apiRemoveInfoListOnlyUnmarked()
+        profilesParsedList.apiRemoveListUnmarkedOnly()
     }
 }
 
@@ -188,6 +188,7 @@ async function onSubmit() {
         return
     }
 
+    reviewsFilter.apiCreateFilter()
     reviewsFilter.parsingStart()
 }
 

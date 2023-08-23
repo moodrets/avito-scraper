@@ -60,7 +60,10 @@
                             <th class="text-left px-4 py-2 border border-white border-opacity-50">Активные</th>
                             <th class="text-left px-4 py-2 border border-white border-opacity-50">Завершенные</th>
                         </tr>
-                        <tr v-for="parsingItem in profile.parsingResults">
+                        <tr 
+                            v-for="parsingItem, parsingItemIndex in profile.parsingResults" 
+                            :key="parsingItemIndex"
+                        >
                             <td class="text-left px-4 py-2 border border-white border-opacity-50">{{ toLocaleString(parsingItem.parsingDate) }}</td>
                             <td class="text-left px-4 py-2 border border-white border-opacity-50">{{ parsingItem.rating }}</td>
                             <td class="text-left px-4 py-2 border border-white border-opacity-50">{{ parsingItem.reviewsCount }}</td>

@@ -22,14 +22,33 @@ export function initDBCollections(version: number = 1) {
             categoryUrl,
             profileName,
             pageStart,
-            pageEnd
+            pageEnd,
+            pageTitle
+        `,
+        profilesSearchedList: `
+            ++id,
+            url,
+            name,
+            rating,
+            reviewsCount,
+            existsInDataBase
         `,
         profilesParsedList: `
             ++id,
-            &url,
-            name,
+            activeAdds,
+            color,
             comment,
+            completedAdds,
+            deliveryInfo,
             marked,
+            name,
+            opened,
+            parsingDate,
+            rating,
+            reviewsCount,
+            reviewsSortedBy,
+            subscribers,
+            url,
             *reviewsList
         `,
         profilesSavedList: `

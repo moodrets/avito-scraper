@@ -1,7 +1,7 @@
 <template>
-    <div v-if="profilesSearchedList.state.profilesList.length" class="pb-14">
+    <div v-if="profilesSearchedList.list.value.length" class="pb-14">
         <div class="mb-8 font-bold text-xl flex items-center gap-4">
-            <div>Найдено продавцов - <strong>{{ profilesSearchedList.state.profilesList.length }}</strong></div>
+            <div>Найдено продавцов - <strong>{{ profilesSearchedList.list.value.length }}</strong></div>
             <i
                 class="font-icon text-green-400 cursor-pointer ml-auto text-3xl" 
                 @click="onPushAllProfilesInParsingFilter()"
@@ -43,8 +43,8 @@
                 </th>
             </tr>
             <tr
-                v-for="profile in profilesSearchedList.state.profilesList" 
-                :key="profile.name" 
+                v-for="profile, profileIndex in profilesSearchedList.list.value" 
+                :key="profileIndex"
                 class="text-[14px] hover:bg-gray-600"
             >
                 <td class="px-4 py-2 border border-white border-opacity-50 font-medium">
@@ -97,7 +97,7 @@ function profileInParsingFilter(profile: IProfileInAdd) {
 }
 
 function onPushAllProfilesInParsingFilter() {
-    profilesSearchedList.state.profilesList.forEach(profile => {
+    profilesSearchedList.list.value.forEach(profile => {
         profilesSearchedList.state.profilesInParsingFilter[profile.url] = profile
         if (!reviewsFilter.profileLinkGetByUrl(profile.url)) {
             reviewsFilter.profileLinkPushNew(profile.url)

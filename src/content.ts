@@ -487,8 +487,15 @@ class ProfilesFactory {
             let pageReqest = await fetch(urlObj.toString())
             let pageHTMLText = await pageReqest.text()
 
-            let parser = new DOMParser().parseFromString(pageHTMLText, "text/html")
+            let parser = new DOMParser().parseFromString(pageHTMLText, 'text/html')
+            let pageTitle = parser.querySelector('title')?.textContent
             let profilesEls = parser.body.querySelectorAll(this.SELECTORS.profileItem)
+
+            await sendMessage({
+                action: 'profiles-parsing-category-info',
+                status: 'success',
+                data: pageTitle|| ''
+            })
 
             profilesEls.forEach(item => {
                 let profileItemData = this.makeProfileItemData(item as HTMLElement)
