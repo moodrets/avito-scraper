@@ -18,6 +18,7 @@
                         <input 
                             v-model="profilesFilter.fields.categoryUrl"
                             type="search"
+                            @input="onInputCategoryUrl"
                             class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
                         >
                         <div v-if="profilesFilter.fields.pageTitle" class="mt-3 font-medium" v-html="profilesFilter.fields.pageTitle"></div>
@@ -85,5 +86,9 @@ import { profilesSearchedList } from '@/reactive/useProfilesSearchedList';
 
 async function onSubmit() {
     profilesFilter.parsingStart()
+}
+
+function onInputCategoryUrl(event: Event) {
+    profilesFilter.fields.pageTitle = ''
 }
 </script>
