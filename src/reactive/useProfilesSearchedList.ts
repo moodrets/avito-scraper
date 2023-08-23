@@ -88,19 +88,21 @@ export class ProfilesSearchedList {
         })
     }
 
-    public pushProfilesList(profilesList: IProfileInAdd[]) {
+    public async pushProfilesList(profilesList: IProfileInAdd[]) {
         let resultArr = uniqWith(profilesList, isEqual)
         this.list.value = resultArr
         this.sortProfileList()
-        this.checkProfilesInDB()
-        this.checkProfileInParsingFilter()
+        await this.checkProfilesInDB()
+        this.checkProfilesInParsingFilter()
     }
 
-    public checkProfileInParsingFilter() {
-        this.list.value.forEach(profile => {
-            let findProfileInParsingFilter = reviewsFilter.profileLinkGetByUrl(profile.url)
-            if (findProfileInParsingFilter) {
-                this.state.profilesInParsingFilter[profile.url] = profile     
+    public checkProfilesInParsingFilter() {
+        let paringFilterLinks = reviewsFilter.fields.profilesLinks 
+
+        paringFilterLinks.forEach(link => {
+            let foundProfileByUrl = this.list.value.find(profile => profile.url === link.url)
+            if (foundProfileByUrl) {
+                this.state.profilesInParsingFilter[foundProfileByUrl.url] = foundProfileByUrl
             }
         })
     }
@@ -115,17 +117,6 @@ export class ProfilesSearchedList {
             this.state.profilesInParsingFilter = {}
             this.apiRemoveList()
         }
-    }
-
-    public checkProfilesInParsingFilter() {
-        let paringFilterLinks = reviewsFilter.fields.profilesLinks 
-
-        paringFilterLinks.forEach(link => {
-            let foundProfileByUrl = this.list.value.find(profile => profile.url === link.url)
-            if (foundProfileByUrl) {
-                this.state.profilesInParsingFilter[foundProfileByUrl.url] = foundProfileByUrl
-            }
-        })
     }
 
     public async apiCreateList(): Promise<void> {

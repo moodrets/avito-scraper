@@ -136,6 +136,7 @@ onMounted(async () => {
         profilesParsedList.list.value = await profilesParsedList.apiGetList()
         profilesSearchedList.list.value = await profilesSearchedList.apiGetList()
         profilesSearchedList.checkProfilesInParsingFilter()
+        profilesSearchedList.checkProfilesInDB()
     }, 0)
 })
 </script>
