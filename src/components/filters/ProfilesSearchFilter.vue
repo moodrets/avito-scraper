@@ -14,13 +14,15 @@
                         -
                         {{ profilesFilter.fields.pageEnd }}
                     </div>
-                    <input 
-                        v-model="profilesFilter.fields.categoryUrl"
-                        type="search"
-                        class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
-                    >
+                    <div class="flex-1">
+                        <input 
+                            v-model="profilesFilter.fields.categoryUrl"
+                            type="search"
+                            class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
+                        >
+                        <div v-if="profilesFilter.fields.pageTitle" class="mt-3 font-medium" v-html="profilesFilter.fields.pageTitle"></div>
+                    </div>
                 </div>
-                <div v-if="profilesFilter.fields.pageTitle" class="mt-3 ml-12 font-medium" v-html="profilesFilter.fields.pageTitle"></div>
             </div>
             <div>
                 <div class="mb-2 text-sm font-medium">Страница от</div>

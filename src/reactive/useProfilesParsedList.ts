@@ -226,7 +226,7 @@ class ProfilesParseList {
             }
 
         } catch(error: any) {
-
+            console.log(error);
         } finally {
 
         }
@@ -237,7 +237,7 @@ class ProfilesParseList {
 
             if (profile.id) {
                 let copyProfile = JSON.parse(JSON.stringify(profile))
-                await DB.profilesParsedList.update(copyProfile.id, {...copyProfile})
+                await DB.profilesParsedList.update(copyProfile.id, copyProfile)
             }
             
         } catch(error: any) {

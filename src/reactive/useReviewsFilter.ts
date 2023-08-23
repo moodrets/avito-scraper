@@ -75,6 +75,8 @@ class ReviewsFilter {
         profilesSearchedList.removeLinksFromParsingFilter(link.url)
         if (this.fields.profilesLinks.length === 1) {
             this.fields.profilesLinks[0].url = ''
+            this.fields.profilesLinks[0].status = 'new'
+            this.fields.profilesLinks[0].info = ''
         } else {
             this.fields.profilesLinks.splice(index, 1)
         }

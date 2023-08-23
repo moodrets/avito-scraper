@@ -33,7 +33,7 @@
                     </div>
                 </div>
                 <div class="flex-none flex items-center gap-4">
-                    <i class="font-icon text-3xl drop-shadow-xl" @click="onDeleteProfile(profile)">delete_forever</i>
+                    <i class="font-icon text-3xl drop-shadow-xl" @click.stop="onDeleteProfile(profile, profileIndex)">delete_forever</i>
                     <i v-if="profile.existsInDataBase" class="font-icon text-3xl text-white drop-shadow-xl">storage</i>
                     <i v-else class="font-icon text-3xl text-white drop-shadow-xl" @click.stop="onSave(profile)">cloud_upload</i>
                     <i class="font-icon text-3xl drop-shadow-xl" @click.stop="onMark(profile)">{{ profile.marked ? 'bookmark' : 'bookmark_border' }}</i>
@@ -208,11 +208,11 @@ function onMark(profile: IProfileItem) {
     }
 }
 
-async function onDeleteProfile(profile: IProfileItem) {
-    profilesParsedList.list.value = profilesParsedList.list.value.filter(profileItem => profileItem.id !== profile.id)
+async function onDeleteProfile(profile: IProfileItem, index: number) {
     if (profile.id) {
         profilesParsedList.apiRemoveProfile(profile.id)
     }
+    profilesParsedList.list.value.splice(index, 1)
 }
 
 function onCopyProfileUrl(review: IReviewsItemExt) {
