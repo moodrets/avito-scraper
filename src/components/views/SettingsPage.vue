@@ -53,20 +53,6 @@ const isDangerMode = computed<boolean>(() => {
     return urlParams.has('danger') ? true : false 
 })
 
-async function onClearAppData() {
-    if (window.confirm('Удаляем базу данных ?')) {
-        try {
-            await DB.close()
-            await chrome.storage.local.clear()
-            window.indexedDB.deleteDatabase("avito_scraper")
-            chrome.storage.local.set({appStartMessage: MessagesEnum.DBDropSuccess})
-            window.location.reload()
-        } catch(error: any) {
-            toast.show('error', MessagesEnum.DBDropError)
-        }
-    }
-}
-
 async function onSaveModulesData() {
     reviewsFilter.apiCreateFilter()
     profilesFilter.apiCreateFilter()
@@ -87,13 +73,27 @@ async function onDropModulesData() {
     }
 }
 
+async function onClearAppData() {
+    if (window.confirm('Удаляем базу данных ?')) {
+        try {
+            await DB.close()
+            await chrome.storage.local.clear()
+            await chrome.storage.local.set({appStartMessage: MessagesEnum.DBDropSuccess})
+            window.indexedDB.deleteDatabase("avito_scraper")
+            window.location.reload()
+        } catch(error: any) {
+            toast.show('error', MessagesEnum.DBDropError)
+        }
+    }
+}
+
 async function onImportDB(event: Event) {
     let target = event.target as HTMLInputElement
     if (target.files && target.files[0]) {
 
         try {
             let file = target.files[0]
-            let blob = new Blob([file], {type: "application/json",});
+            let blob = new Blob([file], {type: "application/json",})
             await importDB(blob)
             chrome.storage.local.set({appStartMessage: MessagesEnum.DBImportSuccess})
             window.location.reload()
@@ -127,7 +127,7 @@ async function onExportDB() {
         const link = document.createElement('a')
         link.href = URL.createObjectURL(file)
         link.download = fileName
-        link.click();
+        link.click()
         link.remove()
         toast.show('success', MessagesEnum.DBExportSuccess)
 

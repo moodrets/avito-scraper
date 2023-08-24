@@ -1,11 +1,11 @@
 <template>
     <div v-if="profilesSearchedList.list.value.length" class="pb-14">
         <div class="mb-8 font-bold text-xl flex items-center gap-4">
-            <div>Найдено продавцов - <strong>{{ profilesSearchedList.list.value.length }}</strong></div>
             <i
-                class="font-icon text-green-400 cursor-pointer ml-auto text-3xl" 
+                class="font-icon text-green-400 cursor-pointer text-3xl" 
                 @click="onPushAllProfilesInParsingFilter()"
             >playlist_add</i>
+            <div>Найдено продавцов - <strong>{{ profilesSearchedList.list.value.length }}</strong></div>
         </div>
         <table class="w-full relative">
             <tr class="text-[16px] sticky top-[64px] bg-gray-600">

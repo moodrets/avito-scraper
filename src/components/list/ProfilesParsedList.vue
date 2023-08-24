@@ -135,16 +135,16 @@
                     :style="{'background-color': result.color.bg, 'color': result.color.text}"
                     :title="result.info"
                 >
-                    <i 
-                        class="font-icon text-xl cursor-pointer drop-shadow-xl" 
-                        @click="onCopyProductName(result.productName)"
-                    >content_copy</i>
                     <a
                         target="_blank"
                         :href="result.profileUrl"
                         :style="{color: result.color.text}"
                         class="font-icon text-xl cursor-pointer drop-shadow-xl" 
                     >account_box</a>
+                    <i 
+                        class="font-icon text-xl cursor-pointer drop-shadow-xl" 
+                        @click="onCopyProductName(result.productName)"
+                    >content_copy</i>
                     <div>{{ result.productName }}</div>
                     <div v-if="!result.count">{{ toLocaleString(result.date)?.slice(0, 10) }}</div>
                     <strong v-if="result.count">({{ result.count }})</strong>

@@ -119,13 +119,13 @@
                 type="button" 
                 icon="delete"
                 @click.stop="onRemoveProfilesListUnmarked"
-            >Очистить незакрепленные</Button>
+            >Очистить</Button>
             <Button
                 theme="danger" 
                 type="button" 
                 icon="delete_forever"
                 @click.stop="onRemoveProfilesListAll"
-            >Очистить весь список</Button>
+            >Очистить всех</Button>
         </div>
     </form>
 </template>
