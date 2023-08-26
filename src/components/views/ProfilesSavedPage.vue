@@ -4,9 +4,9 @@
             <Spinner class="w-10 h-10 flex-none"></Spinner>
         </div>
     </template>
-    <template v-else-if="profileSavedList.list.value.length">
+    <template v-else-if="profilesSavedList.list.value.length">
         <div
-            v-for="profile in profileSavedList.list.value"
+            v-for="profile in profilesSavedList.list.value"
             :key="profile.id"
             :class="profile.opened ? 'ring ring-blue-400' : ''"
             class="rounded-xl bg-gray-600 shadow-xl mb-3"
@@ -24,13 +24,13 @@
                         <div v-if="profile.comment" class="text-[16px] text-sky-300 font-medium italic">{{ profile.comment }}</div>
                     </div>
                     <div class="flex flex-wrap items-center gap-4 text-[16px] font-medium">
-                        <div class="text-orange-300">{{ profileSavedList.getLastParsingInfo(profile)?.rating }}</div>
-                        <div class="text-yellow-300">{{ profileSavedList.getLastParsingInfo(profile)?.reviewsCount }}</div>
-                        <div class="text-teal-300">{{ profileSavedList.getLastParsingInfo(profile)?.subscribers }}</div>
-                        <div class="text-rose-300">{{ profileSavedList.getLastParsingInfo(profile)?.deliveryInfo }}</div>
-                        <div class="text-amber-300">Активные - {{ profileSavedList.getLastParsingInfo(profile)?.activeAdds }}</div>
-                        <div v-if="profileSavedList.getLastParsingInfo(profile)?.completedAdds" class="text-lime-300">Завершенные - {{ profileSavedList.getLastParsingInfo(profile)?.completedAdds }}</div>
-                        <div class="text-gray-300">{{ profileSavedList.getLastParsingInfo(profile)?.parsingDate ? toLocaleString(profileSavedList.getLastParsingInfo(profile)?.parsingDate) : '' }}</div>
+                        <div class="text-orange-300">{{ profilesSavedList.getLastParsingInfo(profile)?.rating }}</div>
+                        <div class="text-yellow-300">{{ profilesSavedList.getLastParsingInfo(profile)?.reviewsCount }}</div>
+                        <div class="text-teal-300">{{ profilesSavedList.getLastParsingInfo(profile)?.subscribers }}</div>
+                        <div class="text-rose-300">{{ profilesSavedList.getLastParsingInfo(profile)?.deliveryInfo }}</div>
+                        <div class="text-amber-300">Активные - {{ profilesSavedList.getLastParsingInfo(profile)?.activeAdds }}</div>
+                        <div v-if="profilesSavedList.getLastParsingInfo(profile)?.completedAdds" class="text-lime-300">Завершенные - {{ profilesSavedList.getLastParsingInfo(profile)?.completedAdds }}</div>
+                        <div class="text-gray-300">{{ profilesSavedList.getLastParsingInfo(profile)?.parsingDate ? toLocaleString(profilesSavedList.getLastParsingInfo(profile)?.parsingDate) : '' }}</div>
                     </div>
                 </div>
                 <div class="flex-none flex items-center gap-4">
@@ -114,7 +114,7 @@ import { MessagesEnum } from '@/types/enums'
 import { copyToBuffer } from '@/helpers/common'
 import { toLocaleString } from '@/helpers/date'
 import { toast } from '@/helpers/toast'
-import { IProfileItemDB, profileSavedList } from '@/reactive/useProfileSavedList'
+import { IProfileItemDB, profilesSavedList } from '@/reactive/useProfileSavedList'
 import { reviewsFilter } from '@/reactive/useReviewsFilter'
 
 const editModalVisible = ref<boolean>(false)
@@ -158,27 +158,27 @@ function onPushLinkToFilter(profile: IProfileItemDB) {
 }
 
 async function onEditProfile(profile: IProfileItemDB) {
-    profileSavedList.apiProfileUpdate(profile)
+    profilesSavedList.apiProfileUpdate(profile)
     editModalVisible.value = false
     editableItem.value = null
 }
 
 async function onDeleteProfile(profile: IProfileItemDB) {
     if (window.confirm(`Удаляем "${profile.name}" ?`) && profile.id) {
-        await profileSavedList.apiProfileDelete(profile)
+        await profilesSavedList.apiProfileDelete(profile)
         setTimeout(async () => {
-            profileSavedList.list.value = await profileSavedList.apiGetList()
+            profilesSavedList.list.value = await profilesSavedList.apiGetList()
         }, 0)
     }
 }
 
 onMounted(async () => {
     setTimeout(async () => {
-        profileSavedList.list.value = await profileSavedList.apiGetList()
+        profilesSavedList.list.value = await profilesSavedList.apiGetList()
     }, 0)
 })
 
 onBeforeMount(() => {
-    profileSavedList.list.value.forEach(item => item.opened = false)
+    profilesSavedList.list.value.forEach(item => item.opened = false)
 })
 </script>

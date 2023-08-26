@@ -2,7 +2,7 @@ import DB from "@/db/db"
 import { ref } from "vue"
 import { toast } from "@/helpers/toast"
 import { MessagesEnum } from "@/types/enums"
-import { profilesParsedList } from "@/reactive/useProfilesParsedList"
+import { IProfileItem, profilesParsedList } from "@/reactive/useProfilesParsedList"
 
 export interface IParsingResultItem {
     parsingDate: number
@@ -25,7 +25,7 @@ export interface IProfileItemDB {
     parsingResults: IParsingResultItem[]
 }
 
-class ProfileSavedList {
+class ProfilesSavedList {
     public list = ref<IProfileItemDB[]>([])
 
     public getLastParsingInfo(profile: IProfileItemDB) {
@@ -70,7 +70,45 @@ class ProfileSavedList {
         return []
     }
 
-    async apiProfileUpdate(profile: IProfileItemDB) {
+    public async apiProfileCreate(profile: IProfileItem) {
+        try {
+            let copyProfile = JSON.parse(JSON.stringify(profile))
+
+            let newProfile: IProfileItemDB = {
+                url: copyProfile.url,
+                name: copyProfile.name,
+                comment: copyProfile.comment,
+                savedDate: Date.now(),
+                opened: false,
+                loading: false,
+                parsingResults: [
+                    {
+                        parsingDate: copyProfile.parsingDate,
+                        rating: copyProfile.rating,
+                        reviewsCount: copyProfile.reviewsCount,
+                        deliveryInfo: copyProfile.deliveryInfo,
+                        subscribers: copyProfile.subscribers,
+                        activeAdds: copyProfile.activeAdds,
+                        completedAdds: copyProfile.completedAdds,
+                    }
+                ]
+            }
+
+            const resultID = await DB.profilesSavedList.add(newProfile)
+
+            profile.existsInDataBase = true
+            profile.savedDate = newProfile.savedDate
+            profile.comment = newProfile.comment
+
+        } catch(error: any) {
+            console.log(error);
+            toast.show('error', MessagesEnum.ProfileCreateError)
+        } finally {
+            
+        }
+    }
+
+    public async apiProfileUpdate(profile: IProfileItemDB) {
         try {
 
             let copyProfile = JSON.parse(JSON.stringify(profile))
@@ -80,7 +118,6 @@ class ProfileSavedList {
             const result = await DB.profilesSavedList.put(copyProfile);
 
             if (result) {
-                toast.show('success', MessagesEnum.ProfileEdited)
             } else {
                 throw new Error()
             }
@@ -96,7 +133,6 @@ class ProfileSavedList {
     async apiProfileDelete(profile: IProfileItemDB) {
         try {
             await DB.profilesSavedList.delete(profile.id)
-            toast.show('success', MessagesEnum.ProfileDeleted)
         } catch(error: any) {
             console.log(error);
             toast.show('error', MessagesEnum.ProfileDeleteError)
@@ -106,4 +142,4 @@ class ProfileSavedList {
     }
 }
 
-export const profileSavedList = new ProfileSavedList()
+export const profilesSavedList = new ProfilesSavedList()

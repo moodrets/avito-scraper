@@ -39,6 +39,8 @@ export enum MessagesEnum {
     ResultsNotFound = 'Результаты не найдены',
     ProductNameCopied = 'Название товара скопировано в буффер',
     WaitOpenPage = 'Ожидаем открытия следующей страницы ...',
+    AllDataSaved = 'Данные успешно сохранены',
+    AllDataRemoved = 'Данные успешно удалены',
     // database
     DBExportSuccess = 'Экпорт базы успешно завершен',
     DBExportError = 'Не удалось экспортировать базу',

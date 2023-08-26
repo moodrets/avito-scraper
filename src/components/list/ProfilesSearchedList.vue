@@ -78,6 +78,7 @@
 import SortHeading from '@/components/common/SortHeading.vue'
 import { reviewsFilter } from '@/reactive/useReviewsFilter';
 import { IProfileInAdd, profilesSearchedList } from '@/reactive/useProfilesSearchedList';
+import { AppTabsEnum, appTabs } from '@/reactive/useAppTabs';
 
 function onSort(sortValue: string) {
     profilesSearchedList.sortProfileList(sortValue)
@@ -106,5 +107,6 @@ function onPushAllProfilesInParsingFilter() {
 
     reviewsFilter.profileLinksHighlightDuplicates()
     reviewsFilter.profileLinksRemoveEmpty()
+    appTabs.changeTab(AppTabsEnum.ProfilesParsing)
 }
 </script>

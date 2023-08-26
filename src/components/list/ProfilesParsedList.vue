@@ -167,6 +167,7 @@ import { toLocaleString } from '@/helpers/date'
 import { MessagesEnum } from '@/types/enums';
 import { toast } from '@/helpers/toast';
 import { IProfileItem, IReviewsItemExt, profilesParsedList } from '@/reactive/useProfilesParsedList';
+import { profilesSavedList } from '@/reactive/useProfileSavedList';
 
 function onCloseModal() {
     profilesParsedList.state.contentModalVisible = false
@@ -194,7 +195,7 @@ function onOpenLink(profile: IProfileItem) {
 }
 
 async function onSave(profile: IProfileItem) {
-    await profilesParsedList.apiCreateProfile(profile)
+    await profilesSavedList.apiProfileCreate(profile)
     
     if (profile.id) {
         profilesParsedList.apiUpdateProfile(profile)

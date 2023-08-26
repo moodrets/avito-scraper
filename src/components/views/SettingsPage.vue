@@ -2,7 +2,7 @@
     <div class="relative p-5 shadow-xl rounded-xl mb-5 bg-gray-600">
         <div class="text-2xl font-bold mb-6">Модули</div>
         <div class="flex flex-wrap items-center gap-5">
-            <Button theme="info" icon="save" @click.stop="onSaveModulesData">Сохранить данные</Button>
+            <Button theme="success" icon="save" @click.stop="onSaveModulesData">Сохранить данные</Button>
             <Button theme="danger" icon="restore" @click.stop="onDropModulesData">Сбросить данные</Button>
         </div>
     </div>
@@ -10,7 +10,7 @@
         <Spinner v-if="blocksLoading.dbLoading" class="w-8 h-8 absolute right-5 top-5"></Spinner>
         <div class="text-2xl font-bold mb-6">База данных</div>
         <div class="flex flex-wrap items-center gap-5">
-            <Button theme="success" icon="cloud_upload">
+            <Button theme="info" icon="cloud_upload">
                 <input 
                     type="file"
                     accept="application/JSON" 
@@ -25,7 +25,7 @@
     <div class="relative p-5 shadow-xl rounded-xl mb-5 bg-gray-600">
         <div class="text-2xl font-bold mb-6 text-red-400">Осторожно</div>
         <div class="flex flex-wrap items-center gap-5">
-            <Button theme="danger" icon="delete_forever" @click.stop="onClearAppData">Очистить базу</Button>
+            <Button theme="danger" icon="delete_forever" @click.stop="onDropDatabase">Очистить базу</Button>
         </div>
     </div>
 </template>
@@ -58,6 +58,7 @@ async function onSaveModulesData() {
     profilesFilter.apiCreateFilter()
     profilesParsedList.apiCreateList()
     profilesSearchedList.apiCreateList()
+    toast.show('success', MessagesEnum.AllDataSaved)
 }
 
 async function onDropModulesData() {
@@ -67,17 +68,17 @@ async function onDropModulesData() {
         profilesFilter.resetFields()
         profilesFilter.apiRemoveFilter()
         profilesParsedList.list.value = []
-        profilesSearchedList.list.value = []
         profilesParsedList.apiRemoveList()
+        profilesSearchedList.list.value = []
         profilesSearchedList.apiRemoveList()
+        toast.show('success', MessagesEnum.AllDataRemoved)
     }
 }
 
-async function onClearAppData() {
+async function onDropDatabase() {
     if (window.confirm('Удаляем базу данных ?')) {
         try {
             await DB.close()
-            await chrome.storage.local.clear()
             await chrome.storage.local.set({appStartMessage: MessagesEnum.DBDropSuccess})
             window.indexedDB.deleteDatabase("avito_scraper")
             window.location.reload()

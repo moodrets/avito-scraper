@@ -153,8 +153,9 @@ class ProfilesParseList {
         
         this.list.value.forEach(profile => {
             profile.reviewsList?.forEach(resultItem => {
-                if (resultMap.has(resultItem.productName)) {
-                    let mapValue = resultMap.get(resultItem.productName)
+                let productNameLC = resultItem.productName.toLowerCase()
+                if (resultMap.has(productNameLC)) {
+                    let mapValue = resultMap.get(productNameLC)
                     if (mapValue) {
                         let newMapValue: IReviewsItemExt[] = [...mapValue, {
                             ...resultItem,
@@ -162,10 +163,10 @@ class ProfilesParseList {
                             info: `${profile.name} / ${profile.rating} / ${profile.reviewsCount} / ${profile.subscribers} / ${profile.deliveryInfo}`,
                             count: 0,
                         }]
-                        resultMap.set(resultItem.productName, newMapValue)
+                        resultMap.set(productNameLC, newMapValue)
                     }
                 } else {
-                    resultMap.set(resultItem.productName, [
+                    resultMap.set(productNameLC, [
                         {
                             ...resultItem,
                             color: profile.color,
@@ -222,7 +223,12 @@ class ProfilesParseList {
         try {
 
             if (id) {
-                await DB.profilesParsedList.delete(id)
+                let { profilesParsedList } = await chrome.storage.local.get('profilesParsedList')
+
+                if (profilesParsedList.length) {
+                    profilesParsedList = profilesParsedList.filter((storageItem: IProfileItem) => storageItem.id !== id)
+                    await chrome.storage.local.set({'profilesParsedList': profilesParsedList})
+                }
             }
 
         } catch(error: any) {
@@ -236,8 +242,14 @@ class ProfilesParseList {
         try {
 
             if (profile.id) {
+                let { profilesParsedList } = await chrome.storage.local.get('profilesParsedList')
                 let copyProfile = JSON.parse(JSON.stringify(profile))
-                await DB.profilesParsedList.update(copyProfile.id, copyProfile)
+                let findIndex = profilesParsedList.findIndex((findProfile: IProfileItem) => findProfile.id === copyProfile.id)
+
+                if (findIndex !== undefined && findIndex !== null) {
+                    profilesParsedList[findIndex] = copyProfile
+                    await chrome.storage.local.set({'profilesParsedList': profilesParsedList})
+                }
             }
             
         } catch(error: any) {
@@ -248,12 +260,10 @@ class ProfilesParseList {
     public async apiCreateList() {
         try {
 
-            let itemsToDB = JSON.parse(JSON.stringify(this.list.value))
+            let copyArray = JSON.parse(JSON.stringify(this.list.value))
 
-            if (itemsToDB.length) {
-                DB.profilesParsedList.clear()
-                DB.profilesParsedList.bulkAdd(itemsToDB)
-                toast.show('success', MessagesEnum.ProfileInfoListAddedInDB)
+            if (copyArray.length) {
+                await chrome.storage.local.set({'profilesParsedList': copyArray})
             }
 
         } catch (error: any) {
@@ -266,10 +276,10 @@ class ProfilesParseList {
     public async apiGetList(): Promise<IProfileItem[]> {
         try {
 
-            const rows = await DB.profilesParsedList.toArray()
+            const { profilesParsedList } = await chrome.storage.local.get('profilesParsedList')
 
-            if (rows.length) {
-                return rows
+            if (profilesParsedList) {
+                return profilesParsedList
             }
 
         } catch (error: any) {
@@ -284,8 +294,7 @@ class ProfilesParseList {
     public async apiRemoveList(): Promise<void> {
         try {
 
-            await DB.profilesParsedList.clear()
-            toast.show('warning', MessagesEnum.ProfileInfoListRemovedFromDB)
+            await chrome.storage.local.remove('profilesParsedList')
 
         } catch (error: any) {
             console.log(error);
@@ -297,53 +306,17 @@ class ProfilesParseList {
     public async apiRemoveListUnmarkedOnly(): Promise<void> {
         try {
 
-            let rows = await DB.profilesParsedList.filter((profile: IProfileItem) => profile.marked === false).toArray()
-            let ids = rows.map((profile: IProfileItem) => profile.id)
-            await DB.profilesParsedList.bulkDelete(ids)
-            toast.show('warning', MessagesEnum.ProfileInfoListRemovedFromDB)
+            let { profilesParsedList } = await chrome.storage.local.get('profilesParsedList')
+
+            if (profilesParsedList) {
+                profilesParsedList = profilesParsedList.filter((item: IProfileItem) => item.marked)
+                await chrome.storage.local.set({'profilesParsedList': profilesParsedList})
+            }
 
         } catch (error: any) {
             console.log(error);
         } finally {
 
-        }
-    }
-
-    public async apiCreateProfile(profile: IProfileItem) {
-        try {
-            let copyProfile = JSON.parse(JSON.stringify(profile))
-
-            let newProfile: IProfileItemDB = {
-                url: copyProfile.url,
-                name: copyProfile.name,
-                comment: copyProfile.comment,
-                savedDate: Date.now(),
-                opened: false,
-                loading: false,
-                parsingResults: [
-                    {
-                        parsingDate: copyProfile.parsingDate,
-                        rating: copyProfile.rating,
-                        reviewsCount: copyProfile.reviewsCount,
-                        deliveryInfo: copyProfile.deliveryInfo,
-                        subscribers: copyProfile.subscribers,
-                        activeAdds: copyProfile.activeAdds,
-                        completedAdds: copyProfile.completedAdds,
-                    }
-                ]
-            }
-
-            const resultID = await DB.profilesSavedList.add(newProfile)
-
-            profile.existsInDataBase = true
-            profile.savedDate = newProfile.savedDate
-            profile.comment = newProfile.comment
-
-        } catch(error: any) {
-            console.log(error);
-            toast.show('error', MessagesEnum.ProfileCreateError)
-        } finally {
-            
         }
     }
 }

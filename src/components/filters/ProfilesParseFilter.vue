@@ -5,7 +5,10 @@
     >
         <div class="grid grid-cols-4 gap-5">
             <div class="col-span-4">
-                <div class="text-sm font-medium mb-2">Ссылки на профили</div>
+                <div class="text-sm font-medium mb-2 flex items-center gap-2">
+                    <div>Ссылки на профили</div>
+                    <i class="font-icon block text-red-400 cursor-pointer" @click.stop.prevent="onProfileLinksRemoveAll">delete_sweep</i>
+                </div>
                 <div
                     v-for="link, linkIndex in reviewsFilter.fields.profilesLinks"
                     :key="linkIndex" 
@@ -166,6 +169,13 @@ function onInputLink(link: IProfileLink, event: Event) {
     reviewsFilter.profileLinksHighlightDuplicates()
     link.status = 'new'
     link.info = ''
+}
+
+function onProfileLinksRemoveAll() {
+    if (window.confirm('Удаляем все ссылки продавцов ?')) {
+        reviewsFilter.profileLinksRemoveAll()
+        reviewsFilter.apiCreateFilter()    
+    }
 }
 
 async function onRemoveProfilesListAll() {

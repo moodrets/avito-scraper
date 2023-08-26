@@ -1,4 +1,3 @@
-import DB from '@/db/db';
 import { reactive, ref } from 'vue'
 import { createTab } from '@/helpers/common';
 import { toast } from '@/helpers/toast';
@@ -74,22 +73,19 @@ class ProfilesFilter {
 
     public async apiRemoveFilter() {
         try {
-            await DB.profilesSearchFilter.clear()
-            toast.show('warning', MessagesEnum.ProfilesSearchFilterCleared)
+            await chrome.storage.local.remove('searchFilter')
 
         } catch(error: any) {
             console.log(error);
-            toast.show('warning', MessagesEnum.ProfilesSearchFilterClearError)
+            toast.show('error', MessagesEnum.ProfilesSearchFilterClearError)
         }
     }
 
-    public async apiGetFilter() {
-        const rows = await DB.profilesSearchFilter.toArray()
+    public async apiGetFilter(): Promise<IProfileFilterFields | null> {
+        const { searchFilter } = await chrome.storage.local.get('searchFilter')
 
-        if (rows.length && rows[0]) {
-            const result = {...rows[0]}
-            delete result.key
-            return result
+        if (searchFilter) {
+            return searchFilter
         }
         
         return null
@@ -99,11 +95,8 @@ class ProfilesFilter {
         try {
             const copyFilter = JSON.parse(JSON.stringify(this.fields))
 
-            await DB.profilesSearchFilter.clear()
-            await DB.profilesSearchFilter.add(copyFilter)
+            await chrome.storage.local.set({'searchFilter': copyFilter})
 
-            toast.show('success', MessagesEnum.ProfilesSearchFilterSaved)
-    
         } catch(error: any){
             console.log(error)
             toast.show('error', MessagesEnum.ProfilesSearchFilterSaveError)

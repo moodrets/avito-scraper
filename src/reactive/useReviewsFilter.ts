@@ -1,4 +1,3 @@
-import DB from "@/db/db"
 import { reactive, ref } from "vue"
 import { toast } from "@/helpers/toast"
 import { MessagesEnum } from "@/types/enums"
@@ -83,6 +82,11 @@ class ReviewsFilter {
         this.profileLinksHighlightDuplicates()
     }
 
+    public profileLinksRemoveAll() {
+        this.fields.profilesLinks = []
+        this.profileLinkPushNew('')
+    }
+
     public profileLinksHighlightDuplicates() {
         this.fields.profilesLinks.forEach((link, index, array) => {
             let duplicates = array.filter(filterLink => filterLink.url === link.url && link.url !== '')
@@ -154,19 +158,6 @@ class ReviewsFilter {
         }
     }
 
-    public async resetFields() {
-        this.fields.profilesLinks = [
-            {url: '', status: 'new', highlight: false},
-        ]
-        this.fields.productName = ''
-        this.fields.dateFrom = ''
-        this.fields.dateTo = ''
-        this.fields.ratingFrom = 4
-        this.fields.ratingTo = 5
-        this.fields.deliveryOnly = false
-        this.fields.closeTabs = true
-    }
-
     public async parsingStart() {
         try {
 
@@ -195,27 +186,37 @@ class ReviewsFilter {
         }
     }
 
-    public async apiRemoveFilter() {
-        try {
-            await DB.profilesParseFilter.clear()
-            toast.show('warning', MessagesEnum.ReviewsFilterCleared)
-
-        } catch(error: any) {
-            console.log(error);
-            toast.show('warning', MessagesEnum.ReviewsFilterClearError)
-        }
+    public async resetFields() {
+        this.fields.profilesLinks = [
+            {url: '', status: 'new', highlight: false},
+        ]
+        this.fields.productName = ''
+        this.fields.dateFrom = ''
+        this.fields.dateTo = ''
+        this.fields.ratingFrom = 4
+        this.fields.ratingTo = 5
+        this.fields.deliveryOnly = false
+        this.fields.closeTabs = true
     }
 
-    public async apiGetFilter() {
-        const rows = await DB.profilesParseFilter.toArray()
+    public async apiGetFilter(): Promise<IReviewsFilterFields | null> {
+        const { parsingFilter } = await chrome.storage.local.get('parsingFilter')
 
-        if (rows.length && rows[0]) {
-            const result = {...rows[0]}
-            delete result.key
-            return result
+        if (parsingFilter) {
+            return parsingFilter
         }
         
         return null
+    }
+
+    public async apiRemoveFilter() {
+        try {
+            await chrome.storage.local.remove('parsingFilter')
+
+        } catch(error: any) {
+            console.log(error);
+            toast.show('error', MessagesEnum.ReviewsFilterClearError)
+        }
     }
 
     public async apiCreateFilter() {
@@ -225,11 +226,8 @@ class ReviewsFilter {
             copyFilter.dateFrom = dateFromDatepickerString(copyFilter.dateFrom)
             copyFilter.dateTo = dateFromDatepickerString(copyFilter.dateTo)
 
-            await DB.profilesParseFilter.clear()
-            await DB.profilesParseFilter.add(copyFilter)
+            await chrome.storage.local.set({'parsingFilter': copyFilter})
 
-            toast.show('success', MessagesEnum.ReviewsFilterSaved)
-    
         } catch(error: any){
             console.log(error)
             toast.show('error', MessagesEnum.ReviewsFilterSaveError)

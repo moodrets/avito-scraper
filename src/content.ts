@@ -107,6 +107,7 @@ async function getProfileInfo(currentURL: string): Promise<void> {
     let profileDeliveryInfoValue = profileDeviveryInfoEl?.textContent ? profileDeviveryInfoEl.textContent : null
 
     let profileInform: IProfileItem = {
+        id: Date.now(),
         name: profileNameValue || MessagesEnum.InfoNotFound,
         rating: profileRatingValue || MessagesEnum.InfoNotFound,
         reviewsCount: profileReviewsCountValue || MessagesEnum.InfoNotFound,

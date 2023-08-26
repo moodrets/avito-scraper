@@ -1,10 +1,7 @@
 import { reactive, ref } from "vue"
-import { profileSavedList } from "@/reactive/useProfileSavedList"
-import { reviewsFilter } from "@/reactive/useReviewsFilter"
 import { isEqual, orderBy, uniqWith } from 'lodash'
-import DB from "@/db/db"
-import { toast } from "@/helpers/toast"
-import { MessagesEnum } from "@/types/enums"
+import { profilesSavedList } from '@/reactive/useProfileSavedList'
+import { reviewsFilter } from '@/reactive/useReviewsFilter'
 
 export interface IProfileInAdd {
     url: string
@@ -69,13 +66,11 @@ export class ProfilesSearchedList {
             resultArray = orderBy(copyArray, ['existsInDataBase'], ['asc', 'desc'])
         }
 
-        this.list.value = []
-
         this.list.value = resultArray
     }
 
     public async checkProfilesInDB() {
-        let dbProfileList = await profileSavedList.apiGetList()
+        let dbProfileList = await profilesSavedList.apiGetList()
 
         this.list.value.forEach(profile => {
             let profileUrlHash = profile.url.split('/')[4]
@@ -125,9 +120,7 @@ export class ProfilesSearchedList {
             let copyArray = JSON.parse(JSON.stringify(this.list.value))
 
             if (copyArray.length) {
-                DB.profilesSearchedList.clear()
-                DB.profilesSearchedList.bulkAdd(copyArray)
-                toast.show('success', MessagesEnum.ProfilesSearchedListCreated)
+                await chrome.storage.local.set({'profilesSearchedList': copyArray})
             }
 
         } catch(error: any) {
@@ -140,10 +133,10 @@ export class ProfilesSearchedList {
     public async apiGetList(): Promise<IProfileInAdd[]> {
         try {
 
-            const rows = await DB.profilesSearchedList.toArray()
+            const { profilesSearchedList } = await chrome.storage.local.get('profilesSearchedList')
 
-            if (rows.length) {
-                return rows
+            if (profilesSearchedList) {
+                return profilesSearchedList
             }
 
         } catch(error: any) {
@@ -157,8 +150,7 @@ export class ProfilesSearchedList {
 
     public async apiRemoveList(): Promise<void> {
         try {
-            await DB.profilesSearchedList.clear()
-            toast.show('warning', MessagesEnum.ProfileInfoListRemovedFromDB)
+            await chrome.storage.local.remove('profilesSearchedList')
 
         } catch(error: any) {
             console.log(error);

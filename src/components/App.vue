@@ -13,28 +13,35 @@
             <SettingsPage v-if="appTabs.active.value === AppTabsEnum.Settings" />
         </main>
     </div>
+    <DevPanel v-if="devPanelVisible"></DevPanel>
 </template>
 
 <script lang="ts" setup>
 import Header from '@/components/common/Header.vue';
+import DevPanel from '@/components/common/DevPanel.vue';
 import ProfilesParsedPage from '@/components/views/ProfilesParsedPage.vue';
 import ProfilesSearchPage from '@/components/views/ProfilesSearchPage.vue';
 import ProfilesSavedPage from '@/components/views/ProfilesSavedPage.vue';
 import SettingsPage from '@/components/views/SettingsPage.vue';
 
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, computed } from 'vue';
 import { showAppStartMessageFromStorage, randomNumberBetween, setExtensionTabActive, wait } from '@/helpers/common';
 import { toast } from '@/helpers/toast';
 import { initDBCollections } from '@/db/db';
 import { AppTabsEnum, appTabs } from '@/reactive/useAppTabs';
 import { reviewsFilter } from '@/reactive/useReviewsFilter';
 import { profilesParsedList } from '@/reactive/useProfilesParsedList';
-import { profileSavedList } from '@/reactive/useProfileSavedList';
+import { profilesSavedList } from '@/reactive/useProfileSavedList';
 import { MessagesEnum } from '@/types/enums';
 import { profilesSearchedList } from '@/reactive/useProfilesSearchedList';
 import { profilesFilter } from '@/reactive/useProfilesFilter';
 
 const appLoaded = ref<boolean>(false)
+
+const devPanelVisible = computed<boolean>(() => {
+    let urlParams = new URLSearchParams(window.location.search)
+    return urlParams.has('dev') ? true : false 
+})
 
 onMounted(async () => {
 
@@ -59,7 +66,7 @@ onMounted(async () => {
         if (action === 'reviews-parsing-ended') {
             if (status === 'success') {
                 profilesParsedList.pushResultsByUrl(currentUrl, data)
-                profileSavedList.pushParsingResult(currentUrl)
+                profilesSavedList.pushParsingResult(currentUrl)
                 reviewsFilter.profileLinkSetStatus(currentUrl, 'success')
             }
 
@@ -107,7 +114,6 @@ onMounted(async () => {
         if (action === 'profiles-parsing-ended') {
             if (status === 'success') {
                 setExtensionTabActive()
-                toast.show('success', MessagesEnum.ProfilesParsingEnded, {duration: 172800})
                 appTabs.changeTab(AppTabsEnum.ProfilesSearch)
                 profilesSearchedList.state.loading = false
                 profilesSearchedList.pushProfilesList(data)
