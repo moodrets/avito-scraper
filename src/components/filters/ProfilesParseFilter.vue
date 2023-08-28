@@ -37,7 +37,7 @@
                             <i class="font-icon text-3xl block text-green-400" @click="reviewsFilter.profileLinkPushNew()">add_circle_outline</i>
                         </div>
                     </div>
-                    <div v-if="link.info" class="mt-3 ml-12 font-medium" v-html="link.info"></div>
+                    <div v-if="link.info" class="mt-3 ml-12 font-medium cursor-pointer" v-html="link.info" @click="onHighlightProfile(link.url)"></div>
                 </div>
             </div>
             <div>
@@ -169,6 +169,10 @@ function onInputLink(link: IProfileLink, event: Event) {
     reviewsFilter.profileLinksHighlightDuplicates()
     link.status = 'new'
     link.info = ''
+}
+
+function onHighlightProfile(url: string) {
+    profilesParsedList.highlightProfile(url)
 }
 
 function onProfileLinksRemoveAll() {

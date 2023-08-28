@@ -1,6 +1,4 @@
-import DB from '@/db/db'
 import { reactive, ref } from 'vue'
-import { IProfileItemDB } from '@/reactive/useProfileSavedList'
 import { toast } from '@/helpers/toast'
 import { MessagesEnum } from '@/types/enums'
 import { toLocaleString } from '@/helpers/date'
@@ -44,6 +42,7 @@ export interface IProfileItem {
         text: string,
         bg: string
     },
+    highlited?: boolean,
     id?: number
     existsInDataBase?: boolean
     savedDate?: number
@@ -217,6 +216,20 @@ class ProfilesParseList {
         resultsList = copyArray
 
         return resultsList
+    }
+
+    public highlightProfile(url: string) {
+        this.list.value.forEach(profile => profile.highlited = false)
+        let foundProfile = this.list.value.find(profile => profile.url === url)
+
+        if (foundProfile) {
+            foundProfile.highlited = true
+            let foundProfileDomElement = document.querySelector(`[data-profile-url="${url}"]`)
+            foundProfileDomElement?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            })
+        }
     }
 
     public async apiRemoveProfile(id: number) {

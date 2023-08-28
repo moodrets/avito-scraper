@@ -2,9 +2,13 @@
     <div v-if="profilesParsedList.list.value.length" class="pb-10">
         <div
             v-for="profile, profileIndex in profilesParsedList.list.value"
+            :data-profile-url="profile.url"   
             :key="profileIndex"
             class="relative rounded-xl shadow-xl bg-gray-600 text-[16px] mb-3"
-            :class="profile.opened ? 'ring ring-blue-400' : ''"
+            :class="[
+                profile.opened ? 'ring ring-blue-400' : '',
+                profile?.highlited ? 'ring ring-green-400' : '',
+            ]"
         >
             <div
                 class="relative flex items-start p-4 select-none cursor-pointer rounded-xl"
@@ -135,15 +139,19 @@
                     :style="{'background-color': result.color.bg, 'color': result.color.text}"
                     :title="result.info"
                 >
+                    <i
+                        class="font-icon text-xl cursor-pointer drop-shadow-xl"
+                        @click.stop="onHighlightProfile(result.profileUrl)"
+                    >arrow_circle_left</i>
                     <a
                         target="_blank"
                         :href="result.profileUrl"
                         :style="{color: result.color.text}"
                         class="font-icon text-xl cursor-pointer drop-shadow-xl" 
                     >account_box</a>
-                    <i 
+                    <i
                         class="font-icon text-xl cursor-pointer drop-shadow-xl" 
-                        @click="onCopyProductName(result.productName)"
+                        @click.stop="onCopyProductName(result.productName)"
                     >content_copy</i>
                     <div>{{ result.productName }}</div>
                     <div v-if="!result.count">{{ toLocaleString(result.date)?.slice(0, 10) }}</div>
@@ -183,8 +191,14 @@ function onSort(profile: IProfileItem, sortBy: string) {
     profilesParsedList.sortResults(profile, sortBy)
 }
 
+function onHighlightProfile(url: string) {
+    profilesParsedList.highlightProfile(url)
+    profilesParsedList.state.contentModalVisible = false
+}
+
 function onOpenResults(profile: IProfileItem) {
     if (profile.opened === undefined) profile.opened = true
+    profile.highlited = false
     profile.opened = !profile.opened
 }
 

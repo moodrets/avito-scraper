@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Avito Scraper",
-    "version": "1.0.10",
+    "version": "1.0.12",
     "action": {
         "default_icon": {
             "16": "avito-icon.png"

@@ -4,7 +4,7 @@
         :class="[
         `button--${props.theme}`, 
         props.loading ? 'pointer-events-none' : '',
-        props.icon ? 'px-3 py-1.5 ' : 'px-3 py-2.5'
+        props.icon ? 'px-3 py-1.5' : 'px-3 py-2.5'
     ]">
         <div class="button-loader" v-if="props.loading">
             <i class="font-icon animate-spin text-3xl block">rotate_right</i>
