@@ -192,8 +192,8 @@ function onSort(profile: IProfileItem, sortBy: string) {
 }
 
 function onHighlightProfile(url: string) {
-    profilesParsedList.highlightProfile(url)
     profilesParsedList.state.contentModalVisible = false
+    profilesParsedList.highlightProfile(url)
 }
 
 function onOpenResults(profile: IProfileItem) {
@@ -228,15 +228,6 @@ async function onDeleteProfile(profile: IProfileItem, index: number) {
         profilesParsedList.apiRemoveProfile(profile.id)
     }
     profilesParsedList.list.value.splice(index, 1)
-}
-
-function onCopyProfileUrl(review: IReviewsItemExt) {
-    copyToBuffer(review.profileUrl)
-    toast.show('success', MessagesEnum.ProfileLinkCopied)
-}
-
-function onCopyInfo(profile: IProfileItem) {
-    profilesParsedList.copyItemInfo(profile)
 }
 
 onBeforeUnmount(() => {

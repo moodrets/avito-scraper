@@ -225,10 +225,14 @@ class ProfilesParseList {
         if (foundProfile) {
             foundProfile.highlited = true
             let foundProfileDomElement = document.querySelector(`[data-profile-url="${url}"]`)
-            foundProfileDomElement?.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            })
+            let elemRect = foundProfileDomElement?.getBoundingClientRect()
+
+            if (elemRect) {
+                window.scrollBy({
+                    top: elemRect.top - 70,
+                    behavior: 'smooth' 
+                })
+            }
         }
     }
 

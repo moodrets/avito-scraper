@@ -5,80 +5,82 @@
         </div>
     </template>
     <template v-else-if="profilesSavedList.list.value.length">
-        <div
-            v-for="profile in profilesSavedList.list.value"
-            :key="profile.id"
-            :class="profile.opened ? 'ring ring-blue-400' : ''"
-            class="rounded-xl bg-gray-600 shadow-xl mb-3"
-        >
-            <div
-                class="flex items-start p-4 select-none cursor-pointer"
-                @click="onOpenProfileDetails(profile)"
+        <Container orientation="vertical" @drop="onDrop" class="pb-14">
+            <Draggable
+                v-for="profile in profilesSavedList.list.value"
+                :key="profile.id"
+                :class="profile.opened ? 'ring ring-blue-400' : ''"
+                class="rounded-xl bg-gray-600 shadow-xl mb-3"
             >
-                <div class="min-w-0 flex-1">
-                    <div class="flex items-center gap-4 mb-4">
-                        <a
-                            class="text-white hover:text-white text-xl font-medium border-b border-dashed border-white"
-                            @click.stop="onOpenLink(profile)"
-                        >{{ profile.name }}</a>
-                        <div v-if="profile.comment" class="text-[16px] text-sky-300 font-medium italic">{{ profile.comment }}</div>
+                <div
+                    class="flex items-start p-4 select-none cursor-pointer"
+                    @click="onOpenProfileDetails(profile)"
+                >
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-4 mb-4">
+                            <a
+                                class="text-white hover:text-white text-xl font-medium border-b border-dashed border-white"
+                                @click.stop="onOpenLink(profile)"
+                            >{{ profile.name }}</a>
+                            <div v-if="profile.comment" class="text-[16px] text-sky-300 font-medium italic">{{ profile.comment }}</div>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-4 text-[16px] font-medium">
+                            <div class="text-orange-300">{{ profilesSavedList.getLastParsingInfo(profile)?.rating }}</div>
+                            <div class="text-yellow-300">{{ profilesSavedList.getLastParsingInfo(profile)?.reviewsCount }}</div>
+                            <div class="text-teal-300">{{ profilesSavedList.getLastParsingInfo(profile)?.subscribers }}</div>
+                            <div class="text-rose-300">{{ profilesSavedList.getLastParsingInfo(profile)?.deliveryInfo }}</div>
+                            <div class="text-amber-300">Активные - {{ profilesSavedList.getLastParsingInfo(profile)?.activeAdds }}</div>
+                            <div v-if="profilesSavedList.getLastParsingInfo(profile)?.completedAdds" class="text-lime-300">Завершенные - {{ profilesSavedList.getLastParsingInfo(profile)?.completedAdds }}</div>
+                            <div class="text-gray-300">{{ profilesSavedList.getLastParsingInfo(profile)?.parsingDate ? toLocaleString(profilesSavedList.getLastParsingInfo(profile)?.parsingDate) : '' }}</div>
+                        </div>
                     </div>
-                    <div class="flex flex-wrap items-center gap-4 text-[16px] font-medium">
-                        <div class="text-orange-300">{{ profilesSavedList.getLastParsingInfo(profile)?.rating }}</div>
-                        <div class="text-yellow-300">{{ profilesSavedList.getLastParsingInfo(profile)?.reviewsCount }}</div>
-                        <div class="text-teal-300">{{ profilesSavedList.getLastParsingInfo(profile)?.subscribers }}</div>
-                        <div class="text-rose-300">{{ profilesSavedList.getLastParsingInfo(profile)?.deliveryInfo }}</div>
-                        <div class="text-amber-300">Активные - {{ profilesSavedList.getLastParsingInfo(profile)?.activeAdds }}</div>
-                        <div v-if="profilesSavedList.getLastParsingInfo(profile)?.completedAdds" class="text-lime-300">Завершенные - {{ profilesSavedList.getLastParsingInfo(profile)?.completedAdds }}</div>
-                        <div class="text-gray-300">{{ profilesSavedList.getLastParsingInfo(profile)?.parsingDate ? toLocaleString(profilesSavedList.getLastParsingInfo(profile)?.parsingDate) : '' }}</div>
+                    <div class="flex-none flex items-center gap-4">
+                        <div class="flex-none ml-auto" @click.stop="onPushLinkToFilter(profile)">
+                            <i class="font-icon text-3xl text-amber-400">add_to_photos</i>
+                        </div>
+                        <div class="flex-none ml-auto" @click.stop="onShowEditModal(profile)">
+                            <i class="font-icon text-3xl text-green-400">edit</i>
+                        </div>
+                        <div class="flex-none" @click.stop="onCopyLink(profile)">
+                            <i class="font-icon text-3xl text-sky-400">content_copy</i>
+                        </div>
+                        <div class="flex-none" @click.stop="onDeleteProfile(profile)">
+                            <i class="font-icon text-3xl text-red-400">delete_forever</i>
+                        </div>
                     </div>
                 </div>
-                <div class="flex-none flex items-center gap-4">
-                    <div class="flex-none ml-auto" @click.stop="onPushLinkToFilter(profile)">
-                        <i class="font-icon text-3xl text-amber-400">add_to_photos</i>
-                    </div>
-                    <div class="flex-none ml-auto" @click.stop="onShowEditModal(profile)">
-                        <i class="font-icon text-3xl text-green-400">edit</i>
-                    </div>
-                    <div class="flex-none" @click.stop="onCopyLink(profile)">
-                        <i class="font-icon text-3xl text-sky-400">content_copy</i>
-                    </div>
-                    <div class="flex-none" @click.stop="onDeleteProfile(profile)">
-                        <i class="font-icon text-3xl text-red-400">delete_forever</i>
-                    </div>
+                <div v-if="profile.opened" class="text-[14px] px-4 p-5">
+                    <template v-if="profile.parsingResults?.length">
+                        <table class="w-full">
+                            <tr>
+                                <th class="text-left px-4 py-2 border border-white border-opacity-50">Дата парсинга</th>
+                                <th class="text-left px-4 py-2 border border-white border-opacity-50">Рейтинг</th>
+                                <th class="text-left px-4 py-2 border border-white border-opacity-50">Отзывы</th>
+                                <th class="text-left px-4 py-2 border border-white border-opacity-50">Подписки</th>
+                                <th class="text-left px-4 py-2 border border-white border-opacity-50">Продаж с доставкой</th>
+                                <th class="text-left px-4 py-2 border border-white border-opacity-50">Активные</th>
+                                <th class="text-left px-4 py-2 border border-white border-opacity-50">Завершенные</th>
+                            </tr>
+                            <tr 
+                                v-for="parsingItem, parsingItemIndex in profile.parsingResults" 
+                                :key="parsingItemIndex"
+                            >
+                                <td class="text-left px-4 py-2 border border-white border-opacity-50">{{ toLocaleString(parsingItem.parsingDate) }}</td>
+                                <td class="text-left px-4 py-2 border border-white border-opacity-50">{{ parsingItem.rating }}</td>
+                                <td class="text-left px-4 py-2 border border-white border-opacity-50">{{ parsingItem.reviewsCount }}</td>
+                                <td class="text-left px-4 py-2 border border-white border-opacity-50">{{ parsingItem.subscribers }}</td>
+                                <td class="text-left px-4 py-2 border border-white border-opacity-50">{{ parsingItem.deliveryInfo }}</td>
+                                <td class="text-left px-4 py-2 border border-white border-opacity-50">{{ parsingItem.activeAdds }}</td>
+                                <td class="text-left px-4 py-2 border border-white border-opacity-50">{{ parsingItem.completedAdds || MessagesEnum.InfoNotFound }}</td>
+                            </tr>
+                        </table>
+                    </template>
+                    <template v-else>
+                        <div class="text-center text-xl font-medium">Парсинги не найдены</div>
+                    </template>
                 </div>
-            </div>
-            <div v-if="profile.opened" class="text-[14px] px-4 p-5">
-                <template v-if="profile.parsingResults?.length">
-                    <table class="w-full">
-                        <tr>
-                            <th class="text-left px-4 py-2 border border-white border-opacity-50">Дата парсинга</th>
-                            <th class="text-left px-4 py-2 border border-white border-opacity-50">Рейтинг</th>
-                            <th class="text-left px-4 py-2 border border-white border-opacity-50">Отзывы</th>
-                            <th class="text-left px-4 py-2 border border-white border-opacity-50">Подписки</th>
-                            <th class="text-left px-4 py-2 border border-white border-opacity-50">Продаж с доставкой</th>
-                            <th class="text-left px-4 py-2 border border-white border-opacity-50">Активные</th>
-                            <th class="text-left px-4 py-2 border border-white border-opacity-50">Завершенные</th>
-                        </tr>
-                        <tr 
-                            v-for="parsingItem, parsingItemIndex in profile.parsingResults" 
-                            :key="parsingItemIndex"
-                        >
-                            <td class="text-left px-4 py-2 border border-white border-opacity-50">{{ toLocaleString(parsingItem.parsingDate) }}</td>
-                            <td class="text-left px-4 py-2 border border-white border-opacity-50">{{ parsingItem.rating }}</td>
-                            <td class="text-left px-4 py-2 border border-white border-opacity-50">{{ parsingItem.reviewsCount }}</td>
-                            <td class="text-left px-4 py-2 border border-white border-opacity-50">{{ parsingItem.subscribers }}</td>
-                            <td class="text-left px-4 py-2 border border-white border-opacity-50">{{ parsingItem.deliveryInfo }}</td>
-                            <td class="text-left px-4 py-2 border border-white border-opacity-50">{{ parsingItem.activeAdds }}</td>
-                            <td class="text-left px-4 py-2 border border-white border-opacity-50">{{ parsingItem.completedAdds || MessagesEnum.InfoNotFound }}</td>
-                        </tr>
-                    </table>
-                </template>
-                <template v-else>
-                    <div class="text-center text-xl font-medium">Парсинги не найдены</div>
-                </template>
-            </div>
-        </div>
+            </Draggable>
+        </Container>
     </template>
     <template v-else>
         <div class="text-center text-xl font-bold">Ничего не найдено</div>
@@ -109,6 +111,7 @@ import Spinner from '@/components/common/Spinner.vue'
 import Modal from '@/components/common/Modal.vue'
 import Button from '@/components/common/Button.vue'
 
+import { Container, Draggable } from 'vue3-smooth-dnd'
 import { onMounted, ref, onBeforeMount } from 'vue'
 import { MessagesEnum } from '@/types/enums'
 import { copyToBuffer } from '@/helpers/common'
@@ -122,6 +125,37 @@ const editModalVisible = ref<boolean>(false)
 const editableItem = ref<IProfileItemDB | null>(null)
 
 const loadingComponent = ref<boolean>(false)
+
+interface DragResults {
+    removedIndex: number
+    addedIndex: number
+    payload: any
+}
+
+function onDrop(dragResult: DragResults) {
+    profilesSavedList.list.value = applyDrag(profilesSavedList.list.value, dragResult)
+    profilesSavedList.apiUpdateList()
+}
+
+function applyDrag(list: IProfileItemDB[], dragResult: DragResults) {
+    const { removedIndex, addedIndex, payload } = dragResult;
+
+    if (removedIndex === null && addedIndex === null) return list;
+
+    const result = [...list];
+
+    let itemToAdd = payload;
+
+    if (removedIndex !== null) {
+        itemToAdd = result.splice(removedIndex, 1)[0];
+    }
+
+    if (addedIndex !== null) {
+        result.splice(addedIndex, 0, itemToAdd);
+    }
+
+    return result;
+}
 
 function onOpenLink(profile: IProfileItemDB) {
     if (profile.url) {

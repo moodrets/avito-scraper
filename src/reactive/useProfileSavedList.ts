@@ -70,6 +70,24 @@ class ProfilesSavedList {
         return []
     }
 
+    public async apiUpdateList() {
+        try {
+
+            const copyArray = JSON.parse(JSON.stringify(this.list.value)) as IProfileItemDB[]
+            copyArray.forEach(profile => profile.opened = false)
+            copyArray.forEach(profile => delete profile.id)
+
+            await DB.profilesSavedList.clear()
+            await DB.profilesSavedList.bulkAdd(copyArray)
+
+        } catch(error: any) {
+            console.log(error);
+            toast.show('error', MessagesEnum.ProfilesListUpdateError)
+        } finally {
+
+        }
+    }
+
     public async apiProfileCreate(profile: IProfileItem) {
         try {
             let copyProfile = JSON.parse(JSON.stringify(profile))

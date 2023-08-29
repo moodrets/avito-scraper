@@ -48,6 +48,7 @@ export enum MessagesEnum {
     DBImportSuccess = 'Импорт базы успешно завершен',
     DBDropSuccess = 'База данных успешно удалена',
     DBDropError = 'Не удалось удалить базу данных',
+    ProfilesListUpdateError = 'Не удалось обновить список продавцов',
 
     ProfilesParsingEnded = 'Поиск продавцов завершен',
     ProfilesParsingError = 'Поиск продавцов завершен неудачно',
