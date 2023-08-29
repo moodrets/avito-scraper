@@ -264,6 +264,7 @@ class ProfilesParseList {
                 let findIndex = profilesParsedList.findIndex((findProfile: IProfileItem) => findProfile.id === copyProfile.id)
 
                 if (findIndex !== undefined && findIndex !== null) {
+                    copyProfile.opened = false
                     profilesParsedList[findIndex] = copyProfile
                     await chrome.storage.local.set({'profilesParsedList': profilesParsedList})
                 }
@@ -277,7 +278,8 @@ class ProfilesParseList {
     public async apiCreateList() {
         try {
 
-            let copyArray = JSON.parse(JSON.stringify(this.list.value))
+            let copyArray = JSON.parse(JSON.stringify(this.list.value)) as IProfileItem[]
+            copyArray.forEach(profile => profile.opened = false)
 
             if (copyArray.length) {
                 await chrome.storage.local.set({'profilesParsedList': copyArray})
