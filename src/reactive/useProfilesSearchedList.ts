@@ -17,14 +17,12 @@ export class ProfilesSearchedList {
 
     public state = reactive<{
         loading: boolean,
-        currentPage: number,
         profilesListSortType: string,
         profilesInParsingFilter: {
             [key: string]: IProfileInAdd
         }
     }>({
         loading: false,
-        currentPage: 0,
         profilesListSortType: 'name_asc',
         profilesInParsingFilter: {} 
     })

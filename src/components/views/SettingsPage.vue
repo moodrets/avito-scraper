@@ -67,10 +67,12 @@ async function onDropModulesData() {
         reviewsFilter.apiRemoveFilter()
         profilesFilter.resetFields()
         profilesFilter.apiRemoveFilter()
+        profilesFilter.state.currentPage = 0
         profilesParsedList.list.value = []
         profilesParsedList.apiRemoveList()
         profilesSearchedList.list.value = []
         profilesSearchedList.apiRemoveList()
+        profilesSearchedList.state.profilesInParsingFilter = {}
         toast.show('success', MessagesEnum.AllDataRemoved)
     }
 }

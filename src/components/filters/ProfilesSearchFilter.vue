@@ -9,17 +9,18 @@
                 <div class="mb-2 text-sm font-medium">Страница категории</div>
                 <div class="flex items-center gap-4">
                     <i v-if="profilesSearchedList.state.loading" class="font-icon text-3xl block text-green-400 animate-spin">rotate_right</i>
-                    <div v-if="profilesSearchedList.state.currentPage > 0" class="flex-none font-medium text-[16px]">
-                        <strong class="text-green-400">{{ profilesSearchedList.state.currentPage }}</strong>
+                    <div v-if="profilesFilter.state.currentPage > 0" class="flex-none font-medium text-[16px]">
+                        <strong class="text-green-400">{{ profilesFilter.state.currentPage }}</strong>
                         -
                         {{ profilesFilter.fields.pageEnd }}
                     </div>
                     <div class="flex-1">
-                        <input 
+                        <input
                             v-model="profilesFilter.fields.categoryUrl"
                             type="search"
-                            @input="onInputCategoryUrl"
+                            required="true"
                             class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
+                            @input="onInputCategoryUrl"
                         >
                         <div v-if="profilesFilter.fields.pageTitle" class="mt-3 font-medium" v-html="profilesFilter.fields.pageTitle"></div>
                     </div>

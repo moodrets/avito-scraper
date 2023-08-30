@@ -15,6 +15,12 @@ export interface IProfileFilterFields {
 class ProfilesFilter {
     public openedTab = ref<Record<string, any>>({})
 
+    public state = reactive<{
+        currentPage: number,
+    }>({
+        currentPage: 0
+    })
+
     public fields = reactive<IProfileFilterFields>({
         pageTitle: '',
         reviewsCount: 100,

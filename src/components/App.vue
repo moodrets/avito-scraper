@@ -101,7 +101,7 @@ onMounted(async () => {
 
         if (action === 'profiles-parsing-current-page') {
             if (status === 'success') {
-                profilesSearchedList.state.currentPage = data
+                profilesFilter.state.currentPage = data
             }
         }
 
