@@ -62,6 +62,24 @@ class ProfilesSavedList {
         }
     }
 
+    public async apiGetProfileByUrl(url: string): Promise<IProfileItemDB | null> {
+        try {
+
+            let rows = await DB.profilesSavedList.where("url").equals(url).toArray()
+
+            if (rows.length && rows[0]) {
+                return rows[0]
+            }
+
+        } catch (error: any) {
+            console.log(error);
+        } finally {
+
+        }
+
+        return null
+    }
+
     public async apiGetList(offset: number = 0, limit: number = 0): Promise<IProfileItemDB[]> {
         if (offset === 0 && limit === 0) {
             return await DB.profilesSavedList.toArray()

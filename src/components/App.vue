@@ -89,7 +89,7 @@ onMounted(async () => {
         }
 
         if (action === 'profile-info') {
-            profilesParsedList.list.value.push(data)
+            profilesParsedList.pushProfileInList(data)
             reviewsFilter.profileLinkSetInfo(currentUrl, data)
         }
 

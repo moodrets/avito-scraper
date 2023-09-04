@@ -4,6 +4,7 @@ import { MessagesEnum } from '@/types/enums'
 import { toLocaleString } from '@/helpers/date'
 import { copyToBuffer } from '@/helpers/common'
 import { orderBy } from 'lodash'
+import { profilesSavedList } from './useProfileSavedList'
 
 export interface IReviewsItem {
     date: number
@@ -234,6 +235,18 @@ class ProfilesParseList {
                 })
             }
         }
+    }
+
+    public async pushProfileInList(profile: IProfileItem) {
+        const dbItem = await profilesSavedList.apiGetProfileByUrl(profile.url)
+
+        if (dbItem) {
+            profile.existsInDataBase = true
+            profile.savedDate = dbItem.savedDate
+            profile.comment = dbItem.comment
+        }
+
+        this.list.value.push(profile)
     }
 
     public async apiRemoveProfile(id: number) {
