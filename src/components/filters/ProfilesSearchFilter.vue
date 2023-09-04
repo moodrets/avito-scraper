@@ -20,7 +20,8 @@
                             type="search"
                             required="true"
                             class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
-                            @input="onInputCategoryUrl"
+                            @focus="onFocusCategoryInput"
+                            @input="onInputCategoryInput"
                         >
                         <div v-if="profilesFilter.fields.pageTitle" class="mt-3 font-medium" v-html="profilesFilter.fields.pageTitle"></div>
                     </div>
@@ -89,7 +90,14 @@ async function onSubmit() {
     profilesFilter.parsingStart()
 }
 
-function onInputCategoryUrl(event: Event) {
+function onInputCategoryInput(event: Event) {
     profilesFilter.fields.pageTitle = ''
+    profilesFilter.state.currentPage = 0
+    profilesFilter.fields.pageStart = 1
+    profilesFilter.fields.pageEnd = 10
+}
+
+function onFocusCategoryInput(event: Event) {
+    (event.target as HTMLInputElement).select()
 }
 </script>

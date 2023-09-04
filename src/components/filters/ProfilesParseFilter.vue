@@ -28,6 +28,7 @@
                             required
                             class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
                             :class="{'ring-4 ring-red-400': link.highlight}"
+                            @focus="onFocusLink"
                             @input="onInputLink(link, $event)"
                         >
                         <div class="flex-none cursor-pointer select-none">
@@ -169,6 +170,10 @@ function onInputLink(link: IProfileLink, event: Event) {
     reviewsFilter.profileLinksHighlightDuplicates()
     link.status = 'new'
     link.info = ''
+}
+
+function onFocusLink(event: Event) {
+    (event.target as HTMLInputElement).select()
 }
 
 function onHighlightProfile(url: string) {
