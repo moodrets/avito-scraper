@@ -73,6 +73,7 @@ async function onDropModulesData() {
         profilesSearchedList.list.value = []
         profilesSearchedList.apiRemoveList()
         profilesSearchedList.state.profilesInParsingFilter = {}
+        profilesSearchedList.state.checkedItems = {}
         toast.show('success', MessagesEnum.AllDataRemoved)
     }
 }

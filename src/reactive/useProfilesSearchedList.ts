@@ -20,11 +20,15 @@ export class ProfilesSearchedList {
         profilesListSortType: string,
         profilesInParsingFilter: {
             [key: string]: IProfileInAdd
-        }
+        },
+        checkedItems: {
+            [key: string]: IProfileInAdd
+        },
     }>({
         loading: false,
         profilesListSortType: 'name_asc',
-        profilesInParsingFilter: {} 
+        profilesInParsingFilter: {},
+        checkedItems: {} 
     })
 
     public sortProfileList(sortType: string = 'name_asc') {
@@ -100,7 +104,7 @@ export class ProfilesSearchedList {
         })
     }
 
-    public removeLinksFromParsingFilter(url: string) {
+    public removeLinkFromParsingFilter(url: string) {
         delete this.state.profilesInParsingFilter[url]
     }
 

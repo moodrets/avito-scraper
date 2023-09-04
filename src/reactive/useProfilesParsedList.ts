@@ -263,7 +263,7 @@ class ProfilesParseList {
                 let copyProfile = JSON.parse(JSON.stringify(profile))
                 let findIndex = profilesParsedList.findIndex((findProfile: IProfileItem) => findProfile.id === copyProfile.id)
 
-                if (findIndex !== undefined && findIndex !== null) {
+                if (findIndex !== -1) {
                     copyProfile.opened = false
                     profilesParsedList[findIndex] = copyProfile
                     await chrome.storage.local.set({'profilesParsedList': profilesParsedList})

@@ -70,8 +70,19 @@ class ReviewsFilter {
         });
     }
 
+    public profileLinkRemoveByUrl(link: string) {
+        let findIndex = this.fields.profilesLinks.findIndex(profile => profile.url === link)
+        
+        if (findIndex !== -1) {
+            this.fields.profilesLinks.splice(findIndex, 1)
+            if (this.fields.profilesLinks.length === 0) {
+                this.profileLinkPushNew('')
+            }
+        }
+    }
+
     public profileLinkRemove(link: IProfileLink, index: number) {
-        profilesSearchedList.removeLinksFromParsingFilter(link.url)
+        profilesSearchedList.removeLinkFromParsingFilter(link.url)
         if (this.fields.profilesLinks.length === 1) {
             this.fields.profilesLinks[0].url = ''
             this.fields.profilesLinks[0].status = 'new'
