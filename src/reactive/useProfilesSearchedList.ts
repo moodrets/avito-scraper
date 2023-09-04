@@ -86,7 +86,8 @@ export class ProfilesSearchedList {
     }
 
     public async pushProfilesList(profilesList: IProfileInAdd[]) {
-        let resultArr = uniqWith(profilesList, isEqual)
+        let mergeProfiles = [...profilesList, ...this.list.value]
+        let resultArr = uniqWith(mergeProfiles, isEqual)
         this.list.value = resultArr
         this.sortProfileList()
         await this.checkProfilesInDB()
