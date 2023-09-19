@@ -3,6 +3,7 @@ import { ref } from "vue"
 import { toast } from "@/helpers/toast"
 import { MessagesEnum } from "@/types/enums"
 import { IProfileItem, profilesParsedList } from "@/reactive/useProfilesParsedList"
+import { getProfileUrlHash } from "@/helpers/common"
 
 export interface IParsingResultItem {
     parsingDate: number
@@ -99,15 +100,40 @@ class ProfilesSavedList {
             await DB.profilesSavedList.bulkAdd(copyArray)
 
         } catch(error: any) {
-            console.log(error);
+            console.error(error);
             toast.show('error', MessagesEnum.ProfilesListUpdateError)
         } finally {
 
         }
     }
 
+    public async apiProfileGetByURLHash(profile: IProfileItem) {
+        try {
+            
+            let urlHash = getProfileUrlHash(profile.url)
+            
+            let rows = await DB.profilesSavedList.filter((profile: IProfileItemDB) => profile.url.includes(urlHash)).toArray()
+
+            if (rows.length && rows[0]) {
+                return rows[0]
+            }
+
+        } catch(error) {
+            console.error(error);
+        }
+
+        return null
+    }
+
     public async apiProfileCreate(profile: IProfileItem) {
         try {
+
+            let profileByUrlHash = await this.apiProfileGetByURLHash(profile);
+
+            if (profileByUrlHash) {
+                throw new Error('Такой профиль уже есть в базе')
+            }
+
             let copyProfile = JSON.parse(JSON.stringify(profile))
 
             let newProfile: IProfileItemDB = {

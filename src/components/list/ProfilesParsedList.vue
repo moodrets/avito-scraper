@@ -1,5 +1,5 @@
 <template>
-    <div v-if="profilesParsedList.list.value.length" class="pb-10">
+    <div v-if="profilesParsedList.list.value.length" class="pb-20">
         <div
             v-for="profile, profileIndex in profilesParsedList.list.value"
             :data-profile-url="profile.url"   
@@ -11,7 +11,10 @@
             ]"
         >
             <div
-                class="relative flex items-start p-4 select-none cursor-pointer rounded-xl"
+                class="flex items-start p-4 select-none cursor-pointer rounded-xl"
+                :class="{
+                    'shadow-xl sticky top-[65px] z-20': profile.opened 
+                }"
                 :style="{'background-image': `linear-gradient(45deg, rgb(75 85 99) 0%, rgb(75 85 99) 70%, ${profile.color.bg} 100%)`}"
                 @click="onOpenResults(profile)"
             >
@@ -37,6 +40,11 @@
                     </div>
                 </div>
                 <div class="flex-none flex items-center gap-4">
+                    <Checkbox
+                        :checked="profilesParsedList.isChecked(profile)"
+                        @click.stop 
+                        @change="onCheck($event, profile)"
+                    ></Checkbox>
                     <i class="font-icon text-3xl drop-shadow-xl" @click.stop="onDeleteProfile(profile, profileIndex)">delete_forever</i>
                     <i v-if="profile.existsInDataBase" class="font-icon text-3xl text-white drop-shadow-xl">storage</i>
                     <i v-else class="font-icon text-3xl text-white drop-shadow-xl" @click.stop="onSave(profile)">cloud_upload</i>
@@ -57,11 +65,11 @@
                 </div>
                 <template v-if="profile.reviewsList?.length">
                     <div v-if="profile.opened">
-                        <div class="mb-8 font-bold text-xl">
+                        <div class="mb-5 font-bold text-xl">
                             <div>Найдено отзывов - <strong>{{ profile.reviewsList.length }}</strong></div>
                         </div>
                         <table class="w-full relative">
-                            <tr class="text-[16px] sticky top-[63px] z-10 bg-gray-600">
+                            <tr class="shadow-xl text-[16px] sticky top-[165px] z-10 bg-gray-600">
                                 <th class="text-left px-4 py-2 border border-white border-opacity-50">
                                     <SortHeading
                                         :sort-types="['date_desc', 'date_asc']"
@@ -131,11 +139,18 @@
             width="800px"
             @close="onCloseModal"
         >
-            <template v-if="profilesParsedList.state.contentModalData.length">
+            <div class="mb-5">
+                <input
+                    v-model="profilesParsedList.state.contentModalFilterModel"
+                    placeholder="Введите название товара"
+                    class="text-base w-full text-black px-3 py-2 rounded-lg outline-none focus:outline-blue-400"
+                >
+            </div>
+            <template v-if="profilesParsedList.filteredModalDataList.value.length">
                 <div
-                    v-for="result, resultIndex in profilesParsedList.state.contentModalData"
+                    v-for="result, resultIndex in profilesParsedList.filteredModalDataList.value"
                     :key="resultIndex" 
-                    class="flex text-sm items-center gap-2 py-0.5 px-1 mb-[2px] mr-5 font-medium"
+                    class="flex text-sm items-center gap-2 py-0.5 px-1 mb-[2px] font-medium"
                     :style="{'background-color': result.color.bg, 'color': result.color.text}"
                     :title="result.info"
                 >
@@ -168,18 +183,20 @@
 
 <script lang="ts" setup>
 import Modal from '@/components/common/Modal.vue'
+import Checkbox from '@/components/common/Checkbox.vue'
 import SortHeading from '@/components/common/SortHeading.vue'
 import { onMounted, onBeforeUnmount } from 'vue';
 import { copyToBuffer } from '@/helpers/common';
 import { toLocaleString } from '@/helpers/date'
 import { MessagesEnum } from '@/types/enums';
 import { toast } from '@/helpers/toast';
-import { IProfileItem, IReviewsItemExt, profilesParsedList } from '@/reactive/useProfilesParsedList';
+import { IProfileItem, profilesParsedList } from '@/reactive/useProfilesParsedList';
 import { profilesSavedList } from '@/reactive/useProfileSavedList';
 
 function onCloseModal() {
     profilesParsedList.state.contentModalVisible = false
     profilesParsedList.state.contentModalData = []
+    profilesParsedList.state.contentModalFilterModel = ''
 }
 
 function onCopyProductName(productName: string) {
@@ -223,6 +240,15 @@ function onMark(profile: IProfileItem) {
     }
 }
 
+function onCheck(checked: boolean, profile: IProfileItem) {
+    if (checked) {
+        profilesParsedList.state.checkedItems[profile.url] = profile
+        return
+    }
+
+    delete profilesParsedList.state.checkedItems[profile.url]
+}
+
 async function onDeleteProfile(profile: IProfileItem, index: number) {
     if (profile.id) {
         profilesParsedList.apiRemoveProfile(profile.id)
@@ -231,14 +257,9 @@ async function onDeleteProfile(profile: IProfileItem, index: number) {
 }
 
 onBeforeUnmount(() => {
-    profilesParsedList.state.viewAllButtonVisible = false
-    profilesParsedList.state.viewMoreThanButtonVisible = false
 })
 
 onMounted(async () => {
-    profilesParsedList.state.viewAllButtonVisible = true
-    profilesParsedList.state.viewMoreThanButtonVisible = true
-
     if (profilesParsedList.list.value.length === 1) {
         profilesParsedList.list.value[0].opened = true
     }

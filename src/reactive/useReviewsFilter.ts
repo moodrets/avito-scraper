@@ -2,9 +2,9 @@ import { reactive, ref } from "vue"
 import { toast } from "@/helpers/toast"
 import { MessagesEnum } from "@/types/enums"
 import { dateFromDatepickerString } from "@/helpers/date"
-import { createTab } from "@/helpers/common"
+import { createTab, getProfileUrlHash } from "@/helpers/common"
 import { IProfileItem, profilesParsedList } from "@/reactive/useProfilesParsedList"
-import { profilesSearchedList } from "./useProfilesSearchedList"
+import { profilesSearchedList } from "@/reactive/useProfilesSearchedList"
 
 export type TypeProfileLinkStatus = 'success' | 'error' | 'wait' | 'new'
 
@@ -100,7 +100,8 @@ class ReviewsFilter {
 
     public profileLinksHighlightDuplicates() {
         this.fields.profilesLinks.forEach((link, index, array) => {
-            let duplicates = array.filter(filterLink => filterLink.url === link.url && link.url !== '')
+            let profileUrlHash = getProfileUrlHash(link.url)
+            let duplicates = array.filter(filterLink => filterLink.url.includes(profileUrlHash) && link.url !== '')
             link.highlight = duplicates.length > 1
         })
     }
@@ -144,6 +145,21 @@ class ReviewsFilter {
         if (linkByUrl) {
             linkByUrl.status = status
         }
+    }
+
+    public profileLinkScrollToLast() {
+        setTimeout(() => {
+            let profileLinksDom = document.querySelectorAll(`[data-profile-link-input]`)
+            let lastProfileLink = profileLinksDom[profileLinksDom.length - 1]
+
+            if (lastProfileLink) {
+                let elemRect = lastProfileLink.getBoundingClientRect()
+                window.scrollBy({
+                    top: elemRect.top - 70,
+                    behavior: 'smooth' 
+                })
+            }
+        }, 100)
     }
 
     public async setFilterFromDB() {

@@ -11,23 +11,6 @@
                 @click="appTabs.changeTab(tab.value)"
             >{{ tab.text }}</Button>
 
-            <div class="flex items-center gap-3 ml-auto">
-                <Button
-                    v-if="profilesParsedList.state.viewAllButtonVisible && profilesParsedList.list.value.length > 1"
-                    theme="success" 
-                    type="button"
-                    icon="remove_red_eye"
-                    @click.stop.prevent="onViewAll"
-                >Все результаты</Button>
-                <Button
-                    v-if="profilesParsedList.state.viewMoreThanButtonVisible && profilesParsedList.list.value.length > 1"
-                    theme="success" 
-                    type="button"
-                    icon="remove_red_eye"
-                    @click.stop.prevent="onViewMoreThan"
-                > >= 10</Button>
-            </div>
-
             <Button 
                 theme="info" 
                 type="button"
@@ -45,15 +28,4 @@
 <script lang="ts" setup>
 import Button from '@/components/common/Button.vue'
 import { AppTabsEnum, appTabs } from '@/reactive/useAppTabs';
-import { profilesParsedList } from '@/reactive/useProfilesParsedList';
-
-async function onViewAll() {
-    profilesParsedList.state.contentModalVisible = true
-    profilesParsedList.state.contentModalData = profilesParsedList.getAllResults()
-}
-
-async function onViewMoreThan() {
-    profilesParsedList.state.contentModalVisible = true
-    profilesParsedList.state.contentModalData = profilesParsedList.getMoreThanResults()
-}
 </script>

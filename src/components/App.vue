@@ -13,18 +13,16 @@
             <SettingsPage v-if="appTabs.active.value === AppTabsEnum.Settings" />
         </main>
     </div>
-    <DevPanel v-if="devPanelVisible"></DevPanel>
 </template>
 
 <script lang="ts" setup>
 import Header from '@/components/common/Header.vue';
-import DevPanel from '@/components/common/DevPanel.vue';
 import ProfilesParsedPage from '@/components/views/ProfilesParsedPage.vue';
 import ProfilesSearchPage from '@/components/views/ProfilesSearchPage.vue';
 import ProfilesSavedPage from '@/components/views/ProfilesSavedPage.vue';
 import SettingsPage from '@/components/views/SettingsPage.vue';
 
-import { onMounted, ref, computed } from 'vue';
+import { onMounted, ref } from 'vue';
 import { showAppStartMessageFromStorage, randomNumberBetween, setExtensionTabActive, wait } from '@/helpers/common';
 import { toast } from '@/helpers/toast';
 import { initDBCollections } from '@/db/db';
@@ -37,11 +35,6 @@ import { profilesSearchedList } from '@/reactive/useProfilesSearchedList';
 import { profilesFilter } from '@/reactive/useProfilesFilter';
 
 const appLoaded = ref<boolean>(false)
-
-const devPanelVisible = computed<boolean>(() => {
-    let urlParams = new URLSearchParams(window.location.search)
-    return urlParams.has('dev') ? true : false 
-})
 
 onMounted(async () => {
 

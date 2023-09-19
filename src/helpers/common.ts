@@ -65,3 +65,7 @@ export async function showAppStartMessageFromStorage() {
         chrome.storage.local.remove(['appStartMessage'])
     }
 }
+
+export function getProfileUrlHash(url: string): string {
+    return url.split('/')[4]
+}

@@ -1,10 +1,10 @@
-import { reactive, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
+import { orderBy } from 'lodash'
 import { toast } from '@/helpers/toast'
 import { MessagesEnum } from '@/types/enums'
 import { toLocaleString } from '@/helpers/date'
 import { copyToBuffer } from '@/helpers/common'
-import { orderBy } from 'lodash'
-import { profilesSavedList } from './useProfileSavedList'
+import { profilesSavedList } from '@/reactive/useProfileSavedList'
 
 export interface IReviewsItem {
     date: number
@@ -54,16 +54,38 @@ class ProfilesParseList {
     public list = ref<IProfileItem[]>([])
 
     public state = reactive<{
+        checkedItems: {
+            [key: string]: IProfileItem
+        },
+        contentModalFilterModel: string,
         contentModalData: IReviewsItemExt[],
         contentModalVisible: boolean
-        viewAllButtonVisible: boolean
-        viewMoreThanButtonVisible: boolean
     }>({
+        checkedItems: {},
         contentModalData: [],
+        contentModalFilterModel: '',
         contentModalVisible: false,
-        viewAllButtonVisible: false,
-        viewMoreThanButtonVisible: false,
     })
+
+    public filteredModalDataList = computed<IReviewsItemExt[]>(() => {
+        if (this.state.contentModalFilterModel.length > 2) {
+            let inputValueLC = this.state.contentModalFilterModel.toLocaleLowerCase()
+            let filteredRusult = this.state.contentModalData.filter(item => {
+                let itemNameLC = item.productName.toLocaleLowerCase()
+                return itemNameLC.includes(inputValueLC)
+            })
+            return filteredRusult
+        }
+        return this.state.contentModalData
+    })
+
+    public isChecked(profile: IProfileItem): boolean {
+        return profile.url in this.state.checkedItems
+    }
+
+    public hasChecked(): boolean {
+        return Object.values(this.state.checkedItems).length ? true : false 
+    }
 
     public pushProfileInfo(profile: IProfileItem) {
         this.list.value.push(profile)
@@ -122,6 +144,12 @@ class ProfilesParseList {
         profile.reviewsList = resultArray
     }
 
+    public closeAllProfiles() {
+        this.list.value.forEach(profile => {
+            profile.opened = false
+        })
+    }
+
     public copyItemInfo(profile: IProfileItem) {
         let textValue: string = ''
 
@@ -150,21 +178,21 @@ class ProfilesParseList {
     public getMoreThanResults(moreThan: number = 10): IReviewsItemExt[] {
         let resultsList: IReviewsItemExt[] = []
         let resultMap : Map<string, IReviewsItemExt[]> = new Map()
-        
-        this.list.value.forEach(profile => {
+        let iterableList = Object.values(this.state.checkedItems).length ? Object.values(this.state.checkedItems) : this.list.value;
+
+        iterableList.forEach(profile => {
             profile.reviewsList?.forEach(resultItem => {
                 let productNameLC = resultItem.productName.toLowerCase()
-                if (resultMap.has(productNameLC)) {
-                    let mapValue = resultMap.get(productNameLC)
-                    if (mapValue) {
-                        let newMapValue: IReviewsItemExt[] = [...mapValue, {
-                            ...resultItem,
-                            color: profile.color,
-                            info: `${profile.name} / ${profile.rating} / ${profile.reviewsCount} / ${profile.subscribers} / ${profile.deliveryInfo}`,
-                            count: 0,
-                        }]
-                        resultMap.set(productNameLC, newMapValue)
-                    }
+                let mapValue = resultMap.get(productNameLC)
+
+                if (mapValue && profile.url === resultItem.profileUrl) {
+                    let newMapValue: IReviewsItemExt[] = [...mapValue, {
+                        ...resultItem,
+                        color: profile.color,
+                        info: `${profile.name} / ${profile.rating} / ${profile.reviewsCount} / ${profile.subscribers} / ${profile.deliveryInfo}`,
+                        count: 0,
+                    }]
+                    resultMap.set(productNameLC, newMapValue)
                 } else {
                     resultMap.set(productNameLC, [
                         {
@@ -199,8 +227,9 @@ class ProfilesParseList {
 
     public getAllResults(): IReviewsItemExt[] {
         let resultsList: IReviewsItemExt[] = []
+        let iterableList = Object.values(this.state.checkedItems).length ? Object.values(this.state.checkedItems) : this.list.value;
 
-        this.list.value.forEach(profile => {
+        iterableList.forEach(profile => {
             profile.reviewsList?.forEach((resultItem) => {
                 resultsList.push({
                     ...resultItem,
@@ -238,12 +267,12 @@ class ProfilesParseList {
     }
 
     public async pushProfileInList(profile: IProfileItem) {
-        const dbItem = await profilesSavedList.apiGetProfileByUrl(profile.url)
+        const profileFromDB = await profilesSavedList.apiProfileGetByURLHash(profile)
 
-        if (dbItem) {
+        if (profileFromDB) {
             profile.existsInDataBase = true
-            profile.savedDate = dbItem.savedDate
-            profile.comment = dbItem.comment
+            profile.savedDate = profileFromDB.savedDate
+            profile.comment = profileFromDB.comment
         }
 
         this.list.value.push(profile)

@@ -2,6 +2,7 @@ import { reactive, ref } from "vue"
 import { isEqual, orderBy, uniqWith } from 'lodash'
 import { profilesSavedList } from '@/reactive/useProfileSavedList'
 import { reviewsFilter } from '@/reactive/useReviewsFilter'
+import { getProfileUrlHash } from "@/helpers/common"
 
 export interface IProfileInAdd {
     url: string
@@ -75,7 +76,9 @@ export class ProfilesSearchedList {
         let dbProfileList = await profilesSavedList.apiGetList()
 
         this.list.value.forEach(profile => {
-            let profileUrlHash = profile.url.split('/')[4]
+
+            let profileUrlHash = getProfileUrlHash(profile.url)
+
             if (profileUrlHash) {
                 let foundInDb = dbProfileList.find(item => item.url.includes(profileUrlHash))
                 if (foundInDb && foundInDb.name === profile.name) {
@@ -98,9 +101,10 @@ export class ProfilesSearchedList {
         let paringFilterLinks = reviewsFilter.fields.profilesLinks 
 
         paringFilterLinks.forEach(link => {
-            let foundProfileByUrl = this.list.value.find(profile => profile.url === link.url)
-            if (foundProfileByUrl) {
-                this.state.profilesInParsingFilter[foundProfileByUrl.url] = foundProfileByUrl
+            let profileURLHash = getProfileUrlHash(link.url)
+            let foundProfileByUrlHash = this.list.value.find(profile => profile.url.includes(profileURLHash))
+            if (foundProfileByUrlHash) {
+                this.state.profilesInParsingFilter[foundProfileByUrlHash.url] = foundProfileByUrlHash
             }
         })
     }

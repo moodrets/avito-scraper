@@ -22,6 +22,7 @@
                             <i v-if="link.status === 'new'" class="font-icon text-3xl block text-gray-400">watch_later</i>
                         </div>
                         <input
+                            :data-profile-link-input="link.url"
                             v-model="link.url"
                             tabindex="1"
                             type="search"
@@ -35,7 +36,7 @@
                             <i class="font-icon text-3xl block text-red-400" @click="reviewsFilter.profileLinkRemove(link, linkIndex)">remove_circle_outline</i>
                         </div>
                         <div class="flex-none cursor-pointer select-none ml-auto">
-                            <i class="font-icon text-3xl block text-green-400" @click="reviewsFilter.profileLinkPushNew()">add_circle_outline</i>
+                            <i class="font-icon text-3xl block text-green-400" @click="onPushNewProfileLink()">add_circle_outline</i>
                         </div>
                     </div>
                     <div v-if="link.info" class="mt-3 ml-12 font-medium cursor-pointer" v-html="link.info" @click="onHighlightProfile(link.url)"></div>
@@ -185,6 +186,11 @@ function onProfileLinksRemoveAll() {
         reviewsFilter.profileLinksRemoveAll()
         reviewsFilter.apiCreateFilter()    
     }
+}
+
+function onPushNewProfileLink() {
+    reviewsFilter.profileLinkPushNew()
+    reviewsFilter.profileLinkScrollToLast()
 }
 
 async function onRemoveProfilesListAll() {

@@ -10,7 +10,7 @@
             class="app-modal__body relative bg-gray-600 shadow-xl rounded-xl p-10 m-auto max-w-full min-h-[100px] break-all" 
             :style="{'width': props.width}"
         >
-            <div class="font-icon absolute right-4 top-4 z-10 cursor-pointer text-3xl" @click="onClose">close</div>
+            <div class="font-icon absolute right-2 top-2 z-10 cursor-pointer text-3xl" @click="onClose">close</div>
             <slot></slot>
         </div>
     </div>
@@ -52,3 +52,9 @@ onMounted(() => {
     document.body.classList.add('overflow-hidden')
 })
 </script>
+
+<style lang="scss">
+.app-modal {
+    transform: translate3d(0,0,0);
+}
+</style>

@@ -33,16 +33,16 @@
 <script setup lang="ts">
 import Button from '@/components/common/Button.vue'
 import Spinner from '@/components/common/Spinner.vue'
-import DB from '@/db/db';
-import { toast } from '@/helpers/toast';
-import { profilesFilter } from '@/reactive/useProfilesFilter';
-import { profilesParsedList } from '@/reactive/useProfilesParsedList';
-import { reviewsFilter } from '@/reactive/useReviewsFilter';
-import { profilesSearchedList } from '@/reactive/useProfilesSearchedList';
+import DB from '@/db/db'
+import { toast } from '@/helpers/toast'
+import { profilesFilter } from '@/reactive/useProfilesFilter'
+import { profilesParsedList } from '@/reactive/useProfilesParsedList'
+import { reviewsFilter } from '@/reactive/useReviewsFilter'
+import { profilesSearchedList } from '@/reactive/useProfilesSearchedList'
 
-import { MessagesEnum } from '@/types/enums';
-import { exportDB, importDB } from 'dexie-export-import';
-import { computed, reactive } from 'vue';
+import { MessagesEnum } from '@/types/enums'
+import { exportDB, importDB } from 'dexie-export-import'
+import { computed, reactive } from 'vue'
 
 const blocksLoading = reactive({
     dbLoading: false
@@ -74,6 +74,7 @@ async function onDropModulesData() {
         profilesSearchedList.apiRemoveList()
         profilesSearchedList.state.profilesInParsingFilter = {}
         profilesSearchedList.state.checkedItems = {}
+        chrome.storage.local.remove('addPanelIsOpen')
         toast.show('success', MessagesEnum.AllDataRemoved)
     }
 }

@@ -11,7 +11,10 @@
         </div>
         <i
             v-if="props.icon"
-            :class="{'opacity-0' : props.loading, 'mr-2' : slots.default}" 
+            :class="[
+                {'opacity-0' : props.loading, 'mr-2' : slots.default},
+                iconClass
+            ]"
             class="font-icon" >{{ props.icon }}</i>
         <span 
             v-if="slots.default" 
@@ -23,11 +26,13 @@
 <script setup lang="ts">
 const props = withDefaults(
     defineProps<{
-        icon?: string,
-        loading?: boolean,
-        theme?: 'danger' | 'success' | 'info' | 'warning',
+        icon?: string
+        iconClass?: string
+        loading?: boolean
+        theme?: 'danger' | 'success' | 'info' | 'warning'
     }>(),
     {
+        iconClass: '',
         icon: '',
         loading: false,
         theme: 'info',

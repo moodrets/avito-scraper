@@ -1,11 +1,11 @@
 {
   "name": "avito-reviews-parser-extension",
   "private": true,
-  "version": "1.1.0",
+  "version": "1.2.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "watch": "vue-tsc && vite build --watch",
+    "watch": "vue-tsc && vite build -m development --watch",
     "build": "vue-tsc && vite build",
     "preview": "vite preview"
   },

@@ -16,6 +16,10 @@ enum MessagesEnum {
     ReviewsModalScrollerNotFound = 'Не найден селектор для скрола в модалке',
 }
 
+function getProfileUrlHash(url: string): string {
+    return url.split('/')[4]
+}
+
 async function sendMessage(data: Record<string, any>) {
     await chrome.runtime.sendMessage(data);
 }
@@ -300,11 +304,9 @@ class ReviewsFactory {
     }
 
     protected async apiGetReviews(requestType: 'first' | 'next'): Promise<IReviewsItemAPI[]> {
-        let url = new URL(this.currentURL)
         let urlParams = new URLSearchParams()
-        let splitUrl = url.pathname.split('/')
-        let userHash = splitUrl[2]
-        let requestUrl = `https://www.avito.ru/web/5/user/${userHash}/ratings`
+        let profileURLHash = getProfileUrlHash(this.currentURL)
+        let requestUrl = `https://www.avito.ru/web/5/user/${profileURLHash}/ratings`
 
         if (requestType === 'first') {
             urlParams.set('summary_redesign', '1')
