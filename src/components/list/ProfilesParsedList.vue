@@ -13,7 +13,7 @@
             <div
                 class="flex items-start p-4 select-none cursor-pointer rounded-xl"
                 :class="{
-                    'shadow-xl sticky top-[65px] z-20': profile.opened 
+                    'shadow-xl sticky top-[64px] z-20': profile.opened 
                 }"
                 :style="{'background-image': `linear-gradient(45deg, rgb(75 85 99) 0%, rgb(75 85 99) 70%, ${profile.color.bg} 100%)`}"
                 @click="onOpenResults(profile)"
