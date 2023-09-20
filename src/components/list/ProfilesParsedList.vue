@@ -69,7 +69,7 @@
                             <div>Найдено отзывов - <strong>{{ profile.reviewsList.length }}</strong></div>
                         </div>
                         <table class="w-full relative">
-                            <tr class="shadow-xl text-[16px] sticky top-[165px] z-10 bg-gray-600">
+                            <tr class="shadow-xl text-[16px] sticky top-[164px] z-10 bg-gray-600">
                                 <th class="text-left px-4 py-2 border border-white border-opacity-50">
                                     <SortHeading
                                         :sort-types="['date_desc', 'date_asc']"
