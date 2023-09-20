@@ -4,9 +4,7 @@
         @dblclick="onTogglePanel"
     >
         <div class="centered">
-            <div class="flex items-center gap-4">
-                <slot></slot>
-            </div>
+            <slot></slot>
         </div>
     </div>
 </template>

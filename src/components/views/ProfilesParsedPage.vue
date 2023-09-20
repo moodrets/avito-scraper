@@ -2,41 +2,42 @@
     <ProfilesParseFilter></ProfilesParseFilter>
     <ProfilesParsedList></ProfilesParsedList>
     <AddPanel>
-        <Button
-            v-if="profilesParsedList.list.value.length > 1"
-            theme="success" 
-            type="button"
-            icon="remove_red_eye"
-            @click.stop.prevent="onViewAll"
-            class="ml-auto"
-        >Все результаты</Button>
-        <Button
-            v-if="profilesParsedList.list.value.length > 1"
-            theme="success" 
-            type="button"
-            icon="remove_red_eye"
-            @click.stop.prevent="onViewMoreThan"
-        > >= 10</Button>
-        <Button
-            theme="info"
-            type="button"
-            icon="close_fullscreen"
-            icon-class="-rotate-45"
-            @click="onCloseAllProfiles"
-        >
-        </Button>
-        <Button
-            theme="info"
-            type="button"
-            icon="double_arrow"
-            icon-class="-rotate-90"
-            @click="onScrollToLast"
-        >
-        </Button>
-        <Checkbox
-            :checked="profilesParsedList.hasChecked()" 
-            @change="onCheckAll"
-        ></Checkbox>
+        <div class="flex items-center justify-end gap-4">
+            <Button
+                v-if="profilesParsedList.list.value.length > 1"
+                theme="success" 
+                type="button"
+                icon="remove_red_eye"
+                @click.stop.prevent="onViewAll"
+            >Все результаты</Button>
+            <Button
+                v-if="profilesParsedList.list.value.length > 1"
+                theme="success" 
+                type="button"
+                icon="remove_red_eye"
+                @click.stop.prevent="onViewMoreThan"
+            > >= 10</Button>
+            <Button
+                theme="info"
+                type="button"
+                icon="close_fullscreen"
+                icon-class="-rotate-45"
+                @click="onCloseAllProfiles"
+            >
+            </Button>
+            <Button
+                theme="info"
+                type="button"
+                icon="double_arrow"
+                icon-class="-rotate-90"
+                @click="onScrollToLast"
+            >
+            </Button>
+            <Checkbox
+                :checked="profilesParsedList.hasChecked()" 
+                @change="onCheckAll"
+            ></Checkbox>
+        </div>
     </AddPanel>
 </template>
 
