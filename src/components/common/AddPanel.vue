@@ -12,7 +12,7 @@
 <script setup lang="ts">
 import { onBeforeMount, ref } from 'vue'
 
-const isOpen = ref<boolean>(false)
+const isOpen = ref<boolean>(true)
 
 function onTogglePanel() {
     isOpen.value = !isOpen.value
@@ -21,8 +21,8 @@ function onTogglePanel() {
 
 onBeforeMount(async () => {
     const { addPanelIsOpen } = await chrome.storage.local.get('addPanelIsOpen')
-    if (addPanelIsOpen) {
-        isOpen.value = Boolean(isOpen)
+    if (addPanelIsOpen !== undefined) {
+        isOpen.value = Boolean(addPanelIsOpen)
     }
 })
 </script>

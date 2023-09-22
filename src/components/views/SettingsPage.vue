@@ -4,12 +4,6 @@
         <div class="flex flex-wrap items-center gap-5">
             <Button theme="success" icon="save" @click.stop="onSaveModulesData">Сохранить данные</Button>
             <Button theme="danger" icon="restore" @click.stop="onDropModulesData">Сбросить данные</Button>
-        </div>
-    </div>
-    <div class="relative p-5 shadow-xl rounded-xl mb-5 bg-gray-600">
-        <Spinner v-if="blocksLoading.dbLoading" class="w-8 h-8 absolute right-5 top-5"></Spinner>
-        <div class="text-2xl font-bold mb-6">База данных</div>
-        <div class="flex flex-wrap items-center gap-5">
             <Button theme="info" icon="cloud_upload">
                 <input 
                     type="file"
@@ -32,7 +26,6 @@
 
 <script setup lang="ts">
 import Button from '@/components/common/Button.vue'
-import Spinner from '@/components/common/Spinner.vue'
 import DB from '@/db/db'
 import { toast } from '@/helpers/toast'
 import { profilesFilter } from '@/reactive/useProfilesFilter'

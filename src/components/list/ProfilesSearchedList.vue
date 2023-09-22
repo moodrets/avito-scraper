@@ -156,5 +156,6 @@ function onPushProfilesMultipleInParsingFilter() {
     reviewsFilter.profileLinksHighlightDuplicates()
     reviewsFilter.profileLinksRemoveEmpty()
     appTabs.changeTab(AppTabsEnum.ProfilesParsing)
+    reviewsFilter.profileLinkScrollToLast()
 }
 </script>

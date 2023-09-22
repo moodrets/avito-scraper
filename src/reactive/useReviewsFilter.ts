@@ -159,7 +159,7 @@ class ReviewsFilter {
                     behavior: 'smooth' 
                 })
             }
-        }, 100)
+        }, 200)
     }
 
     public async setFilterFromDB() {
