@@ -5,9 +5,10 @@
         </div>
     </template>
     <template v-else-if="profilesSavedList.list.value.length">
+        <ProfilesSavedFilter class="mb-10"></ProfilesSavedFilter>
         <Container orientation="vertical" @drop="onDrop" class="pb-14">
             <Draggable
-                v-for="profile in profilesSavedList.list.value"
+                v-for="profile in profilesSavedList.filteredList.value"
                 :key="profile.id"
                 :class="profile.opened ? 'ring ring-blue-400' : ''"
                 class="rounded-xl bg-gray-600 shadow-xl mb-3"
@@ -110,6 +111,7 @@
 import Spinner from '@/components/common/Spinner.vue'
 import Modal from '@/components/common/Modal.vue'
 import Button from '@/components/common/Button.vue'
+import ProfilesSavedFilter from '@/components/filters/ProfilesSavedFilter.vue'
 
 import { Container, Draggable } from 'vue3-smooth-dnd'
 import { onMounted, ref, onBeforeMount } from 'vue'
@@ -119,6 +121,7 @@ import { toLocaleString } from '@/helpers/date'
 import { toast } from '@/helpers/toast'
 import { IProfileItemDB, profilesSavedList } from '@/reactive/useProfileSavedList'
 import { reviewsFilter } from '@/reactive/useReviewsFilter'
+import { profilesSavedFilter } from '@/reactive/useProfilesSavedFilter'
 
 const editModalVisible = ref<boolean>(false)
 
@@ -133,6 +136,9 @@ interface DragResults {
 }
 
 function onDrop(dragResult: DragResults) {
+    if (profilesSavedFilter.fields.name || profilesSavedFilter.fields.comment) {
+        return
+    }
     profilesSavedList.list.value = applyDrag(profilesSavedList.list.value, dragResult)
     profilesSavedList.apiUpdateList()
 }

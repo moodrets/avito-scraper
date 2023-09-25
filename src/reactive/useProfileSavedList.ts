@@ -1,9 +1,10 @@
 import DB from "@/db/db"
-import { ref } from "vue"
+import { ref, computed } from "vue"
 import { toast } from "@/helpers/toast"
 import { MessagesEnum } from "@/types/enums"
 import { IProfileItem, profilesParsedList } from "@/reactive/useProfilesParsedList"
 import { getProfileUrlHash } from "@/helpers/common"
+import { profilesSavedFilter } from "@/reactive/useProfilesSavedFilter"
 
 export interface IParsingResultItem {
     parsingDate: number
@@ -28,6 +29,34 @@ export interface IProfileItemDB {
 
 class ProfilesSavedList {
     public list = ref<IProfileItemDB[]>([])
+
+    public filteredList = computed<IProfileItemDB[]>(() => {
+        let list = [...this.list.value]
+
+        if (profilesSavedFilter.fields.name) {
+            return list.filter(profile => {
+                let profileNameLC = profile.name.toLowerCase()
+                let filterNameLC = profilesSavedFilter.fields.name.toLowerCase()
+
+                if (profileNameLC.includes(filterNameLC)) {
+                    return profile
+                }
+            })
+        }
+
+        if (profilesSavedFilter.fields.comment) {
+            return list.filter(profile => {
+                let profileCommentLC = profile.comment.toLowerCase()
+                let filterCommentLC = profilesSavedFilter.fields.comment.toLowerCase()
+
+                if (profileCommentLC.includes(filterCommentLC)) {
+                    return profile
+                }
+            })
+        }
+
+        return list
+    })
 
     public getLastParsingInfo(profile: IProfileItemDB) {
         return this.list.value.find(item => item.url === profile.url)?.parsingResults[0]

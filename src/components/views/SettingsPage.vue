@@ -4,6 +4,11 @@
         <div class="flex flex-wrap items-center gap-5">
             <Button theme="success" icon="save" @click.stop="onSaveModulesData">Сохранить данные</Button>
             <Button theme="danger" icon="restore" @click.stop="onDropModulesData">Сбросить данные</Button>
+        </div>
+    </div>
+    <div class="relative p-5 shadow-xl rounded-xl mb-5 bg-gray-600">
+        <div class="text-2xl font-bold mb-6">Backup</div>
+        <div class="flex flex-wrap items-center gap-5">
             <Button theme="info" icon="cloud_upload">
                 <input 
                     type="file"
