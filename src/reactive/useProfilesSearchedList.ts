@@ -1,5 +1,5 @@
 import { reactive, ref } from "vue"
-import { isEqual, orderBy, uniqWith } from 'lodash'
+import { orderBy, uniqBy } from 'lodash'
 import { profilesSavedList } from '@/reactive/useProfileSavedList'
 import { reviewsFilter } from '@/reactive/useReviewsFilter'
 import { getProfileUrlHash } from "@/helpers/common"
@@ -99,7 +99,7 @@ export class ProfilesSearchedList {
 
     public async pushProfilesList(profilesList: IProfileInAdd[]) {
         let mergeProfiles = [...profilesList, ...this.list.value]
-        let resultArr = uniqWith(mergeProfiles, isEqual)
+        let resultArr = uniqBy(mergeProfiles, 'url')
         this.list.value = resultArr
         this.sortProfileList()
         await this.checkProfilesInDB()
