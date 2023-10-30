@@ -75,8 +75,8 @@ function randomNumberBetween(min: number, max: number) {
 async function getProfileInfo(currentURL: string): Promise<void> {
     const SELECTORS = {
         profileName: '.Sidebar-root-h24MJ [data-marker*="name"]',
-        profileReviewsCount: '.Sidebar-root-h24MJ .desktop-fgq05w',
-        profileRating: '.Sidebar-root-h24MJ [data-marker="profile/score"]',
+        profileReviewsCount: '.Sidebar-root-h24MJ [data-marker="profile"] a[role="button"]',
+        profileRating: '.Sidebar-root-h24MJ [data-marker="profile"] span span',
         profileSubscribers: '.Sidebar-root-h24MJ [data-marker="favorite-seller-counters"]',
         profileAsideInfoItems: '.Sidebar-root-h24MJ .ProfileBadge-root-bcR8G',
         profileActiveAdds_1: '[data-marker="profile-tab(active)"]',
@@ -397,11 +397,12 @@ class ProfilesFactory {
     }
 
     protected SELECTORS = {
-        profileItem: `.iva-item-userInfoStep-dWwGU`,
-        profileItemLink: 'a',
-        profileItemName: 'a p',
-        profileItemRating: '[data-marker="seller-rating/score"]',
-        profileItemReviewsCount: '[data-marker="seller-rating/summary"]'
+        profileItem: `.iva-item-content-rejJg`,
+        profileItemLink: '.iva-item-userInfoStep-dWwGU a',
+        profileItemName: '.iva-item-userInfoStep-dWwGU a p',
+        profileItemRating: '.iva-item-userInfoStep-dWwGU .styles-module-size_s-awPvv span:nth-child(1)',
+        profileItemReviewsCount: '.iva-item-userInfoStep-dWwGU .styles-module-size_s-awPvv span:nth-child(3)',
+        profilePrice: '[data-marker="item-price"] strong span'
     }
 
     protected currentURL!: string
@@ -442,16 +443,19 @@ class ProfilesFactory {
         let profileNameEl = profileElement.querySelector(this.SELECTORS.profileItemName)
         let profileRatingEl = profileElement.querySelector(this.SELECTORS.profileItemRating)
         let profileItemReviewsCountEl = profileElement.querySelector(this.SELECTORS.profileItemReviewsCount)
+        let profilePriceEl = profileElement.querySelector(this.SELECTORS.profilePrice)
 
         let profileItemReviewsCountValue = profileItemReviewsCountEl?.textContent?.replace(/\D/g, '')
         let profileRatingValue = profileRatingEl?.textContent ? parseFloat(profileRatingEl.textContent.replace(',', '.')) : 0
+        let profilePriceElValue = profilePriceEl?.textContent ? parseFloat(profilePriceEl.textContent.replace(/\D/g, '')) : 0
 
         let profileItemData: IProfileInAdd = {
             url: (profileLinkEl as HTMLLinkElement).href,
             name: (profileNameEl as HTMLElement).textContent || '',
             rating: profileRatingValue,
             reviewsCount: profileItemReviewsCountValue ? +profileItemReviewsCountValue : 0,
-            existsInDataBase: false
+            existsInDataBase: false,
+            price: profilePriceElValue ? +profilePriceElValue : 0
         }
 
         return profileItemData

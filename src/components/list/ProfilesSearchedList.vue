@@ -25,6 +25,14 @@
                 </th>
                 <th class="text-left px-4 py-2 border border-white border-opacity-50">
                     <SortHeading
+                        label="Цена"
+                        :sort-types="['price_desc', 'price_asc']"
+                        :current-sort-type="profilesSearchedList.state.profilesListSortType"
+                        @sort="onSort"
+                    ></SortHeading>
+                </th>
+                <th class="text-left px-4 py-2 border border-white border-opacity-50">
+                    <SortHeading
                         label="Рейтинг"
                         :sort-types="['rating_desc', 'rating_asc']"
                         :current-sort-type="profilesSearchedList.state.profilesListSortType"
@@ -73,6 +81,7 @@
                         <a class="text-white hover:text-white text-xl font-medium border-b border-dashed border-white" target="_blank" :href="profile.url">{{ profile.name }}</a>
                     </div>
                 </td>
+                <td class="px-4 py-2 border border-white border-opacity-50 font-medium">{{ profile.price.toLocaleString('ru-RU') }}</td>
                 <td class="px-4 py-2 border border-white border-opacity-50 font-medium">{{ profile.rating }}</td>
                 <td class="px-4 py-2 border border-white border-opacity-50 font-medium">{{ profile.reviewsCount }}</td>
                 <td class="px-4 py-2 border border-white border-opacity-50 font-medium">

@@ -9,6 +9,7 @@ export interface IProfileInAdd {
     name: string
     rating: number
     reviewsCount: number
+    price: number
     existsInDataBase: boolean
 }
 
@@ -36,6 +37,14 @@ export class ProfilesSearchedList {
         this.state.profilesListSortType = sortType
         let copyArray = JSON.parse(JSON.stringify(this.list.value)) as IProfileInAdd[]
         let resultArray: IProfileInAdd[] = []
+
+        if (sortType === 'price_desc') {
+            resultArray = orderBy(copyArray, ['price'], ['desc'])
+        }
+        
+        if (sortType === 'price_asc') {
+            resultArray = orderBy(copyArray, ['price'], ['asc'])
+        }
 
         if (sortType === 'name_desc') {
             resultArray = orderBy(copyArray, ['name'], ['desc'])
