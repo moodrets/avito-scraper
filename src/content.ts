@@ -75,8 +75,10 @@ function randomNumberBetween(min: number, max: number) {
 async function getProfileInfo(currentURL: string): Promise<void> {
     const SELECTORS = {
         profileName: '.Sidebar-root-h24MJ [data-marker*="name"]',
-        profileReviewsCount: '.Sidebar-root-h24MJ [data-marker="profile"] a[role="button"]',
-        profileRating: '.Sidebar-root-h24MJ [data-marker="profile"] span span',
+        profileReviewsCount_1: '.Sidebar-root-h24MJ .desktop-fgq05w',
+        profileReviewsCount_2: '.Sidebar-root-h24MJ [data-marker="profile"] a[role="button"]',
+        profileRating_1: '.Sidebar-root-h24MJ [data-marker="profile/score"]',
+        profileRating_2: '.Sidebar-root-h24MJ [data-marker="profile"] span span',
         profileSubscribers: '.Sidebar-root-h24MJ [data-marker="favorite-seller-counters"]',
         profileAsideInfoItems: '.Sidebar-root-h24MJ .ProfileBadge-root-bcR8G',
         profileActiveAdds_1: '[data-marker="profile-tab(active)"]',
@@ -88,8 +90,10 @@ async function getProfileInfo(currentURL: string): Promise<void> {
 
     // dom elements
     let profileNameEl = document.querySelector(SELECTORS.profileName)
-    let profileReviewsEl = document.querySelector(SELECTORS.profileReviewsCount)
-    let profileRatingEl = document.querySelector(SELECTORS.profileRating)
+    let profileReviewsEl_1 = document.querySelector(SELECTORS.profileReviewsCount_1)
+    let profileReviewsEl_2 = document.querySelector(SELECTORS.profileReviewsCount_2)
+    let profileRatingEl_1 = document.querySelector(SELECTORS.profileRating_1)
+    let profileRatingEl_2 = document.querySelector(SELECTORS.profileRating_2)
     let profileSubscribersEl = document.querySelector(SELECTORS.profileSubscribers)
     let profileDeviveryInfoEl = [...document.querySelectorAll(SELECTORS.profileAsideInfoItems)]?.find(item => item.textContent?.includes('продаж'))
     let profileActiveAddsEl_1 = document.querySelector(SELECTORS.profileActiveAdds_1)
@@ -105,16 +109,18 @@ async function getProfileInfo(currentURL: string): Promise<void> {
     let profileActiveAddsValue_3 = profileActiveAddsEl_3?.textContent ? profileActiveAddsEl_3.textContent.replace(/\D/g, '') : null
     let profileCompletedAddsValue_1 = profileCompletedAddsEl_1?.textContent ? profileCompletedAddsEl_1.textContent.replace(/\D/g, '') : null
     let profileCompletedAddsValue_2 = profileCompletedAddsEl_2?.textContent ? profileCompletedAddsEl_2.textContent.replace(/\D/g, '') : null
-    let profileRatingValue = profileRatingEl?.textContent ? profileRatingEl.textContent.replace(',', '.') : ''
+    let profileRatingValue_1 = profileRatingEl_1?.textContent ? profileRatingEl_1.textContent.replace(',', '.') : ''
+    let profileRatingValue_2 = profileRatingEl_2?.textContent ? profileRatingEl_2.textContent.replace(',', '.') : ''
+    let profileReviewsCountValue_1 = profileReviewsEl_1?.textContent ? profileReviewsEl_1.textContent : null
+    let profileReviewsCountValue_2 = profileReviewsEl_2?.textContent ? profileReviewsEl_2.textContent : null
     let profileNameValue = profileNameEl?.textContent ? profileNameEl.textContent : null
-    let profileReviewsCountValue = profileReviewsEl?.textContent ? profileReviewsEl.textContent : null
     let profileDeliveryInfoValue = profileDeviveryInfoEl?.textContent ? profileDeviveryInfoEl.textContent : null
 
     let profileInform: IProfileItem = {
         id: Date.now(),
         name: profileNameValue || MessagesEnum.InfoNotFound,
-        rating: profileRatingValue || MessagesEnum.InfoNotFound,
-        reviewsCount: profileReviewsCountValue || MessagesEnum.InfoNotFound,
+        rating: profileRatingValue_1 || profileRatingValue_2 || MessagesEnum.InfoNotFound,
+        reviewsCount: profileReviewsCountValue_1 || profileReviewsCountValue_2 || MessagesEnum.InfoNotFound,
         subscribers: profileSubscribersValue || MessagesEnum.InfoNotFound,
         deliveryInfo: profileDeliveryInfoValue || MessagesEnum.ProfileWithoutDelivery,
         activeAdds: profileActiveAddsValue_1 || profileActiveAddsValue_2 || profileActiveAddsValue_3 || MessagesEnum.InfoNotFound,
@@ -177,48 +183,22 @@ class ReviewsFactory {
     }
 
     protected makeMonthNumberFromText(monthText: string): string {
-        let monthNumber = ''
-
-        switch (monthText) {
-            case 'января':
-                monthNumber = '01'
-                break
-            case 'февраля':
-                monthNumber = '02'
-                break
-            case 'марта':
-                monthNumber = '03'
-                break
-            case 'апреля':
-                monthNumber = '04'
-                break
-            case 'мая':
-                monthNumber = '05'
-                break
-            case 'июня':
-                monthNumber = '06'
-                break
-            case 'июля':
-                monthNumber = '07'
-                break
-            case 'августа':
-                monthNumber = '08'
-                break
-            case 'сентября':
-                monthNumber = '09'
-                break
-            case 'октября':
-                monthNumber = '10'
-                break
-            case 'ноября':
-                monthNumber = '11'
-                break
-            case 'декабря':
-                monthNumber = '12'
-                break
+        let monthDictionary: Record<string, string> = {
+            'января': '01',
+            'февраля': '02',
+            'марта': '03',
+            'апреля': '04',
+            'мая': '05',
+            'июня': '06',
+            'июля': '07',
+            'августа': '08',
+            'сентября': '09',
+            'октября': '10',
+            'ноября': '11',
+            'декабря': '12',
         }
 
-        return monthNumber
+        return monthDictionary[monthText as string]
     }
     
     protected makeDateFromReviewString(dateString: string): number {
@@ -400,8 +380,8 @@ class ProfilesFactory {
         profileItem: `.iva-item-content-rejJg`,
         profileItemLink: '.iva-item-userInfoStep-dWwGU a',
         profileItemName: '.iva-item-userInfoStep-dWwGU a p',
-        profileItemRating: '.iva-item-userInfoStep-dWwGU .styles-module-size_s-awPvv span:nth-child(1)',
-        profileItemReviewsCount: '.iva-item-userInfoStep-dWwGU .styles-module-size_s-awPvv span:nth-child(3)',
+        profileItemRating: '.iva-item-userInfoStep-dWwGU [data-marker="seller-rating/score"]',
+        profileItemReviewsCount: '.iva-item-userInfoStep-dWwGU [data-marker="seller-rating/summary"]',
         profilePrice: '[data-marker="item-price"] strong span'
     }
 

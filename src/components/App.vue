@@ -106,6 +106,7 @@ onMounted(async () => {
 
         if (action === 'profiles-parsing-ended') {
             if (status === 'success') {
+                // может не работать из-за селекторов рейтинга и отзывов
                 setExtensionTabActive()
                 appTabs.changeTab(AppTabsEnum.ProfilesSearch)
                 profilesSearchedList.state.loading = false
