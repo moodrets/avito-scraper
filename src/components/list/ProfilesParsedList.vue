@@ -195,8 +195,8 @@ import { profilesSavedList } from '@/reactive/useProfileSavedList';
 
 function onCloseModal() {
     profilesParsedList.state.contentModalVisible = false
-    profilesParsedList.state.contentModalData = []
     profilesParsedList.state.contentModalFilterModel = ''
+    profilesParsedList.state.contentModalData = []
 }
 
 function onCopyProductName(productName: string) {
@@ -250,6 +250,7 @@ function onCheck(checked: boolean, profile: IProfileItem) {
 }
 
 async function onDeleteProfile(profile: IProfileItem, index: number) {
+    delete profilesParsedList.state.checkedItems[profile.url]
     if (profile.id) {
         profilesParsedList.apiRemoveProfile(profile.id)
     }
